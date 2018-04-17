@@ -1,0 +1,26 @@
+\section{Linked-List}
+
+\begin{algorithm}[H]
+	
+	\SetKwProg{Find}{Procedure find}{}{}
+	\Find{\FMain{Node head, int key}}{
+		Node pred=head, curr=head$\rightarrow$next, succ=null\;
+		boolean swap = false\;
+		
+		\While {true} {
+			succ = curr$\rightarrow$next\;
+			\eIf {curr is marked} {
+				swap = pred$\rightarrow$next.CAS(curr,succ)\;
+				curr = succ\;
+			}{
+				\If {curr$\rightarrow$key $\geq$ key} {
+					\KwRet \<pred,curr>\;
+				}
+				pred = curr\;
+				curr = succ\;
+			}
+		}
+	}
+
+	\caption{Harris Non-Blocking Algorithm}
+\end{algorithm}
