@@ -1,31 +1,98 @@
 \section{Linked-List}
 
-\begin{algorithmic}
-\Procedure{\texttt{WRITE}(val)}{}
-\begin{algorithm}[H]
-	
-	\SetKwProg{Find}{Procedure find}{}{}
-	\Find{\FMain{Node head, int key}}{
-		Node pred=head, curr=head$\rightarrow$next, succ=null\;
-		boolean swap = false\;
+The original algorithm by Harris is presented in Figure \ref{Harris original}. Harris approach uses an Atomic-Markable-Reference object, in which the next field of a Node, in addition to a reference to the next node in the list, is also marked or unmarked. The two fields can be update atomically, either together or individually. This can be done by using the most-significant-bit of next for the marking. For simplicity, we assume node.next to return the reference, while one can ask whether it is marked or unmarked. Therefore, whenever writing to node.next, or performing CAS, both the reference and the marking state should be mention.
+
+
+
+\begin{procedure}[H]
+	\KwData{Node* pred, curr, succ}
 		
-		\While {true} {
-			succ = curr$\rightarrow$next\;
-			\eIf {curr is marked} {
-				swap = pred$\rightarrow$next.CAS(curr,succ)\;
+	retry: \While{true}{ \label{find-outer-loop}
+		pred = head\;
+		curr = head.next\;	
+		\While{true}{
+			succ = curr.next\;
+			\eIf{curr.next is marked}{
+				\If{pred.next.CAS(unmarked curr,unmarked succ) == false}{
+					\textbf{go to} retry\;
+				}
 				curr = succ\;
 			}{
-				\If {curr$\rightarrow$key $\geq$ key} {
-					\KwRet \<pred,curr>\;
+				\If {curr.key $\geq$ key} {
+					\KwRet $<$pred,curr$>$;
 				}
 				pred = curr\;
 				curr = succ\;
 			}
 		}
 	}
+		
+	\caption{Find (int key)}
+\end{procedure}
 
+\begin{figure}
+	
+	\textbf{Shared variables:} Node* head
+
+	\begin{procedure}[H]
+		\KwData{Node* pred, curr\;
+		$\qquad \quad$ Node node = \textbf{new} Node (key)\;
+	}	
+		
+		\While{true}{
+			$<$pred, curr$>$ = find(key)\;
+			\eIf{curr.key == key}{
+				\KwRet false\;
+			}{
+				node.next = unmarked curr\;
+				\If{pred.next.CAS (unmarked curr, unmarked node)}{
+				\KwRet true\;
+				}
+			}		
+		}
+		
+		\caption{Insert (int key)}
+	\end{procedure}
+
+
+	\begin{procedure}[H]
+		\KwData{Node* pred, curr, succ}	
+		
+		\While{true}{
+			$<$pred, curr$>$ = find(key)\;
+			\eIf{curr.key != key}{
+				\KwRet false\;
+			}{
+				succ = curr.next\;
+				\If{curr.next.CAS (unmarked succ, marked succ)}{
+					pred.next.CAS (unmarked curr, unmarked succ)\;
+					\KwRet true\;
+				}
+			}		
+		}
+		
+		\caption{Delete (int key)}
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\KwData{Node* curr = head}	
+		
+		\While{curr.key < key}{
+			curr = curr.next\;	
+		}
+		\KwRet (curr.key == key $\&\&$ curr.next is unmarked)\;
+		
+		\caption{Contains (int key)}
+	\end{procedure}
+	
 	\caption{Harris Non-Blocking Algorithm}
-\end{algorithm}
-\EndProcedure
-\end{algorithmic}
+	\label{Harris original}
+\end{figure}
+
+
+
+
+
+
+
 
