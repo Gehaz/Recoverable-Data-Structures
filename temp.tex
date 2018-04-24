@@ -8,10 +8,37 @@
 %\usepackage{algorithm}
 %\usepackage{algorithmic}
 \usepackage{algpseudocode}
-\usepackage[linesnumbered, ruled, noresetcount]{algorithm2e}
+\usepackage[linesnumbered, ruled, noresetcount, vlined]{algorithm2e}
 \usepackage{enumerate}
 \usepackage{paralist}
 \usepackage{fullpage}
+
+
+
+
+\SetKwBlock{Loop}{loop}{end loop}
+\SetKw{NCS}{Non Critical Section}
+\SetKw{CS}{Critical Section}
+%\SetKw{Struct}{struct}
+\SetKw{Int}{int}
+\SetKw{Bool}{boolean}
+\SetKw{Array}{array}
+\SetKw{Of}{of}
+\SetKw{Const}{const}
+\SetKw{Define}{define}
+\SetKw{Init}{init}
+\SetKw{Goto}{goto}
+\SetKw{Await}{await}
+\SetKw{True}{true}
+\SetKw{False}{false}
+\SetKw{Cont}{continue loop}
+\SetKw{Local}{local}
+\SetKw{Shared}{shared}
+\SetKw{Null}{null}
+\SetKw{Swap}{FAS}
+\SetKw{CAS}{CAS}
+\SetKw{Ref}{ref to}
+\newcommand{\NIL}{\ensuremath{\bot}}
 
 \begin{document}
 	
@@ -38,6 +65,13 @@
 	\KwData{this text}
 	\KwResult{how to write algorithm with \LaTeX2e }
 	initialization\;
+	
+	\hrule
+	\smallskip
+%	\denseSpace
+	\textbf{Procedure Exit(\Int pNum)} \nllabel{EMCS:Exit}\;
+	\hrule
+	\emph{myNode} := \emph{nodes}[\emph{pNum}] \nllabel{EMCS:getMyNode}\;
 	
 		\While{not at end of this document}{
 			read current\;

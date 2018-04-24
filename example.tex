@@ -1,25 +1,37 @@
 \section{Linked-List}
 
-The original algorithm by Harris is presented in Figure \ref{Harris original}. Harris approach uses an Atomic-Markable-Reference object, in which the next field of a Node, in addition to a reference to the next node in the list, is also marked or unmarked. The two fields can be update atomically, either together or individually. This can be done by using the most-significant-bit of next for the marking. For simplicity, we assume node.next to return the reference, while one can ask whether it is marked or unmarked. Therefore, whenever writing to node.next, or performing CAS, both the reference and the marking state should be mention.
+\DontPrintSemicolon
+\SetKw{CAS}{CAS}
+\SetKw{True}{true}
+\SetKw{False}{false}
+\SetKw{Int}{int}
+
+The original algorithm by Harris is presented in Figure \ref{Harris original}. Harris approach uses an Atomic-Markable-Reference object, in which the next field of a Node, in addition to a reference to the next node in the list, is also marked or unmarked. The two fields can be update atomically, either together or individually. This can be done by using the most-significant-bit of next for the marking. For simplicity, we assume node.next returns the reference, while a query can be used to identify if it is marked. Therefore, whenever writing to node.next, or performing CAS, both the reference and marking state should be mention.
+
+For ease of presentation, we assume a List is initialised with head and tail, containing keys $\infty, -\infty$ respectively, while we do not allow insert or delete of these keys.
+
+The Lookup procedure is used by Insert and Delete, in order to find the node with the lowest key greater or equal to the input key, and its predecessor on the list, while physically removing any marked node on its way. To insert a key $\alpha$, a process first finds the right location for $\alpha$ using the Lookup procedure, and then tries to set pred.next to point to a new node containing $\alpha$ by performing CAS. To delete a key $\alpha$, a process looks for it using the Lookup procedure, and then tries to logically remove it by marking curr.next using CAS. In case the marking was successful, the process also tries to physically remove the node. To find a key $\alpha$, a process simply looks to see if there is a node in the list with key $\alpha$ which is unmarked.
 
 
 
 \begin{procedure}[H]
+	\caption{Lookup (int key)}
+	
 	\KwData{Node* pred, curr, succ}
 		
-	retry: \While{true}{ \label{find-outer-loop}
+	retry: \While{\True}{ \label{find-outer-loop}
 		pred = head\;
 		curr = head.next\;	
-		\While{true}{
+		\While{\True}{
 			succ = curr.next\;
 			\eIf{curr.next is marked}{
-				\If{pred.next.CAS(unmarked curr,unmarked succ) == false}{
+				\If{pred.next.\CAS(unmarked curr,unmarked succ) == \False}{
 					\textbf{go to} retry\;
 				}
 				curr = succ\;
 			}{
 				\If {curr.key $\geq$ key} {
-					\KwRet $<$pred,curr$>$;
+					\KwRet $<$pred,curr$>$
 				}
 				pred = curr\;
 				curr = succ\;
@@ -27,7 +39,6 @@ The original algorithm by Harris is presented in Figure \ref{Harris original}. H
 		}
 	}
 		
-	\caption{Find (int key)}
 \end{procedure}
 
 \begin{figure}
@@ -35,63 +46,74 @@ The original algorithm by Harris is presented in Figure \ref{Harris original}. H
 	\textbf{Shared variables:} Node* head
 
 	\begin{procedure}[H]
+		\caption{Insert (int key)}
+		
 		\KwData{Node* pred, curr\;
 		$\qquad \quad$ Node node = \textbf{new} Node (key)\;
 	}	
 		
-		\While{true}{
-			$<$pred, curr$>$ = find(key)\;
+		\While{\True}{
+			$<$pred, curr$>$ = lookup(key)\;
 			\eIf{curr.key == key}{
-				\KwRet false\;
+				\KwRet \False\;
 			}{
 				node.next = unmarked curr\;
-				\If{pred.next.CAS (unmarked curr, unmarked node)}{
-				\KwRet true\;
+				\If{pred.next.\CAS (unmarked curr, unmarked node)}{
+				\KwRet \True\;
 				}
 			}		
 		}
 		
-		\caption{Insert (int key)}
 	\end{procedure}
 
 
 	\begin{procedure}[H]
+		\caption{Delete (int key)}
+		
 		\KwData{Node* pred, curr, succ}	
 		
-		\While{true}{
-			$<$pred, curr$>$ = find(key)\;
+		\While{\True}{
+			$<$pred, curr$>$ = lookup(key)\;
 			\eIf{curr.key != key}{
-				\KwRet false\;
+				\KwRet \False\;
 			}{
 				succ = curr.next\;
-				\If{curr.next.CAS (unmarked succ, marked succ)}{
-					pred.next.CAS (unmarked curr, unmarked succ)\;
-					\KwRet true\;
+				\If{curr.next.\CAS (unmarked succ, marked succ)}{
+					pred.next.\CAS (unmarked curr, unmarked succ)\;
+					\KwRet \True\;
 				}
-			}		
+			}	
 		}
 		
-		\caption{Delete (int key)}
 	\end{procedure}
 	
 	\begin{procedure}[H]
+		\caption{Find (int key)}
+		
 		\KwData{Node* curr = head}	
 		
-		\While{curr.key < key}{
+		\While{curr.key $<$ key}{
 			curr = curr.next\;	
 		}
 		\KwRet (curr.key == key $\&\&$ curr.next is unmarked)\;
 		
-		\caption{Contains (int key)}
 	\end{procedure}
 	
 	\caption{Harris Non-Blocking Algorithm}
 	\label{Harris original}
 \end{figure}
 
+\newpage
+\subsubsection{Crash-Recovery}
 
+The linearization point are as follows:
+\begin{itemize}
+	\item [Insert:] At the point of a successful CAS
+	\item [Delete:] At the point of a successful CAS for marking the node (logical delete)
+	\item [Find:] At the point of the procedure return, that is, either when curr.key != key, or at the second condition test.
+\end{itemize}
 
-
+Following these linearization points (committing proof...), insert and delete operation are linearized at the point where they affect the system. That is, if there is a linearization point to insert operation, then all process will see the new node starting from this point, and if a node was logically removed, then all processes treat it as a removed node. Therefore, once a process recovers following a crash, the List data structure is consistent - if it has a pending operation, then either this operation already had a linearization point and affect all other processes, or that it did not affect the data structure at all.
 
 
 
