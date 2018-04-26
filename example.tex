@@ -127,7 +127,7 @@ Each node is equipped with a new field named owner. This field is used to determ
 
 Each process $p$ has a designated location in the memory, Announce[p]. Before trying to apply an operation, $p$ writes to Announce[p] the entire data needed to complete the operation. Upon recovery, $p$ can read Announce[p], and based on it to complete its pending operation, in case there is such. Formally, Announce[p] contains a pointer to a structure containing all the relevant data.
 
-We present the modified algorithm. Only the procedures which require changes are presented.
+We present the modified algorithm. Only the procedures which require changes are presented. For simplicity, a process creates a new operation structure each time it writes to Announce, although a process can use two such structures alternately.
 
 
 \begin{figure}
@@ -177,9 +177,7 @@ We present the modified algorithm. Only the procedures which require changes are
 				\If{curr.next.\CAS (unmarked succ, marked succ)}{ 
 					curr.owner.\CAS (null, p)\; \label{recoverable-logical-delete}
 					pred.next.\CAS (unmarked curr, unmarked succ)\;
-					\If{curr.owner == p}{
-						\KwRet \True\;
-					}
+					\KwRet (curr.owner == p)\;
 				}
 			}	
 		}
