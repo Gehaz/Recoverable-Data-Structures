@@ -123,18 +123,18 @@ However, even though the List data structure is consistent, the response of the 
 
 To solve the problems mention above, we present a modification for the algorithm such that in case a process fails, upon recovery it is able to complete its last pending operation and also return the response value.
 
-Each node is equipped with a new field named owner. This field is used to determine which process is the one to delete the node. After a process $p$ successfully mark a node (logical delete), it tries to write its id to owner using CAS. This way, if a process fails during a delete, it can use owner in order to determine the response value. We assume owner is initialized to null when creating a new node.
+Each node is equipped with a new field named deleter. This field is used to determine which process is the one to delete the node. After a process $p$ successfully mark a node (logical delete), it tries to write its id to deleter using CAS. This way, if a process fails during a delete, it can use deleter in order to determine the response value. We assume deleter is initialized to null when creating a new node.
 
-Each process $p$ has a designated location in the memory, Announce[p]. Before trying to apply an operation, $p$ writes to Announce[p] the entire data needed to complete the operation. Upon recovery, $p$ can read Announce[p], and based on it to complete its pending operation, in case there is such. Formally, Announce[p] contains a pointer to a structure containing all the relevant data.
+Each process $p$ has a designated location in the memory, Backup[p]. Before trying to apply an operation, $p$ writes to Backup[p] the entire data needed to complete the operation. Upon recovery, $p$ can read Backup[p], and based on it to complete its pending operation, in case there is such. Formally, Backup[p] contains a pointer to a structure containing all the relevant data.
 
-We present the modified algorithm. Only the procedures which require changes are presented. For simplicity, a process creates a new operation structure each time it writes to Announce, although a process can use two such structures alternately.
+We present the modified algorithm. Only the procedures which require changes are presented. For simplicity, a process creates a new operation structure each time it writes to Backup, although a process can use two such structures alternately.
 
 
 \begin{figure}
 	
 	\textbf{Shared variables:} Node* head \\
 	
-	Define operation: struct \{ \nllabel{StructDefStart}
+	Define Info: struct \{ \nllabel{StructDefStart}
 	\emph{type}: OperationType, \emph{pred},\emph{curr}, \emph{new}: Node* \} \\
 	
 	Code for process p:\\
@@ -151,9 +151,9 @@ We present the modified algorithm. Only the procedures which require changes are
 				\KwRet \False\;
 			}{
 				node.next = unmarked curr\;
-				Announce[p] = new operation (Insert, pred, curr, new)\;
+				Backup[p] = new Info (Insert, pred, curr, new)\;
 				\If{pred.next.\CAS (unmarked curr, unmarked node)}{
-				%	Announce[p].type = InsertDone\;
+				%	Backup[p].type = InsertDone\;
 					\KwRet \True\;
 				}
 			}		
@@ -173,11 +173,11 @@ We present the modified algorithm. Only the procedures which require changes are
 				\KwRet \False\;
 			}{
 				succ = curr.next\;
-				Announe[p] = new operation (Delete, pred, curr, null)\;
+				Announe[p] = new Info (Delete, pred, curr, null)\;
 				\If{curr.next.\CAS (unmarked succ, marked succ)}{ 
-					curr.owner.\CAS (null, p)\; \label{recoverable-logical-delete}
+					curr.deleter.\CAS (null, p)\; \label{recoverable-logical-delete}
 					pred.next.\CAS (unmarked curr, unmarked succ)\;
-					\KwRet (curr.owner == p)\;
+					\KwRet (curr.deleter == p)\;
 				}
 			}	
 		}
@@ -196,15 +196,15 @@ We present the modified algorithm. Only the procedures which require changes are
 \begin{procedure}[H]
 	\caption{Recover ()}
 	
-	\If{Announce[p].type = Insert}{
-		\eIf{Announce[p].new is in the list $||$ Announce[p].curr.next is marked}{
+	\If{Backup[p].type = Insert}{
+		\eIf{Backup[p].new is in the list $||$ Backup[p].curr.next is marked}{
 			\KwRet \True\;
 		}{
 			\textbf{go to} \ref{recover-insert} \tcp*{restart Insert}\;
 		}	
 	}
-	\If{Announce[p].type == Delete}{
-		\eIf{Announce[p].curr.next is marked}{
+	\If{Backup[p].type == Delete}{
+		\eIf{Backup[p].curr.next is marked}{
 			\textbf{go to} \ref{recoverable-logical-delete} \tcp*{try to complete the deletation}\;
 		}{
 			\textbf{go to} \ref{recover-delete} \tcp*{restart Delete}\;
@@ -216,9 +216,9 @@ We present the modified algorithm. Only the procedures which require changes are
 \subsubsection*{Correctness Argument}
 In the following, we give an intuition for the correctness of the algorithm.
 
-For the Insert operation, $p$ tries to add the new node by performing a CAS. If it succeeds it will return true if it suffers no failure. In case of a failure after writing to Announce[p], upon recovery $p$ tries to complete its operation. If it already performed a successful CAS, that is, the node was added to the list, then either it is still in the list or that it was deleted. Therefore, if $p$ can find the new node in the list (using a procedure similar to find), or that it is marked, it must be that the node was added, and $p$ can return true. Otherwise, $p$ either crashed before performing the CAS, or that the CAS was unsuccessful. In both cases, the new node was not added, and $p$ can restart the Insert procedure.
+For the Insert operation, $p$ tries to add the new node by performing a CAS. If it succeeds it will return true if it suffers no failure. In case of a failure after writing to Backup[p], upon recovery $p$ tries to complete its operation. If it already performed a successful CAS, that is, the node was added to the list, then either it is still in the list or that it was deleted. Therefore, if $p$ can find the new node in the list (using a procedure similar to find), or that it is marked, it must be that the node was added, and $p$ can return true. Otherwise, $p$ either crashed before performing the CAS, or that the CAS was unsuccessful. In both cases, the new node was not added, and $p$ can restart the Insert procedure.
 
-For the delete operation, once $p$ logically delete a node $v$, it also tries to announce itself as the "removal" of the node by writing its id to owner using CAS. Assume a process $p$ crash while trying to delete the node. Upon recovery, if $p$ sees the node is not marked, then obliviously its deletion did not took affect, and it can restart the delete operation. However, if the node is marked, it might be that $p$ marked it before the crash, or it might be some other process trying to delete the same node did so. As $p$ can not distinguish between the two, and since we desire for a lock-free implementation, we let $p$ to try and complete the deletion, even if it is not to process to logically delete the node. To avoid a scenario in which more then a single process "delete" the same node, they all compete for owner using CAS. The first one to perform it will win, and it is the only process to return true. It is easy to verify once a process writes to owner, then eventually, if given enough time with no crash, it returns true, while any other process trying to delete the same node will have to retry the delete operation.
+For the delete operation, once $p$ logically delete a node $v$, it also tries to announce itself as the "removal" of the node by writing its id to deleter using CAS. Assume a process $p$ crash while trying to delete the node. Upon recovery, if $p$ sees the node is not marked, then obliviously its deletion did not took affect, and it can restart the delete operation. However, if the node is marked, it might be that $p$ marked it before the crash, or it might be some other process trying to delete the same node did so. As $p$ can not distinguish between the two, and since we desire for a lock-free implementation, we let $p$ to try and complete the deletion, even if it is not to process to logically delete the node. To avoid a scenario in which more then a single process "delete" the same node, they all compete for deleter using CAS. The first one to perform it will win, and it is the only process to return true. It is easy to verify once a process writes to deleter, then eventually, if given enough time with no crash, it returns true, while any other process trying to delete the same node will have to retry the delete operation.
 
 
 
