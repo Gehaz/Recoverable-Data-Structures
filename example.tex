@@ -30,7 +30,7 @@ The Lookup procedure is used by Insert and Delete in order to find the node with
 				curr = succ\;
 			}{
 				\If {curr.key $\geq$ key} {
-					\KwRet $<$pred,curr$>$
+					\KwRet $\langle$pred,curr$\rangle$
 				}
 				pred = curr\;
 				curr = succ\;
@@ -54,7 +54,7 @@ The Lookup procedure is used by Insert and Delete in order to find the node with
 	}	
 		
 		\While{\True}{
-			$<$pred, curr$>$ = lookup(key)\;
+			$\langle$pred, curr$\rangle$ = lookup(key)\;
 			\eIf{curr.key == key}{
 				\KwRet \False\;
 			}{
@@ -74,7 +74,7 @@ The Lookup procedure is used by Insert and Delete in order to find the node with
 		\KwData{Node* pred, curr, succ}	
 		
 		\While{\True}{
-			$<$pred, curr$>$ = lookup(key)\;
+			$\langle$pred, curr$\rangle$ = lookup(key)\;
 			\eIf{curr.key != key}{
 				\KwRet \False\;
 			}{
@@ -219,6 +219,56 @@ In the following, we give an intuition for the correctness of the algorithm.
 For the Insert operation, $p$ tries to add the new node by performing a CAS. If it succeeds it will return true if it suffers no failure. In case of a failure after writing to Backup[p], upon recovery $p$ tries to complete its operation. If it already performed a successful CAS, that is, the node was added to the list, then either it is still in the list or that it was deleted. Therefore, if $p$ can find the new node in the list (using a procedure similar to find), or that it is marked, it must be that the node was added, and $p$ can return true. Otherwise, $p$ either crashed before performing the CAS, or that the CAS was unsuccessful. In both cases, the new node was not added, and $p$ can restart the Insert procedure.
 
 For the delete operation, once $p$ logically delete a node $v$, it also tries to announce itself as the "removal" of the node by writing its id to deleter using CAS. Assume a process $p$ crash while trying to delete the node. Upon recovery, if $p$ sees the node is not marked, then obliviously its deletion did not took affect, and it can restart the delete operation. However, if the node is marked, it might be that $p$ marked it before the crash, or it might be some other process trying to delete the same node did so. As $p$ can not distinguish between the two, and since we desire for a lock-free implementation, we let $p$ to try and complete the deletion, even if it is not to process to logically delete the node. To avoid a scenario in which more then a single process "delete" the same node, they all compete for deleter using CAS. The first one to perform it will win, and it is the only process to return true. It is easy to verify once a process writes to deleter, then eventually, if given enough time with no crash, it returns true, while any other process trying to delete the same node will have to retry the delete operation.
+
+
+\section{Elimination Stack}
+
+\begin{procedure}[H]
+	\caption{Exchange ($\langle$T,flag$\rangle$ slot, T myitem, long timeout)}
+	
+	\KwData{long timeBound = getNanos() + timeout\;}
+	
+	\While{\True}{
+		\If{getNanos() $>$ timeBound} {\KwRet TIMEOUT}
+		$\langle$youritem,state$\rangle$ = slot\;
+		\Switch{state} {
+			\Case{EMPTY} {
+				\If{slot.\CAS{$\langle$youritem,EMPTY$\rangle$, $\langle$myitem, WAITING$\rangle$}}{
+					\While{getNanos() $<$ timeBound}{
+						$\langle$youritem,state$\rangle$ = slot\;
+						\If{state == BUSY} {
+							slot = $\langle$null, EMPTY$\rangle$\;
+							\KwRet youritem\;
+						}
+					}
+					\eIf{slot.\CAS($\langle$myitem,WAITING$\rangle$, $\langle$null,EMPTY$\rangle$)}{
+						\KwRet TIMEOUT\;
+					} {
+						$\langle$youritem,state$\rangle$ = slot\;
+						slot = $\langle$null, EMPTY$\rangle$\;
+						\KwRet youritem \;
+					}
+				}
+				break\;
+			}
+			\Case{WAITING} {
+				\If{slot.\CAS($\langle$youritem,state$\rangle$, $\langle$myitem,BUSY$\rangle$)}{
+					\KwRet youritem\;
+				}
+				break\;
+			}
+			\Case{BUSY} {
+				break\;
+			}
+		}	
+	}
+\end{procedure}
+
+
+
+
+
+
 
 
 
