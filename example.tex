@@ -130,7 +130,7 @@ Each process $p$ has a designated location in the memory, Backup[p]. Before tryi
 We present the modified algorithm. Only the procedures which require changes are presented. For simplicity, a process creates a new operation structure each time it writes to Backup, although a process can use two such structures alternately.
 
 
-\begin{figure}
+\begin{figure}[h]
 	
 	\textbf{Shared variables:} Node* head \\
 	
@@ -191,9 +191,7 @@ We present the modified algorithm. Only the procedures which require changes are
 
 
 
-\newpage
-
-\begin{procedure}[H]
+\begin{procedure}[b]
 	\caption{Recover ()}
 	
 	\If{Backup[p].type = Insert}{
