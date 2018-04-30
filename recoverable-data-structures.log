@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  29 APR 2018 18:55
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  30 APR 2018 18:46
 entering extended mode
 **recoverable-data-structures.tex
 
@@ -348,14 +348,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 137--139
 
  []
 
-[3]) [4] [5] [6]
+[3] [4]) [5] [6] [7]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\recoverable-data
 -structures.aux) ) 
 Here is how much of TeX's memory you used:
- 4544 strings out of 493921
- 61655 string characters out of 3147276
- 154316 words of memory out of 3000000
- 7776 multiletter control sequences out of 15000+200000
+ 4550 strings out of 493921
+ 61698 string characters out of 3147276
+ 155316 words of memory out of 3000000
+ 7782 multiletter control sequences out of 15000+200000
  10024 words of font info for 38 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
  45i,27n,40p,1196b,599s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -367,9 +367,9 @@ es/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX
  2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fon
 ts/type1/public/amsfonts/cm/cmti10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 /public/amsfonts/cm/cmtt10.pfb>
-Output written on recoverable-data-structures.pdf (6 pages, 123504 bytes).
+Output written on recoverable-data-structures.pdf (7 pages, 125399 bytes).
 PDF statistics:
- 53 PDF objects out of 1000 (max. 8388607)
+ 58 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

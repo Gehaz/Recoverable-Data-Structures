@@ -233,7 +233,7 @@ For the delete operation, once $p$ logically delete a node $v$, it also tries to
 		$\langle$youritem,state$\rangle$ = slot\;
 		\Switch{state} {
 			\Case{EMPTY} {
-				\If{slot.\CAS{$\langle$youritem,EMPTY$\rangle$, $\langle$myitem, WAITING$\rangle$}}{
+				\If{slot.\CAS($\langle$youritem,EMPTY$\rangle$, $\langle$myitem, WAITING$\rangle$)}{
 					\While{getNanos() $<$ timeBound}{
 						$\langle$youritem,state$\rangle$ = slot\;
 						\If{state == BUSY} {
@@ -266,11 +266,39 @@ For the delete operation, once $p$ logically delete a node $v$, it also tries to
 
 
 
+\begin{procedure}
+	\caption{TryPush (Node newNode)}
+	
+	Node* oldTop = Top\;
+	newNode.next = oldTop\;
+	\eIf{Top.\CAS(oldTop, newNode)} {\KwRet \True} {\KwRet \False}
 
+\end{procedure}
 
+\begin{procedure}
+	\caption{TryPop (void)}
+	
+	Node *oldTop = Top\;
+	Node *newTop\;
+	\If{oldTop == NULL}{\KwRet EMPTY}
+	newTop = oldTop.next\;
+	\If{Top.\CAS(oldTop, newTop)}{\KwRet oldTop}
+	\KwRet NULL\;
+\end{procedure}
 
-
-
+\begin{procedure}
+	\caption{push (T myitem)}
+	
+	Node *nd = new Node (myitem)\;
+	\While{\True}{
+		\If{TryPush(nd)}{\KwRet \True}
+		othervalue = visit(nd)\;
+		\eIf{othervalue == NULL}{
+			Record Success ()\;
+			\KwRet \True\;
+		}{Record Failure ()\;}	
+	}
+\end{procedure}
 
 
 
