@@ -1,119 +1,8 @@
-\section{BST}
-
-
-\def\codeTabSpace{\hspace*{6mm}}
-\newenvironment{code}%
-{\begin{tabbing}%
-		\codeTabSpace \= \hspace*{70mm} \= \hspace*{42mm} \= \kill%
-	}%
-	{\end{tabbing}%
-}
-\newcounter{ind}
-\newcommand{\n}{\addtocounter{ind}{7}\hspace*{7mm}}
-\newcommand{\p}{\addtocounter{ind}{-7}\hspace*{-7mm}}
-\newcommand{\nlc}{\\\stepcounter{linenum}{\scriptsize \arabic{linenum}}\>\hspace*{\value{ind}mm}}
-\newcommand{\ul}{\\\>\hspace*{\value{ind}mm}}
-\newcommand{\bl}{\\[-1.5mm]\>\hspace*{\value{ind}mm}}
-\newcommand{\firstline}{\stepcounter{linenum}{\scriptsize \arabic{linenum}}\>}
-\newcommand{\lref}[1]{\linenumref{#1}} % use this to refer to a line number
-% End of stuff for entering source code=====================================
-
-\newcommand{\postnotnull}{(1)}
-\newcommand{\postl}{(2)}
-\newcommand{\postpup}{(3)}
-\newcommand{\postnonempty}{(4)}
-\newcommand{\postgpnotnull}{(4a)}
-\newcommand{\postp}{(4b)}
-\newcommand{\postgpup}{(4c)}
-
-\newcommand{\tabtabcom}{\>\>\com}
-\newcommand{\tabcom}{\>\com}
 
 
 
-\newcommand{\Key}{Key}
-\newcommand{\R}{{\bf R}}
-\newcommand{\NULL}{\mbox{$\bot$}}
-\newcommand{\clean}{\mbox{\sc Clean}}
-\newcommand{\mk}{\mbox{\sc Mark}}
-\newcommand{\insertflag}{\mbox{\sc InsertFlag}}
-\newcommand{\deleteflag}{\mbox{\sc DeleteFlag}}
-\newcommand{\record}{\mbox{record}}
-\newcommand{\info}{\mbox{info}}
 
-\newcommand{\Flag}{Flag}
-\newcommand{\DFlag}{D\Flag}
-\newcommand{\IFlag}{I\Flag}
-
-\newcommand{\ie}{{\it i.e.}}
-\newcommand{\TRUE}{\mbox{\sc True}}
-\newcommand{\FALSE}{\mbox{\sc False}}
-
-\newcommand{\func}[1]{\mbox{\sc #1}}
-
-\newcommand{\CASB}{\func{CAS}}
-
-\newcommand{\comnospace}{\mbox{$\triangleright$}}
-\newcommand{\com}{\mbox{\comnospace\ }}
-
-\newcommand{\doublespace}{\addtolength{\baselineskip}{.8\baselineskip}}
-\newcommand{\ds}{\addtolength{\baselineskip}{.9\baselineskip}}
-
-%%%%%%%%%%%%%%%%%%%%% COMMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%%%% New state-of-the-art method for comment insertion
-%%%% by multiple distributed authors.
-%%%% These comments are present in the LATEX file and
-%%%% do not appear in print.
-%
-%% define debug: use first def for debug, second def for final version
-\newcommand{\debug}[1]{#1}
-%\newcommand{\debug}[1]{}
-%
-
-%% \newcommand{\comment}[1]{\debug{\marginpar {\sloppy\tiny #1}}}
-\newcommand{\lcomment}[1]{\debug{\comment{$\rightarrow$ #1}}}
-\newcommand{\incomment}[1]{\debug{[[[#1]]]}}
-%
-\newcommand{\fM}[1]{\comment{#1 5-14 M.}}
-\newcommand{\fD}[1]{\comment{#1 5-21 D.}}
-\newcommand{\upcom}[1]{#1}
-%
-%%%%%%%%%%%%%%%% end of comments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-\newenvironment{remark}{\begin{trivlist}
-		\item[\hspace{\labelsep}{\bf\noindent Remark. }]}{\end{trivlist}}
-%
-%
-
-\newenvironment{centre}{\begin{center}}{\end{center}}
-% sets up centre as alternate name for center.
-
-
-
-% marginal comment
-\newcommand{\comment}[1]{\marginpar{\tiny #1}}
-%\mnote{Example: only one algorithm is typed in so far.}
-\newcommand{\mnote}[1]
-{\marginpar%
-	[{\tiny\begin{minipage}[t]{\marginparwidth}\raggedright#1%
-	\end{minipage}}]%
-	{\tiny\begin{minipage}[t]{\marginparwidth}\raggedright#1%
-	\end{minipage}}%
-}
-
-
-
-%\newcommand{\here}[1]{[[[#1]]]\marginpar{***}}
-\newcommand{\ignore}[1]{}
-\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
-
-\newcommand{\lft}{\mbox{\it left}}
-
-
-
+\setcounter{linenum}{0}
 
 \begin{figure}[bt]
 	\footnotesize
@@ -139,12 +28,14 @@
 		type \IFlag\ \{ \hspace*{17.7mm} \com subtype of \Flag\nlc
 		\n Internal *$p$, *$newInternal$\nlc
 		Leaf *$l$\nlc
+		boolean complete \nlc
 		\p\}
 		\nlc
 		type \DFlag\ \{ \hspace*{16.4mm} \com subtype of \Flag\nlc
 		\n Internal *$gp$, *$p$\nlc
 		Leaf *$l$\nlc
 		Update $pupdate$\nlc
+		boolean complete \nlc
 		\p\}   
 		\ul
 		\com Initialization:\nlc

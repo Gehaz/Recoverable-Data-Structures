@@ -10,6 +10,7 @@
 \usepackage{enumerate}
 \usepackage{paralist}
 \usepackage{fullpage}
+\usepackage{smartref} % for referencing the line numbers
 
 % theorem styles
 
@@ -33,7 +34,8 @@
 \newtheorem{solution}{Solution}
 \newtheorem{theorem}{Theorem}
 
-
+\newcounter{linenum}
+\addtoreflist{linenum}
 \newcommand{\remove}[1]{}
 
 \newcommand{\singlespace}{\renewcommand{\baselinestretch}{1.0}\normalsize}
@@ -55,5 +57,7 @@
 	\input{example}
 	\newpage
 	\input{BST}
+	\input{BST-robust}
+	
 
 \end{document}
