@@ -1,10 +1,13 @@
 
 
-The original BST algorithm does not support the crash-recovery model. It is clear from the code a process does not persist an operation response in the non-volatile memory, and thus, once a process crash the response is lost. For example, assume a process $p$ apply $\func{Insert} (k)$ and assume $p$ performs a successful \CASB\ in line \ref{iflag-cas} and fails after completing the \func{HelpInsert} routine. In this case, the \func{Insert} operation took effect, that is, the new key appears in a leaf of the tree, and a $\func{Find} (k)$ operation will return it. However, even though the operation was already linearized at the time of the crash, upon recovery process $p$ is unaware for it. Moreover, looking for $k$ in the tree, or even looking for the new leaf in the tree, is not healpfull, since it might be $k$ has been removed from the tree followed the crush.
+The original BST algorithm does not support the crash-recovery model. It is clear from the code a process does not persist an operation response in the non-volatile memory, and thus, once a process crash the response is lost. For example, assume a process $p$ apply $\func{Insert} (k)$ and assume $p$ performs a successful \CASB\ in line \ref{iflag-cas} and fails after completing the \func{HelpInsert} routine. In this case, the \func{Insert} operation took effect, that is, the new key appears as a leaf of the tree, and a $\func{Find} (k)$ operation will return it. However, even though the operation was already linearized at the time of the crash, upon recovery process $p$ is unaware of it. Moreover, looking for the new leaf in the tree is not healpfull, since it might be $k$ has been removed from the tree after the crush.
 
 Moreover, if no recover is supplied, it may result an execution which is not well-formed. Consider for example the following scenario. A process $p$ invoke an $Op_1 = \func{Insert}(k_1)$ operation. After a successful \CASB\ at line \ref{iflag-cas} the process crush. After recovering, $p$ invoke an $Op_2 = \func{Insert}(k_2)$ operation. Assume $k_1$ and $k_2$ belongs to a completely different parts of the tree. Then, $p$ can complete inserting $k_2$ without having any affect on $k_1$. Now, a process $q$ performs $\func{Find}(k_1)$ which returns \NULL, as the insertion of $k_1$ is not completed, follows by an $\func{Find}(k_2)$, which returns the leaf of $k_2$. The $\func{Insert}(k_1)$ operation will be completed later by any process accessing the flagged node. We get that $Op_2$ must be before $Op_1$ in the linearization, although $Op_1$ invoked first.
 
-This kind of anomaly can be solved by having the \func{Find} routine helping in case of a flagged or marked node. In such case, once a process flagged a node, then any operation, including \func{Find}, will try and complete this operation, and thus either the operation is linearized at the time of the flagging, or there is no linearization at all. A more fine modification will be as follows. The routine \func{Find} calls \func{Search} and gets $\langle gp, p, l, pupdate, gpupdate \rangle$ in return. Then the process look to see if there is an unavoidable operation in progress that may affects its response. There are several cases to consider:
+The kind of anomaly described above can be addressed by having the first \CASB\ of a successful attempt for \func{Insert} or \func{Delete} as the linearization point, as in the Linked-List. For that, the \func{Find} routine should take into consideration future unavoidable changes, for example, a node flagged with \insertflag\ ensures an insertion of some key. In the Linked-List algorithm it was enough to consider a marked node as if it has been already deleted. Nonetheless, the more complex BST implementation is even more challenging, as the \func{Delete} routine needs to successfully capture two nodes using \CASB\ in order to complete the deletion. Therefore, if a process $p$ executes $\func{Find}(k)$ procedure, and observes a node flagged with $\deleteflag$ attempting to delete the key $k$, it can not know whether in the future this delete attempt will succeed or fail, and thus does not know whether to consider the key $k$ as part of the tree or not. To overcome this problem, in such case the process will first try and complete the delete operation, and only then will return, according to whether the attempt was successful. The modified \func{Find} routine is given in figure \ref{find-consistent}.
+
+
+ solved by having the \func{Find} routine helping in case of a flagged or marked node. In such case, once a process flagged a node, then any operation, including \func{Find}, will try and complete this operation, and thus either the operation is linearized at the time of the flagging, or there is no linearization at all. A more fine modification will be as follows. The routine \func{Find} calls \func{Search} and gets $\langle gp, p, l, pupdate, gpupdate \rangle$ in return. Then the process look to see if there is an unavoidable operation in progress that may affects its response. There are several cases to consider:
 \\ $l\rightarrow key \neq k$, then return \FALSE if and only if $pupdate$ does not contains indication for inserting a key $k$.
 \\ $l\rightarrow key = k$, then if nor $gpupdate$ neither $pupdate$ contains indication for deleting $l$ it is safe to return \TRUE; Else, if $pupdate.state = \mk$ and $pupdate.info$'s Leaf is $l$, then return \FALSE; Else,  $gpupdate.state = \deleteflag$, and $gpupdate.info$'s Leaf is $l$. In such case, we do not know if the deletion will be completed or not (resulting a response \FALSE or \TRUE, accordingly), so first need to try and complete it. Hence, a \func{HelpDelete} routine with $gpupdate$ is invoked. Once it completes, the response is whether the deletion took affect or not, that is, let $par := gpupdate.info \leftarrow p$, then it returns the evaluation of the statement $par \leftarrow update.state = \mk$.
 
@@ -20,7 +23,35 @@ The helping mechanism, in which a process performing \func{Insert} or \func{Dele
 If a process $p$ crush in a middle of executing an operation $Op$, then either $Op$ did not flagged or marked any node, thus it did not took affect on the data-structure, nor it will in the future. However, if $Op$ already flagged or marked a node, then the helping mechanism guarantees that
 
 
+\begin{figure*}
+	\footnotesize
+	
+	\begin{code}
+		\func{Find}($\Key\ k$) : Leaf* \{ \nlc
+			\n Internal *$gp$, *$p$\nlc
+			Leaf *$l$\nlc
+			Update $pupdate, gpupdate$\bl
+			\nlc
+			
+			%     Update $pupdate,gpupdate$\ul \nlc
+			$\langle gp, p, l, pupdate, gpupdate \rangle := \func{Search}(k)$\nlc
+			if $l\rightarrow key \neq k$ then \{ \nlc
+				\n if ($pupdate.state = \insertflag$ and $pupdate.info$ attempt to add key $k$) then return $pupdate.info\leftarrow\ key\ k$ \nlc
+				else return \NULL \nlc \p
+			\} \nlc
+			if ($pupdate.state = \mk$ and $pupdate.info \leftarrow l \leftarrow key = k$) then return \NULL \nlc
+			if ($gpupdate.state = \deleteflag$ and $gpupdate.info \leftarrow l \leftarrow key = k$) then \{ \nlc
+				\n $op := gpupdate.info$ \nlc
+				$result := \CASB(op\rightarrow p\rightarrow update, op\rightarrow pupdate, \langle \mk, op\rangle)$ \tabtabcom {\bf mark \CASB}\label{mark-cas}\nlc     
+				if ($result = op\rightarrow pupdate$ or $result = \langle \mk, op\rangle$) then return \NULL \label{checkmark} \tabtabcom $op\rightarrow p$ is successfully marked \nlc \p
+			\} \nlc
+			return $l$ \nlc \p
+		\}\bl
+	\end{code}
 
+	\caption{R-linearizability \func{Find} routine}
+	\label{find-consistent}
+\end{figure*}
 
 
 
