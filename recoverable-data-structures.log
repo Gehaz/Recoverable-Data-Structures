@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  2 MAY 2018 17:38
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  2 MAY 2018 18:53
 entering extended mode
 **recoverable-data-structures.tex
 
@@ -634,10 +634,10 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <8> not available
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\BST-robust.tex
 [6]
 
-LaTeX Warning: Float too large for page by 25.34174pt on input line 161.
+LaTeX Warning: Float too large for page by 25.34174pt on input line 162.
 
 
-LaTeX Warning: Float too large for page by 30.57384pt on input line 247.
+LaTeX Warning: Float too large for page by 30.57384pt on input line 248.
 
 ) [7] [8] [9] [10] [11] [12] [13] [14]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\recoverable-data
@@ -647,10 +647,10 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 5255 strings out of 493921
- 70172 string characters out of 3147276
- 218685 words of memory out of 3000000
- 8462 multiletter control sequences out of 15000+200000
+ 5254 strings out of 493921
+ 70158 string characters out of 3147276
+ 220345 words of memory out of 3000000
+ 8461 multiletter control sequences out of 15000+200000
  13814 words of font info for 52 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
  45i,27n,40p,1196b,606s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -671,7 +671,7 @@ ublic/amsfonts/cm/cmti10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/am
 sfonts/cm/cmti8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm
 /cmti9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.p
 fb>
-Output written on recoverable-data-structures.pdf (14 pages, 275644 bytes).
+Output written on recoverable-data-structures.pdf (14 pages, 278650 bytes).
 PDF statistics:
  120 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

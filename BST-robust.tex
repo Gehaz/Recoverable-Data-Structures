@@ -5,9 +5,10 @@ The original BST algorithm does not support the crash-recovery model. It is clea
 Moreover, if no recover is supplied, it may result an execution which is not well-formed. Consider for example the following scenario. A process $p$ invoke an $Op_1 = \func{Insert}(k_1)$ operation. After a successful \CASB\ at line \ref{iflag-cas} the process crush. After recovering, $p$ invoke an $Op_2 = \func{Insert}(k_2)$ operation. Assume $k_1$ and $k_2$ belongs to a completely different parts of the tree. Then, $p$ can complete inserting $k_2$ without having any affect on $k_1$. Now, a process $q$ performs $\func{Find}(k_1)$ which returns \NULL, as the insertion of $k_1$ is not completed, follows by an $\func{Find}(k_2)$, which returns the leaf of $k_2$. The $\func{Insert}(k_1)$ operation will be completed later by any process accessing the flagged node. We get that $Op_2$ must be before $Op_1$ in the linearization, although $Op_1$ invoked first.
 
 This kind of anomaly can be solved by having the \func{Find} routine helping in case of a flagged or marked node. In such case, once a process flagged a node, then any operation, including \func{Find}, will try and complete this operation, and thus either the operation is linearized at the time of the flagging, or there is no linearization at all. A more fine modification will be as follows. The routine \func{Find} calls \func{Search} and gets $\langle gp, p, l, pupdate, gpupdate \rangle$ in return. Then the process look to see if there is an unavoidable operation in progress that may affects its response. There are several cases to consider:
-\begin{itemize}
-	\item 
-\end{itemize}
+\\ $l\rightarrow key \neq k$, then return \FALSE if and only if $pupdate$ does not contains indication for inserting a key $k$.
+\\ $l\rightarrow key = k$, then if nor $gpupdate$ neither $pupdate$ contains indication for deleting $l$ it is safe to return \TRUE; Else, if $pupdate.state = \mk$ and $pupdate.info$'s Leaf is $l$, then return \FALSE; Else,  $gpupdate.state = \deleteflag$, and $gpupdate.info$'s Leaf is $l$. In such case, we do not know if the deletion will be completed or not (resulting a response \FALSE or \TRUE, accordingly), so first need to try and complete it. Hence, a \func{HelpDelete} routine with $gpupdate$ is invoked. Once it completes, the response is whether the deletion took affect or not, that is, let $par := gpupdate.info \leftarrow p$, then it returns the evaluation of the statement $par \leftarrow update.state = \mk$.
+
+The above solution prevents unwanted behaviour so that 
 
 
 However, such a solution is not efficient for the \func{Find} routine, as it needs to complete other operations.
