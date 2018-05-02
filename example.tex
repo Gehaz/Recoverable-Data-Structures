@@ -151,7 +151,7 @@ We present the modified algorithm. Only the procedures which require changes are
 				\KwRet \False\;
 			}{
 				node.next = unmarked curr\;
-				Backup[p] = new Info (Insert, pred, curr, new)\;
+				\textcolor{blue} {Backup[p] = new Info (Insert, pred, curr, new)}\;
 				\If{pred.next.\CAS (unmarked curr, unmarked node)}{
 				%	Backup[p].type = InsertDone\;
 					\KwRet \True\;
@@ -173,11 +173,11 @@ We present the modified algorithm. Only the procedures which require changes are
 				\KwRet \False\;
 			}{
 				succ = curr.next\;
-				Announe[p] = new Info (Delete, pred, curr, null)\;
+				\textcolor{blue}{Backup[p] = new Info (Delete, pred, curr, null)}\;
 				\If{curr.next.\CAS (unmarked succ, marked succ)}{ 
-					curr.deleter.\CAS (null, p)\; \label{recoverable-logical-delete}
+					\textcolor{blue}{curr.deleter.\CAS (null, p)}\; \label{recoverable-logical-delete}
 					pred.next.\CAS (unmarked curr, unmarked succ)\;
-					\KwRet (curr.deleter == p)\;
+					\textcolor{blue}{\KwRet (curr.deleter == p)}\;
 				}
 			}	
 		}
@@ -194,7 +194,7 @@ We present the modified algorithm. Only the procedures which require changes are
 \begin{procedure}[b]
 	\caption{Recover ()}
 	
-	\If{Backup[p].type = Insert}{
+	\If{Backup[p].type == Insert}{
 		\eIf{Backup[p].new is in the list $||$ Backup[p].curr.next is marked}{
 			\KwRet \True\;
 		}{

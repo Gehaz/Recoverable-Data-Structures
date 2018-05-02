@@ -1,5 +1,27 @@
 
 
+The original BST algorithm does not support the crash-recovery model. It is clear from the code a process does not persist an operation response in the non-volatile memory, and thus, once a process crash the response is lost. For example, assume a process $p$ apply $\func{Insert} (k)$ and assume $p$ performs a successful \CASB\ in line \ref{iflag-cas} and fails after completing the \func{HelpInsert} routine. In this case, the \func{Insert} operation took effect, that is, the new key appears in a leaf of the tree, and a $\func{Find} (k)$ operation will return it. However, even though the operation was already linearized at the time of the crash, upon recovery process $p$ is unaware for it. Moreover, looking for $k$ in the tree, or even looking for the new leaf in the tree, is not healpfull, since it might be $k$ has been removed from the tree followed the crush.
+
+Moreover, if no recover is supplied, it may result an execution which is not well-formed. Consider for example the following scenario. A process $p$ invoke an $Op_1 = \func{Insert}(k_1)$ operation. After a successful \CASB\ at line \ref{iflag-cas} the process crush. After recovering, $p$ invoke an $Op_2 = \func{Insert}(k_2)$ operation. Assume $k_1$ and $k_2$ belongs to a completely different parts of the tree. Then, $p$ can complete inserting $k_2$ without having any affect on $k_1$. Now, a process $q$ performs $\func{Find}(k_1)$ which returns \NULL, as the insertion of $k_1$ is not completed, follows by an $\func{Find}(k_2)$, which returns the leaf of $k_2$. The $\func{Insert}(k_1)$ operation will be completed later by any process accessing the flagged node. We get that $Op_2$ must be before $Op_1$ in the linearization, although $Op_1$ invoked first.
+
+This kind of anomaly can be solved by having the \func{Find} routine helping in case of a flagged or marked node. In such case, once a process flagged a node, then any operation, including \func{Find}, will try and complete this operation, and thus either the operation is linearized at the time of the flagging, or there is no linearization at all. A more fine modification will be as follows. The routine \func{Find} calls \func{Search} and gets $\langle gp, p, l, pupdate, gpupdate \rangle$ in return. Then the process look to see if there is an unavoidable operation in progress that may affects its response. There are several cases to consider:
+\begin{itemize}
+	\item 
+\end{itemize}
+
+
+However, such a solution is not efficient for the \func{Find} routine, as it needs to complete other operations.
+
+The helping mechanism, in which a process performing \func{Insert} or \func{Delete} first helps operation which marked of flagged the relevant nodes, guarantees the BST implementation is consistent even in the presence of crush-recovery. Any operation has a single linearization point, which is the point where the successful \CASB\ changes the tree data structure, that is, the \CASB\ at the \func{CAS-Child} routine. Therefore, even in the case of a crush, 
+
+
+
+If a process $p$ crush in a middle of executing an operation $Op$, then either $Op$ did not flagged or marked any node, thus it did not took affect on the data-structure, nor it will in the future. However, if $Op$ already flagged or marked a node, then the helping mechanism guarantees that
+
+
+
+
+
 
 
 \setcounter{linenum}{0}
@@ -28,14 +50,14 @@
 		type \IFlag\ \{ \hspace*{17.7mm} \com subtype of \Flag\nlc
 		\n Internal *$p$, *$newInternal$\nlc
 		Leaf *$l$\nlc
-		boolean complete \nlc
+		\textcolor{blue}{boolean $complete$} \nlc
 		\p\}
 		\nlc
 		type \DFlag\ \{ \hspace*{16.4mm} \com subtype of \Flag\nlc
 		\n Internal *$gp$, *$p$\nlc
 		Leaf *$l$\nlc
 		Update $pupdate$\nlc
-		boolean complete \nlc
+		\textcolor{blue}{boolean $complete$} \nlc
 		\p\}   
 		\ul
 		\com Initialization:\nlc
@@ -111,14 +133,17 @@
 		\n      $update$ field $\langle \clean, \NULL\rangle$, and with two
 		child fields equal to $new$ and $newSibling$\ul 
 		(the one with the smaller key is the left child)\nlc
-		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal\rangle$\label{new-IFlag}\nlc
+		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal, \textcolor{blue}{\FALSE}\rangle$\label{new-IFlag}\nlc
+		\textcolor{blue}{$Announce[p] := op$} \nlc
 		$result := \CASB(p\rightarrow update, pupdate, \langle \insertflag, op\rangle)$ \tabtabcom {\bf iflag \CASB}\label{iflag-cas} \nlc
-		if $result = pupdate$ then \{ \tabtabcom The iflag \CASB\ was successful\nlc
+		if $result = pupdate$ \textcolor{blue}{or $result = \langle \insertflag,op \rangle$} then \{ \tabtabcom The iflag \CASB\ was successful\nlc
 		\n            \func{HelpInsert}$(op)$ \tabtabcom Finish the insertion\label{finish-insert}\nlc
 		return \TRUE\ \label{insert-true}\nlc
 		\p        \}\nlc 
 		else \func{Help}$(result)$ \tabcom The iflag \CASB\ failed; help the operation that caused failure\label{ins-help-after-failure}\nlc
 		\p    \}\nlc
+		\textcolor{blue}{if $op \rightarrow complete = \TRUE$ then} \nlc
+		\n		\textcolor{blue}{return \TRUE} \nlc \p
 		\p\}\nlc 
 		\p
 		\}\bl
@@ -128,6 +153,7 @@
 		\n     \com {\it Precondition}:  $op$ points to an \IFlag\ \record\  (\ie, it is not $\NULL$)\nlc
 		\func{CAS-Child}$(op\rightarrow p, op\rightarrow l, op\rightarrow newInternal)$ \tabtabcom {\bf ichild \CASB}\label{ichild-cas}\nlc
 		$\CASB(op\rightarrow p\rightarrow update, \langle \insertflag, op \rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf iunflag \CASB} \label{iunflag-cas}\nlc
+		\textcolor{blue}{$op \rightarrow complete := \TRUE$} \tabtabcom {mark the operation as completed}\nlc 
 		\p
 		\}
 	\end{code}
@@ -150,13 +176,16 @@
 		if $gpupdate.state \neq \clean$ then \func{Help}$(gpupdate)$ \label{del-help-unclean-1}\nlc
 		else if $pupdate.state \neq \clean$ then \func{Help}$(pupdate)$\label{del-help-unclean-2}\nlc
 		else \{ \tabtabcom Try to flag $gp$\nlc
-		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate \rangle$\label{new-DFlag}\nlc
+		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate, \textcolor{blue}{\FALSE} \rangle$\label{new-DFlag}\nlc
+		\textcolor{blue}{$Announce[p] := op$} \nlc
 		$result := \CASB(gp\rightarrow update, gpupdate, \langle \deleteflag, op \rangle)$ \tabtabcom {\bf dflag \CASB}\label{dflag-cas}\nlc
-		if $result = gpupdate$ then \{ \tabtabcom \CASB\ successful \nlc
+		if $result = gpupdate$ \textcolor{blue}{ or $result = \langle \deleteflag, op \rangle$} then \{ \tabtabcom \CASB\ successful \nlc
 		\n             if \func{HelpDelete}$(op)$ then return \TRUE \label{delete-true} \tabtabcom Either finish deletion or unflag\nlc
 		\p          \}\nlc                 
 		else \func{Help}$(result)$ \tabcom The dflag \CASB\ failed; help the operation that caused the failure \label{del-help-after-failure}\nlc%; help operation that is in the way 
 		\p     \}\nlc
+		\textcolor{blue}{if $op \rightarrow complete = \TRUE$ then} \nlc
+		\n		\textcolor{blue}{return \TRUE} \nlc \p
 		\p \}\nlc
 		\p
 		\}\bl
@@ -192,6 +221,7 @@
 		\func{CAS-Child}$(op\rightarrow gp, op\rightarrow p, other)$ \tabtabcom {\bf dchild \CASB}\label{dchild-cas}\nlc
 		%     \com Unflag the node $op\rightarrow gp$ points to\nlc
 		\CASB$(op\rightarrow gp\rightarrow update, \langle \deleteflag, op\rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf dunflag \CASB}\label{dunflag-cas}\nlc
+		\textcolor{blue}{$op \rightarrow complete := \TRUE$} \tabtabcom {mark the operation as completed} \nlc
 		\p
 		\}\bl\nlc
 		
