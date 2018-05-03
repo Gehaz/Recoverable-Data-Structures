@@ -1,26 +1,173 @@
 
 
-The original BST algorithm does not support the crash-recovery model. It is clear from the code a process does not persist an operation response in the non-volatile memory, and thus, once a process crash the response is lost. For example, assume a process $p$ apply $\func{Insert} (k)$ and assume $p$ performs a successful \CASB\ in line \ref{iflag-cas} and fails after completing the \func{HelpInsert} routine. In this case, the \func{Insert} operation took effect, that is, the new key appears as a leaf of the tree, and a $\func{Find} (k)$ operation will return it. However, even though the operation was already linearized at the time of the crash, upon recovery process $p$ is unaware of it. Moreover, looking for the new leaf in the tree is not healpfull, since it might be $k$ has been removed from the tree after the crush.
 
-Moreover, if no recover is supplied, it may result an execution which is not well-formed. Consider for example the following scenario. A process $p$ invoke an $Op_1 = \func{Insert}(k_1)$ operation. After a successful \CASB\ at line \ref{iflag-cas} the process crush. After recovering, $p$ invoke an $Op_2 = \func{Insert}(k_2)$ operation. Assume $k_1$ and $k_2$ belongs to a completely different parts of the tree. Then, $p$ can complete inserting $k_2$ without having any affect on $k_1$. Now, a process $q$ performs $\func{Find}(k_1)$ which returns \NULL, as the insertion of $k_1$ is not completed, follows by an $\func{Find}(k_2)$, which returns the leaf of $k_2$. The $\func{Insert}(k_1)$ operation will be completed later by any process accessing the flagged node. We get that $Op_2$ must be before $Op_1$ in the linearization, although $Op_1$ invoked first.
+\def\codeTabSpace{\hspace*{6mm}}
+\newenvironment{code}%
+{\begin{tabbing}%
+		\codeTabSpace \= \hspace*{70mm} \= \hspace*{42mm} \= \kill%
+	}%
+	{\end{tabbing}%
+}
+\newcounter{ind}
+\newcommand{\n}{\addtocounter{ind}{7}\hspace*{7mm}}
+\newcommand{\p}{\addtocounter{ind}{-7}\hspace*{-7mm}}
+\newcommand{\nlc}{\\\stepcounter{linenum}{\scriptsize \arabic{linenum}}\>\hspace*{\value{ind}mm}}
+\newcommand{\ul}{\\\>\hspace*{\value{ind}mm}}
+\newcommand{\bl}{\\[-1.5mm]\>\hspace*{\value{ind}mm}}
+\newcommand{\firstline}{\stepcounter{linenum}{\scriptsize \arabic{linenum}}\>}
+\newcommand{\lref}[1]{\linenumref{#1}} % use this to refer to a line number
+% End of stuff for entering source code=====================================
 
-The kind of anomaly described above can be addressed by having the first \CASB\ of a successful attempt for \func{Insert} or \func{Delete} as the linearization point, as in the Linked-List. For that, the \func{Find} routine should take into consideration future unavoidable changes, for example, a node flagged with \insertflag\ ensures an insertion of some key. In the Linked-List algorithm it was enough to consider a marked node as if it has been already deleted. Nonetheless, the more complex BST implementation is even more challenging, as the \func{Delete} routine needs to successfully capture two nodes using \CASB\ in order to complete the deletion. Therefore, if a process $p$ executes $\func{Find}(k)$ procedure, and observes a node flagged with $\deleteflag$ attempting to delete the key $k$, it can not know whether in the future this delete attempt will succeed or fail, and thus does not know whether to consider the key $k$ as part of the tree or not. To overcome this problem, in such case the process will first try and complete the delete operation, and only then will return, according to whether the attempt was successful. The modified \func{Find} routine is given in figure \ref{find-consistent}.
+\newcommand{\postnotnull}{(1)}
+\newcommand{\postl}{(2)}
+\newcommand{\postpup}{(3)}
+\newcommand{\postnonempty}{(4)}
+\newcommand{\postgpnotnull}{(4a)}
+\newcommand{\postp}{(4b)}
+\newcommand{\postgpup}{(4c)}
 
-
- solved by having the \func{Find} routine helping in case of a flagged or marked node. In such case, once a process flagged a node, then any operation, including \func{Find}, will try and complete this operation, and thus either the operation is linearized at the time of the flagging, or there is no linearization at all. A more fine modification will be as follows. The routine \func{Find} calls \func{Search} and gets $\langle gp, p, l, pupdate, gpupdate \rangle$ in return. Then the process look to see if there is an unavoidable operation in progress that may affects its response. There are several cases to consider:
-\\ $l\rightarrow key \neq k$, then return \FALSE if and only if $pupdate$ does not contains indication for inserting a key $k$.
-\\ $l\rightarrow key = k$, then if nor $gpupdate$ neither $pupdate$ contains indication for deleting $l$ it is safe to return \TRUE; Else, if $pupdate.state = \mk$ and $pupdate.info$'s Leaf is $l$, then return \FALSE; Else,  $gpupdate.state = \deleteflag$, and $gpupdate.info$'s Leaf is $l$. In such case, we do not know if the deletion will be completed or not (resulting a response \FALSE or \TRUE, accordingly), so first need to try and complete it. Hence, a \func{HelpDelete} routine with $gpupdate$ is invoked. Once it completes, the response is whether the deletion took affect or not, that is, let $par := gpupdate.info \leftarrow p$, then it returns the evaluation of the statement $par \leftarrow update.state = \mk$.
-
-The above solution prevents unwanted behaviour so that 
-
-
-However, such a solution is not efficient for the \func{Find} routine, as it needs to complete other operations.
-
-The helping mechanism, in which a process performing \func{Insert} or \func{Delete} first helps operation which marked of flagged the relevant nodes, guarantees the BST implementation is consistent even in the presence of crush-recovery. Any operation has a single linearization point, which is the point where the successful \CASB\ changes the tree data structure, that is, the \CASB\ at the \func{CAS-Child} routine. Therefore, even in the case of a crush, 
+\newcommand{\tabtabcom}{\>\>\com}
+\newcommand{\tabcom}{\>\com}
 
 
 
-If a process $p$ crush in a middle of executing an operation $Op$, then either $Op$ did not flagged or marked any node, thus it did not took affect on the data-structure, nor it will in the future. However, if $Op$ already flagged or marked a node, then the helping mechanism guarantees that
+\newcommand{\Key}{Key}
+\newcommand{\R}{{\bf R}}
+\newcommand{\NULL}{\mbox{$\bot$}}
+\newcommand{\clean}{\mbox{\sc Clean}}
+\newcommand{\mk}{\mbox{\sc Mark}}
+\newcommand{\insertflag}{\mbox{I\Flag}}
+\newcommand{\deleteflag}{\mbox{D\Flag}}
+\newcommand{\record}{\mbox{record}}
+\newcommand{\info}{\mbox{info}}
+
+\newcommand{\Flag}{Flag}
+\newcommand{\DFlag}{DInfo}
+\newcommand{\IFlag}{IInfo}
+
+\newcommand{\ie}{{\it i.e.}}
+\newcommand{\TRUE}{\mbox{\sc True}}
+\newcommand{\FALSE}{\mbox{\sc False}}
+
+\newcommand{\func}[1]{\mbox{\sc #1}}
+
+\newcommand{\CASB}{\func{CAS}}
+
+\newcommand{\comnospace}{\mbox{$\triangleright$}}
+\newcommand{\com}{\mbox{\comnospace\ }}
+
+\newcommand{\doublespace}{\addtolength{\baselineskip}{.8\baselineskip}}
+\newcommand{\ds}{\addtolength{\baselineskip}{.9\baselineskip}}
+
+%%%%%%%%%%%%%%%%%%%%% COMMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%% New state-of-the-art method for comment insertion
+%%%% by multiple distributed authors.
+%%%% These comments are present in the LATEX file and
+%%%% do not appear in print.
+%
+%% define debug: use first def for debug, second def for final version
+\newcommand{\debug}[1]{#1}
+%\newcommand{\debug}[1]{}
+%
+
+%% \newcommand{\comment}[1]{\debug{\marginpar {\sloppy\tiny #1}}}
+\newcommand{\lcomment}[1]{\debug{\comment{$\rightarrow$ #1}}}
+\newcommand{\incomment}[1]{\debug{[[[#1]]]}}
+%
+\newcommand{\fM}[1]{\comment{#1 5-14 M.}}
+\newcommand{\fD}[1]{\comment{#1 5-21 D.}}
+\newcommand{\upcom}[1]{#1}
+%
+%%%%%%%%%%%%%%%% end of comments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\newenvironment{remark}{\begin{trivlist}
+		\item[\hspace{\labelsep}{\bf\noindent Remark. }]}{\end{trivlist}}
+%
+%
+
+\newenvironment{centre}{\begin{center}}{\end{center}}
+% sets up centre as alternate name for center.
+
+
+
+% marginal comment
+\newcommand{\comment}[1]{\marginpar{\tiny #1}}
+%\mnote{Example: only one algorithm is typed in so far.}
+\newcommand{\mnote}[1]
+{\marginpar%
+	[{\tiny\begin{minipage}[t]{\marginparwidth}\raggedright#1%
+	\end{minipage}}]%
+	{\tiny\begin{minipage}[t]{\marginparwidth}\raggedright#1%
+	\end{minipage}}%
+}
+
+
+
+%\newcommand{\here}[1]{[[[#1]]]\marginpar{***}}
+\newcommand{\ignore}[1]{}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+
+\newcommand{\lft}{\mbox{\it left}}
+
+
+
+
+\section{Robust BST}
+
+The original BST algorithm does not support the crash-recovery model. It is clear from the code a process does not persist the operation's response in the non-volatile memory, and thus, once a process crash the response is lost. For example, assume a process $q$ apply $\func{Insert} (k)$ and assume $q$ performs a successful \CASB\ in line \ref{iflag-cas} and fails after completing the \func{HelpInsert} routine. In this case, the \func{Insert} operation took effect, that is, the new key appears as a leaf of the tree, and any $\func{Find} (k)$ operation will return it. However, even though the operation was already linearized at the time of the crash, upon recovery process $q$ is unaware of it. Moreover, looking for the new leaf in the tree is not healpfull, since it might be $k$ has been removed from the tree after the crush.
+
+Moreover, if no recover routine is supplied, it may result an execution which is not well-formed. Consider for example the following scenario. A process $q$ invoke an $Op_1 = \func{Insert}(k_1)$ operation. After a successful \CASB\ in line \ref{iflag-cas} the process crush. After recovering, $q$ invoke an $Op_2 = \func{Insert}(k_2)$ operation. Assume $k_1$ and $k_2$ belongs to a different parts of the tree (do not share parent or grandparent). Then, $q$ can complete inserting $k_2$ without having any affect on $k_1$. Now, a process $q'$ performs $\func{Find}(k_1)$ which returns \NULL, as the insertion of $k_1$ is not completed, follows by an $\func{Find}(k_2)$, which returns the leaf of $k_2$. The $\func{Insert}(k_1)$ operation will be completed later by any \func{Insert} or \func{Delete} which needs to make changes to the flagged node. We get that $Op_2$ must be before $Op_1$ in the linearization, although $Op_1$ invoked first.
+
+The kind of anomaly described above can be addressed by having the first \CASB\ of a successful attempt for \func{Insert} or \func{Delete} as the linearization point, as in the Linked-List. For that, the \func{Find} routine should take into consideration future unavoidable changes, for example, a node flagged with \insertflag\ ensures an insertion of some key. A simple solution is to change the \func{Find} routine, such that it also helps other operations, as described in figure \ref{robust find - solution 1}. The \func{Find} routine will search for key $k$ in the tree. If the \func{Search} routine returns grandparent or parent that flagged, then it might be that an insert or delete of $k$ is currently in a progress, thus we first help these operation to complete, and then search for $k$ again. Otherwise, if $gpupdate$ or $pupdate$ has been changed since the last read, it means some change already took affect, and there is a need to search for $k$ again. If none of the above holds, there is a point in time where $gp$ points to $p$ which points to $l$, and there is no attempt to change this part of the tree. As a result, if $k$ is in the tree at this point, it must be in $l$, and the find can return safely. 
+
+The approach described above is not efficient in terms of time. We would like a solution which maintain the desirable behaviour of the original \func{Find} routine, where a single \func{Search} is needed. A more refined solution is given in figure \ref{robust find - solution 2}. The intuition for it is drown from the Linked-List algorithm.
+In the Linked-List algorithm it was enough to consider a marked node as if it has been already deleted, without the need to complete the deletion. Nonetheless, the complex BST implementation is more challenging, as the \func{Delete} routine needs to successfully capture two nodes using \CASB\ in order to complete the deletion. Therefore, if a process $p$ executes $\func{Find}(k)$ procedure, and observes a node flagged with $\deleteflag$ attempting to delete the key $k$, it can not know whether in the future this delete attempt will succeed or fail, and thus does not know whether to consider the key $k$ as part of the tree or not. To overcome this problem, in such case the process will first try and validate the delete operation by marking the relevant node. According to whether the marking attempt was successful, the process can conclude if the delete operation is successful or not.
+In order to easily implement the modified \func{Find} routine there is a need to conclude from \IFlag\ what is the new leaf (leaf $new$ in the \func{Insert} routine). For simplicity of presentation, we do not add this field, and abstractly refer to it in the code.
+
+The correctness of the two solutions relies on the following argument.
+Once a process flags a node during operation $Op$ with input key $k$ (either \func{Insert} or \func{Delete}), then if this attempt to complete the operation eventually succeed (i.e., the marking is also successful in the case of \func{Delete}), then any \func{Find}(k) operation invokes from this point consider $Op$ as if it is completed.
+
+The suggested modification, although being simple and local, only guarantee the implementation satisfy R-linearzability. However, the problem of response being lost in case of a crush is not addressed. In general, the critical points in the code for recovery are the \CASB\ primitives, as a crush right after applying \CASB\ operation results the lost of the response, and in order to complete the operation the process needs to know the result of the \CASB. In addition, because of the helping mechanism, a suspended \func{Delete} operation which flagged a node, and yet to mark one, may be completed by other process in the future, and may not. Upon recovery, the process needs to distinguish between the two cases, in order to obtain the right response.
+
+To address this issue, the expend the helping mechanism, so that the helping process needs also to update the info structure in case of a success. This is done by adding a boolean field to the Flag structure. This way, if a process crush along an operation $Op$, upon recovery it can check whether the operation was completed by some different process. 
+
+Before a process attempt to perform an operation, as it creates the \Flag structure $op$ describing the operation and its affect on the data structure, the process stores $op$ in a designated location (according to its id). Upon recovery, the process reads this location, and if the operation is not complete, then it retries to perform it, starting from the point of the first flagging (the first \CASB). Otherwise, the operation was completed, and the response value is already known. Notice that there is a scenario in which process $q$ recovers and observes an operation $Op$ as not being complete, but just before it retries it, some other process complete the operation. We need to prove that even in such case, the operation will affect the data structure exactly once.
+
+The supplied implementation does not specify what happens if a process crush outside of a BST routine. 
+
+%\setcounter{linenum}{0}
+
+
+\begin{figure*}
+	\footnotesize
+	
+	\begin{code}
+		\func{Find}($\Key\ k$) : Leaf* \{ \nlc
+		\n Internal *$gp$, *$p$\nlc
+		Leaf *$l$\nlc
+		Update $pupdate, gpupdate$\bl
+		\nlc
+		
+		%     Update $pupdate,gpupdate$\ul \nlc
+		while (\TRUE) \{ \nlc \n
+		$\langle gp, p, l, pupdate, gpupdate \rangle := \func{Search}(k)$\nlc
+		if $gpupdate.state \neq \clean$ then $\func{Help}(gpupdate)$ \nlc
+		else if $pupdate.state \neq \clean$ then $\func{Help}(pupdate)$ \nlc
+		else if $gp \leftarrow update = gpupdate$ and $p \leftarrow update = pupdate$ then \{ \nlc \n
+		if $l \rightarrow key = k$ then return $l$ \nlc
+		else return \NULL \nlc
+		\p \} \nlc
+		\p \} \nlc
+		\p \}
+	\end{code}
+	
+	\caption{Solution 1: R-linearizability \func{Find} routine}
+	\label{robust find - solution 1}
+\end{figure*}
+
 
 
 \begin{figure*}
@@ -36,7 +183,8 @@ If a process $p$ crush in a middle of executing an operation $Op$, then either $
 			%     Update $pupdate,gpupdate$\ul \nlc
 			$\langle gp, p, l, pupdate, gpupdate \rangle := \func{Search}(k)$\nlc
 			if $l\rightarrow key \neq k$ then \{ \nlc
-				\n if ($pupdate.state = \insertflag$ and $pupdate.info$ attempt to add key $k$) then return $pupdate.info\leftarrow\ key\ k$ \nlc
+				\n if ($pupdate.state = \insertflag$ and $pupdate.info$ attempt to add key $k$) then \nlc
+					\n return leaf with key $k$ from $pupdate.info$ \nlc \p
 				else return \NULL \nlc \p
 			\} \nlc
 			if ($pupdate.state = \mk$ and $pupdate.info \leftarrow l \leftarrow key = k$) then return \NULL \nlc
@@ -46,17 +194,15 @@ If a process $p$ crush in a middle of executing an operation $Op$, then either $
 				if ($result = op\rightarrow pupdate$ or $result = \langle \mk, op\rangle$) then return \NULL \label{checkmark} \tabtabcom $op\rightarrow p$ is successfully marked \nlc \p
 			\} \nlc
 			return $l$ \nlc \p
-		\}\bl
+		\}
 	\end{code}
 
-	\caption{R-linearizability \func{Find} routine}
-	\label{find-consistent}
+	\caption{Solution 2: R-linearizability \func{Find} routine}
+	\label{robust find - solution 2}
 \end{figure*}
 
 
 
-
-\setcounter{linenum}{0}
 
 \begin{figure}[bt]
 	\footnotesize
@@ -101,6 +247,27 @@ If a process $p$ crush in a middle of executing an operation $Op$, then either $
 	\end{code}
 	\caption{\label{code1}Type definitions and initialization.}
 \end{figure}
+
+
+
+\begin{figure*}
+	\footnotesize
+	
+	\begin{code}
+		\func{Recover}() \{ \nlc \n
+			Flag $*op$ = Announce[id] \bl \nlc
+			if $op$ of type \IFlag\ then \nlc \n
+				if $op \leftarrow complete = \TRUE$ then return \TRUE \nlc
+				else go to line \ref{iflag-cas} \nlc \p
+			if $op$ of type \DFlag\ then \nlc \n
+				if $op \leftarrow complete = \TRUE$ then return \TRUE \nlc
+				else go to line \ref{dflag-cas} \nlc \p
+		\p \}
+	\end{code}
+
+\caption{\func{Recover} routine}
+\end{figure*}
+
 
 
 \begin{figure*}
@@ -166,7 +333,7 @@ If a process $p$ crush in a middle of executing an operation $Op$, then either $
 		child fields equal to $new$ and $newSibling$\ul 
 		(the one with the smaller key is the left child)\nlc
 		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal, \textcolor{blue}{\FALSE}\rangle$\label{new-IFlag}\nlc
-		\textcolor{blue}{$Announce[p] := op$} \nlc
+		\textcolor{blue}{$Announce[id] := op$} \nlc
 		$result := \CASB(p\rightarrow update, pupdate, \langle \insertflag, op\rangle)$ \tabtabcom {\bf iflag \CASB}\label{iflag-cas} \nlc
 		if $result = pupdate$ \textcolor{blue}{or $result = \langle \insertflag,op \rangle$} then \{ \tabtabcom The iflag \CASB\ was successful\nlc
 		\n            \func{HelpInsert}$(op)$ \tabtabcom Finish the insertion\label{finish-insert}\nlc
@@ -209,7 +376,7 @@ If a process $p$ crush in a middle of executing an operation $Op$, then either $
 		else if $pupdate.state \neq \clean$ then \func{Help}$(pupdate)$\label{del-help-unclean-2}\nlc
 		else \{ \tabtabcom Try to flag $gp$\nlc
 		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate, \textcolor{blue}{\FALSE} \rangle$\label{new-DFlag}\nlc
-		\textcolor{blue}{$Announce[p] := op$} \nlc
+		\textcolor{blue}{$Announce[id] := op$} \nlc
 		$result := \CASB(gp\rightarrow update, gpupdate, \langle \deleteflag, op \rangle)$ \tabtabcom {\bf dflag \CASB}\label{dflag-cas}\nlc
 		if $result = gpupdate$ \textcolor{blue}{ or $result = \langle \deleteflag, op \rangle$} then \{ \tabtabcom \CASB\ successful \nlc
 		\n             if \func{HelpDelete}$(op)$ then return \TRUE \label{delete-true} \tabtabcom Either finish deletion or unflag\nlc
