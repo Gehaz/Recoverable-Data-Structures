@@ -1,0 +1,287 @@
+\section{Elimination Stack}
+
+The Elimination Stack combines both techniques.
+
+We assume the value INIT, which is different then NULL and any other value. Since NULL is used as a legit return value, representing the value of pop operation, NULL can not be used to represent an initialization value, different then any stack value. The same holds for Node, since NULL node represent an empty stack, the value INIT is used to distinguish between initialization value and empty stack.
+
+
+\begin{figure*}[b]
+	
+	
+	Type Node \{ \\
+		\hspace*{6mm} T value \\
+		\hspace*{6mm} int popby \\
+		\hspace*{6mm} Node *next \\
+	\} \\
+	
+	
+	Type OpInfo \{ \\
+		\hspace*{6mm} \{Push, Pop\} optype \\
+		\hspace*{6mm} Node *curr \\
+		\hspace*{6mm} boolean done \\
+	\} \\
+	
+	
+	Type ExInfo \{ \\
+	\hspace*{6mm} \{EMPTY, WAITING, BUSY\} state \\
+	\hspace*{6mm} T value, result \\
+	\hspace*{6mm} ExInfo *partner, *slot \\
+	\}
+	
+	\caption{Type definition}
+\end{figure*}
+
+
+
+%%%%%%%%%%%%%%%%%%Elimination array%%%%%%%%%%%%%%%%%
+\begin{figure*}
+	
+	ExInfo *default - a global ExInfo object with state = EMPTY
+	
+\begin{procedure}[H]
+	\caption{T Exchange (ExInfo *slot, T myitem, long timeout)}
+	
+	long timeBound := getNanos() + timeout \;
+	ExInfo myop := new ExInfo (WAITING, myitem, INIT, NULL, slot)\;
+	Announce[id] := myop \;
+	
+	\While{\True}{
+		\uIf{getNanos() $>$ timeBound} {\KwRet TIMEOUT}
+		myop.state := WAITING \;
+		yourop := slot \;
+%		$\langle$youritem,state$\rangle$ := slot\;
+		\Switch{yourop.state} {
+			\uCase{EMPTY} {
+				myop.partner := NULL \;
+				\If{slot.\CAS(yourop, myop)}{
+					\While{getNanos() $<$ timeBound}{
+						yourop := slot\;
+						\uIf{yourop $\neq$ myop} {
+							\uIf {youop.parnter = myop} {
+								PairSwitch(myop, yourop) \;
+								slot.\CAS (yourop, default) \;
+							}
+							\KwRet myop.result \;
+						}
+					}
+					\uIf{slot.\CAS(myop, default)}{
+						myop.result := TIMEOUT \;
+						\KwRet TIMEOUT\;
+					} \uElse {
+						yourop := slot \;
+						\uIf{yourop.partner = myop} {
+							PairSwitch(myop, yourop) \;
+							slot.\CAS (yourop, default) \;
+						}
+						\KwRet myop.result \;
+					}
+				}
+				break\;
+			}
+			\uCase{WAITING} {
+				myop.partner := yourop \;
+				myop.state := BUSY \;
+				\uIf{slot.\CAS (yourop, myop)}{
+					PairSwitch(myop, yourop) \;
+					slot.\CAS (myop, default) \;
+					\KwRet myop.result \;
+				}
+				break\;
+			}
+			\uCase{BUSY} {
+				PairSwitch(yourop, yourop.parnter) \;
+				slot.\CAS (yourop, default) \;
+				break\;
+			}
+		}	
+	}
+\end{procedure}
+
+\end{figure*}
+
+
+
+\begin{figure*}
+	
+\begin{procedure}[H]
+	\caption{void PairSwitch (ExInfo first, ExInfo second)}
+	
+	first.result := second.value \;
+	second.result := first.value \;
+	
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{T visit (T value, int range, long duration)}
+	
+	int cell := randomnumber(range) \;
+	\KwRet exchange(exchanger[cell], value, duration)
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{T Exchanger-Recover (void)}
+	
+	ExInfo *myop := Announce[id] \;
+	ExInfo *slot := myop.slot \;
+	
+	\uIf {myop.state = WAITING} {
+		yourop := slot \;
+		\uIf {yourop = myop} {
+			\uIf{slot.\CAS(myop, default)}{\KwRet FAIL}
+			\uElse {
+				yourop := slot \;
+				\uIf{yourop.partner = myop} {
+					PairSwitch(myop, yourop) \;
+					slot.\CAS (yourop, default) \;
+				}
+				\textbf{go to} \ref{ExRecover-successful} \;
+			}	
+		}
+		\uIf {yourop.partner = myop} {
+			PairSwitch(myop, yourop) \;
+			slot.\CAS (myop, default) \;
+			\textbf{go to} \ref{ExRecover-successful} \;
+		}
+		\uIf {myop.result $\neq$ INIT} {\textbf{go to} \ref{ExRecover-successful}}
+		\KwRet FAIL	
+	}
+	\uIf {myop.state = BUSY} {
+		yourop := slot \;
+		\uIf {yourop = myop} {
+			PairSwitch(myop, yourop) \;
+			slot.\CAS (myop, default) \;
+			\textbf{go to} \ref{ExRecover-successful} \;
+		}
+		\uIf {myop.result $\neq$ INIT} {\textbf{go to} \ref{ExRecover-successful}}
+		\KwRet FAIL	
+	}
+	returnCode: \tcp*{successful exchange} \label{ExRecover-successful}
+	\uIf {exactly one of \{myop.value, myop.result\} is NULL}
+		{KwRet myop.result \tcp*[f]{Exchange of Push and Pop}}
+	\uElse {\KwRet FAIL \tcp*[f]{Exchange of two operations of the same type}}
+\end{procedure}
+
+\caption{Elimination Array routines}
+\end{figure*}
+
+
+
+%%%%%%%%%%%%%%%%%%PUSH%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}
+	
+\begin{procedure}[H]
+	\caption{boolean TryPush (Node *new)}
+	
+	Node *oldTop := Top\;
+	new.next := oldTop\;
+	\KwRet Top.\CAS(oldTop, new)
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{boolean push (T myitem)}
+	
+	Node *nd = new Node (myitem)\;
+	nd.popby := NULL \;
+	
+	OpInfo data := new OpInfo (PUSH, nd, \False) \;
+	\While{\True}{
+		Announce[id] := data \;
+		\uIf{TryPush(nd)}{
+			data.done := \True \;
+			\KwRet \True
+		}
+		range := CalculateRange()\;
+		duration := CalculateDuration()\;
+		othervalue := visit(myitem, range, duration)\;
+		\uIf{othervalue = NULL}{
+			Record Success ()\;
+			\KwRet \True\;
+		} \uElseIf {othervalue = TIMEOUT} {Record Failure ()}
+	}
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{Push-Recover (void)}
+	
+	OpInfo *data := Announce[id] \;
+	\uIf {data.done = \True} {\KwRet \True}
+	Node *iter := Top \;
+	\While{iter $\neq$ NULL}{
+		\uIf {iter = data.curr} {
+			data.done := \True \;
+			\KwRet \True \;
+		}
+		iter = iter.next \;	
+	}
+	\uIf {data.curr.popby $\neq$ NULL} {
+			data.done := \True \;
+			\KwRet \True \;
+	}
+	\KwRet FAIL \;
+\end{procedure}
+
+\caption{Push routine}
+\end{figure*}
+
+
+
+
+%%%%%%%%%%%%%%%%%%POP%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}
+
+\begin{procedure}[H]
+	\caption{T TryPop (void)}
+	
+	Node *oldTop := Top\;
+	Node *newTop\;
+	Announce[id].curr := oldTop \;
+	\uIf{oldTop = NULL}{\KwRet EMPTY}
+	newTop := oldTop.next\;
+	\uIf{Top.\CAS(oldTop, newTop)}{\KwRet oldTop}
+	\uElse {\KwRet NULL}
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{T pop (void)}
+	
+	Node *result \;
+	OpInfo data := new OpInfo (POP, INIT, \False) \;
+	Announce[id] := data \;
+	
+	\While{\True}{
+		result := TryPop () \;
+		\uIf {result = EMPTY} {\KwRet EMPTY}
+		\uElseIf {result $\neq$ NULL} {
+			\uIf {result.popby.\CAS(NULL, id)} {\KwRet result.value}
+		}
+		range := CalculateRange()\;
+		duration := CalculateDuration()\;
+		othervalue := visit(NULL, range, duration)\;
+		\uIf{othervalue = TIMEOUT}{Record Failure ()}
+		\uElseIf {othervalue $\neq$ NULL} {
+			Record Success ()\;
+			\KwRet othervalue
+		}
+	}
+	
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{Pop-Recover (void)}
+	
+	Node *result := Announce[id].curr \;
+	\uIf {result = NULL} {\KwRet EMPTY}
+	\uIf {result = INIT} {\KwRet FAIL}
+	\uIf {result.popby $\neq$ NULL} {
+		\uIf {result.popby = id} {\KwRet result.value}
+		\uElse {\KwRet FAIL}
+	}
+	\uIf {result.popby.\CAS(NULL, id)} {\KwRet result.value}
+	\uElse {\KwRet FAIL}
+\end{procedure}
+
+\caption{Pop routine}
+\end{figure*}
+
+
+ 

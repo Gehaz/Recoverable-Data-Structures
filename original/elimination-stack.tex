@@ -1,0 +1,126 @@
+\section{Elimination Stack}
+
+\begin{figure*}
+	
+\begin{procedure}[H]
+	\caption{T Exchange ($\langle$T,flag$\rangle$ slot, T myitem, long timeout)}
+	
+	\KwData{long timeBound := getNanos() + timeout\;}
+	
+	\While{\True}{
+		\uIf{getNanos() $>$ timeBound} {\KwRet TIMEOUT}
+		$\langle$youritem,state$\rangle$ := slot\;
+		\Switch{state} {
+			\uCase{EMPTY} {
+				\If{slot.\CAS($\langle$youritem,EMPTY$\rangle$, $\langle$myitem, WAITING$\rangle$)}{
+					\While{getNanos() $<$ timeBound}{
+						$\langle$youritem,state$\rangle$ := slot\;
+						\uIf{state = BUSY} {
+							slot := $\langle$null, EMPTY$\rangle$\;
+							\KwRet youritem\;
+						}
+					}
+					\uIf{slot.\CAS($\langle$myitem,WAITING$\rangle$, $\langle$null,EMPTY$\rangle$)}{
+						\KwRet TIMEOUT\;
+					} \uElse{
+						$\langle$youritem,state$\rangle$ := slot\;
+						slot := $\langle$null, EMPTY$\rangle$\;
+						\KwRet youritem \;
+					}
+				}
+				break\;
+			}
+			\uCase{WAITING} {
+				\uIf{slot.\CAS($\langle$youritem,state$\rangle$, $\langle$myitem,BUSY$\rangle$)}{
+					\KwRet youritem\;
+				}
+				break\;
+			}
+			\uCase{BUSY} {
+				break\;
+			}
+		}	
+	}
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{T visit (T value, int range, long duration)}
+	
+	int cell := randomnumber(range) \;
+	\KwRet exchange(exchanger[cell], value, duration)
+\end{procedure}
+
+\caption{Elimination Array routines}
+\end{figure*}
+
+
+\begin{figure*}
+	
+\begin{procedure}[H]
+	\caption{boolean TryPush (Node *new)}
+	
+	Node *oldTop := Top\;
+	new.next := oldTop\;
+	\KwRet Top.\CAS(oldTop, new)
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{boolean push (T myitem)}
+	
+	Node *nd = new Node (myitem)\;
+	\While{\True}{
+		\uIf{TryPush(nd)}{\KwRet \True}
+		range := CalculateRange()\;
+		duration := CalculateDuration()\;
+		othervalue := visit(myitem, range, duration)\;
+		\uIf{othervalue = NULL}{
+			Record Success ()\;
+			\KwRet \True\;
+		} \uElseIf {othervalue = TIMEOUT} {Record Failure ()}
+	}
+\end{procedure}
+
+\caption{Push routine}
+\end{figure*}
+
+
+
+\begin{figure*}
+
+\begin{procedure}[H]
+	\caption{T TryPop (void)}
+	
+	Node *oldTop := Top\;
+	Node *newTop\;
+	\uIf{oldTop = NULL}{\KwRet EMPTY}
+	newTop := oldTop.next\;
+	\uIf{Top.\CAS(oldTop, newTop)}{\KwRet oldTop}
+	\uElse {\KwRet NULL}
+\end{procedure}
+
+\begin{procedure}[H]
+	\caption{T pop (void)}
+	
+	Node *return \;
+	\While{\True}{
+		return := TryPop () \;
+		\uIf {return = EMPTY} {\KwRet EMPTY}
+		\uElseIf {return $\neq$ NULL} {\KwRet return.value}
+		range := CalculateRange()\;
+		duration := CalculateDuration()\;
+		othervalue := visit(NULL, range, duration)\;
+		\uIf{othervalue = TIMEOUT}{Record Failure ()}
+		\uElseIf {othervalue $\neq$ NULL} {
+			Record Success ()\;
+			\KwRet othervalue
+		}
+	}
+	
+\end{procedure}
+
+
+\caption{Pop routine}
+\end{figure*}
+
+
+ 

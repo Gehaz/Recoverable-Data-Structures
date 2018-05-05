@@ -136,7 +136,7 @@ To address this issue, the expend the helping mechanism, so that the helping pro
 
 Before a process attempt to perform an operation, as it creates the \Flag structure $op$ describing the operation and its affect on the data structure, the process stores $op$ in a designated location (according to its id). Upon recovery, the process reads this location, and if the operation is not complete, then it retries to perform it, starting from the point of the first flagging (the first \CASB). Otherwise, the operation was completed, and the response value is already known. Notice that there is a scenario in which process $q$ recovers and observes an operation $Op$ as not being complete, but just before it retries it, some other process complete the operation. We need to prove that even in such case, the operation will affect the data structure exactly once.
 
-The supplied implementation does not specify what happens if a process crush outside of a BST routine. 
+The supplied implementation does not specify what happens if a process crush outside of the BST code. Invoking the \func{Recover} routine upon recovery is not helpful, as there is no pending operation. Moreover, the question remains how does a process can know where in the code the crush took place. If the crush was during 
 
 %\setcounter{linenum}{0}
 
@@ -164,7 +164,7 @@ The supplied implementation does not specify what happens if a process crush out
 		\p \}
 	\end{code}
 	
-	\caption{Solution 1: R-linearizability \func{Find} routine}
+	\caption{Solution 1: R-linearizable \func{Find} routine}
 	\label{robust find - solution 1}
 \end{figure*}
 
@@ -197,7 +197,7 @@ The supplied implementation does not specify what happens if a process crush out
 		\}
 	\end{code}
 
-	\caption{Solution 2: R-linearizability \func{Find} routine}
+	\caption{Solution 2: R-linearizable \func{Find} routine}
 	\label{robust find - solution 2}
 \end{figure*}
 
@@ -228,14 +228,14 @@ The supplied implementation does not specify what happens if a process crush out
 		type \IFlag\ \{ \hspace*{17.7mm} \com subtype of \Flag\nlc
 		\n Internal *$p$, *$newInternal$\nlc
 		Leaf *$l$\nlc
-		\textcolor{blue}{boolean $complete$} \nlc
+		\textcolor{blue}{boolean $done$} \nlc
 		\p\}
 		\nlc
 		type \DFlag\ \{ \hspace*{16.4mm} \com subtype of \Flag\nlc
 		\n Internal *$gp$, *$p$\nlc
 		Leaf *$l$\nlc
 		Update $pupdate$\nlc
-		\textcolor{blue}{boolean $complete$} \nlc
+		\textcolor{blue}{boolean $done$} \nlc
 		\p\}   
 		\ul
 		\com Initialization:\nlc
@@ -257,10 +257,10 @@ The supplied implementation does not specify what happens if a process crush out
 		\func{Recover}() \{ \nlc \n
 			Flag $*op$ = Announce[id] \bl \nlc
 			if $op$ of type \IFlag\ then \nlc \n
-				if $op \leftarrow complete = \TRUE$ then return \TRUE \nlc
+				if $op \leftarrow done = \TRUE$ then return \TRUE \nlc
 				else go to line \ref{iflag-cas} \nlc \p
 			if $op$ of type \DFlag\ then \nlc \n
-				if $op \leftarrow complete = \TRUE$ then return \TRUE \nlc
+				if $op \leftarrow done = \TRUE$ then return \TRUE \nlc
 				else go to line \ref{dflag-cas} \nlc \p
 		\p \}
 	\end{code}
@@ -341,7 +341,7 @@ The supplied implementation does not specify what happens if a process crush out
 		\p        \}\nlc 
 		else \func{Help}$(result)$ \tabcom The iflag \CASB\ failed; help the operation that caused failure\label{ins-help-after-failure}\nlc
 		\p    \}\nlc
-		\textcolor{blue}{if $op \rightarrow complete = \TRUE$ then} \nlc
+		\textcolor{blue}{if $op \rightarrow done = \TRUE$ then} \nlc
 		\n		\textcolor{blue}{return \TRUE} \nlc \p
 		\p\}\nlc 
 		\p
@@ -352,7 +352,7 @@ The supplied implementation does not specify what happens if a process crush out
 		\n     \com {\it Precondition}:  $op$ points to an \IFlag\ \record\  (\ie, it is not $\NULL$)\nlc
 		\func{CAS-Child}$(op\rightarrow p, op\rightarrow l, op\rightarrow newInternal)$ \tabtabcom {\bf ichild \CASB}\label{ichild-cas}\nlc
 		$\CASB(op\rightarrow p\rightarrow update, \langle \insertflag, op \rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf iunflag \CASB} \label{iunflag-cas}\nlc
-		\textcolor{blue}{$op \rightarrow complete := \TRUE$} \tabtabcom {mark the operation as completed}\nlc 
+		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {mark the operation as completed}\nlc 
 		\p
 		\}
 	\end{code}
@@ -383,7 +383,7 @@ The supplied implementation does not specify what happens if a process crush out
 		\p          \}\nlc                 
 		else \func{Help}$(result)$ \tabcom The dflag \CASB\ failed; help the operation that caused the failure \label{del-help-after-failure}\nlc%; help operation that is in the way 
 		\p     \}\nlc
-		\textcolor{blue}{if $op \rightarrow complete = \TRUE$ then} \nlc
+		\textcolor{blue}{if $op \rightarrow done = \TRUE$ then} \nlc
 		\n		\textcolor{blue}{return \TRUE} \nlc \p
 		\p \}\nlc
 		\p
@@ -420,7 +420,7 @@ The supplied implementation does not specify what happens if a process crush out
 		\func{CAS-Child}$(op\rightarrow gp, op\rightarrow p, other)$ \tabtabcom {\bf dchild \CASB}\label{dchild-cas}\nlc
 		%     \com Unflag the node $op\rightarrow gp$ points to\nlc
 		\CASB$(op\rightarrow gp\rightarrow update, \langle \deleteflag, op\rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf dunflag \CASB}\label{dunflag-cas}\nlc
-		\textcolor{blue}{$op \rightarrow complete := \TRUE$} \tabtabcom {mark the operation as completed} \nlc
+		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {mark the operation as completed} \nlc
 		\p
 		\}\bl\nlc
 		
