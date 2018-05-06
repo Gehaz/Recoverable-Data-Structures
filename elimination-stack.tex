@@ -2,7 +2,11 @@
 
 The Elimination Stack combines both techniques.
 
-We assume the value INIT, which is different then NULL and any other value. Since NULL is used as a legit return value, representing the value of pop operation, NULL can not be used to represent an initialization value, different then any stack value. The same holds for Node, since NULL node represent an empty stack, the value INIT is used to distinguish between initialization value and empty stack.
+We assume the value INIT, which is different from NULL and any other value. Since NULL is used as a legit return value, representing the value of pop operation (when exchanging values using the elimination array), NULL can not be used to represent an initialization value, different then any stack value. The same holds for Node, since NULL node represent an empty stack, the value INIT is used to distinguish between initialization value and empty stack.
+
+For simplicity, we split the recover routine into sub-routines, based on which operation (Push, Pop, Exchange) is pending, or needs to be recover. This can be easily conclude by the type of structure stored in Announce[id] (ExInfo or OpInfo), thus there is no need to explicitly know where exactly in the code the crash took place. Also, the recover routine returns FAIL in case the last pending operation did not took affect (no linearization point), nor it will take in any future run. In such case, the user have the option to either reinvoke the operation, or the skip it, depends on the needs and circumstances of the specific use of the data structure.
+
+The given implementation ignores the log of failures and successes of the exchange routine when recovering. That is, in case of a crash during an exchange, a process is able to recover the exchange routine, however, even in case of success we do not record it, since it might be the process already recorded it. In addition, in case of a FAIL response, we do not know whether the time limit (timeout) was reached, or that the process simply crashed earlier in the routine without completing it. The given implementation can be expanded to also consider the log, however, for ease of presentation we do not handle the log in case of a failure. Assuming crash events are rare, the log still gives a roughly good approximation to the ratio of failures and successes, thus our approach might be useful in practice.
 
 
 \begin{figure*}[b]

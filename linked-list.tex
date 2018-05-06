@@ -9,10 +9,10 @@ The linearization point are as follows:
 \begin{itemize}
 	\item [Insert:] At the point of a successful CAS
 	\item [Delete:] At the point of a successful CAS for marking the node (logical delete)
-	\item [Find:] At the point where the procedure return, that is, at the read of either curr.key, or curr.next.
+	\item [Find:] At the point where the procedure return, that is, at the read of either curr.key or curr.next.
 \end{itemize}
 
-Following the given linearization points (committing proof...), insert and delete operation are linearized at the point where they affect the system. That is, if an insert operation performed a successful CAS, then all process will see the new node starting from this point, and if a node was logically removed, then all processes treat it as a removed node. Therefore, once a process $p$ recovers following a crash, the List data structure is consistent - if $p$ has a pending operation, either the operation already had a linearization point which affected all other processes, or it did not affect the data structure at all.
+Following the given linearization points (omitting proof...), insert and delete operation are linearized at the point where they affect the system. That is, if an insert operation performed a successful CAS, then all process will see the new node starting from this point, and if a node was logically removed, then all processes treat it as a removed node. Therefore, once a process $p$ recovers following a crash, the List data structure is consistent - if $p$ has a pending operation, either the operation already had a linearization point which affected all other processes, or it did not affect the data structure at all, nor will in any future run.
 
 However, even though the List data structure is consistent, the response of the pending operation is lost. Consider for example a scenario in which process $p$ performs $Delete(\alpha)$ and crash right after applying a successful CAS to mark a node. Upon recovery, $p$ may be able to decide $\alpha$ was removed, as the node is marked. Nevertheless, even if no other process takes steps, $p$ is not able to determine whether it is the process to successfully delete $\alpha$, or that it was done by some other process, and therefore it does not able to determine the right response. Moreover, in case the node was physically removed, $p$ is not able to determine whether $\alpha$ has been deleted at all, as it is no longer part of the list.
 
@@ -28,7 +28,7 @@ For simplicity, a process creates a new operation structure each time it writes 
 
 
 \begin{procedure}[b]
-	\caption{Lookup (int key)}
+	\caption{$<$ Node, Node$>$ Lookup (T key)}
 	
 	\textbf{Data: } Node *pred, *curr, *succ
 	
@@ -37,13 +37,13 @@ For simplicity, a process creates a new operation structure each time it writes 
 		curr := head.next\;	
 		\While{\True}{
 			succ := curr.next\;
-			\eIf(\tcp*[f]{is succ was logically deleted?}) {curr.next is marked} {
-				\If{pred.next.\CAS(unmarked curr,unmarked succ) = \False}{
+			\uIf(\tcp*[f]{is succ was logically deleted?}) {curr.next is marked} {
+				\uIf{pred.next.\CAS(unmarked curr,unmarked succ) = \False}{
 					\textbf{go to} retry \tcp*{help failed}
 				}
 				curr := succ \tcp*{help succeed}
-			}{
-				\If {curr.key $\geq$ key} {
+			} \uElse {
+				\uIf {curr.key $\geq$ key} {
 					\KwRet $\langle$pred,curr$\rangle$
 				}
 				pred := curr\;
@@ -63,25 +63,30 @@ For simplicity, a process creates a new operation structure each time it writes 
 		\hspace*{6mm} Node *pred, *curr, *new \\
 	\} \\
 	
-	Code for process p:\\
+	Code for process p:
 	
 	\begin{procedure}[H]
-		\caption{Insert (int key)}
+		\caption{boolean Insert (T key)}
 		
-		\begin{tabbing}
-			\textbf{Data: } \= Node *pred, *curr \\
-							\> Node new := \textbf{new} Node (key)
-		\end{tabbing}
-		\vspace*{-5mm}
+		$ \begin{array}{rl}
+			\mbox{\textbf{Data: }}	&	\mbox{Node *pred, *curr} \\
+							&	\mbox{Node new := \textbf{new} Node (key)}
+		\end{array} $
+		
+%		\begin{tabbing}
+%			\textbf{Data: } \= Node *pred, *curr \\
+%							\> Node new := \textbf{new} Node (key)
+%		\end{tabbing}
+%		\vspace*{-5mm}
 		
 		\While{\True}{ \label{recover-insert}
 			$\langle$pred, curr$\rangle$ := lookup(key)\;
-			\eIf{curr.key = key}{
+			\uIf{curr.key = key}{
 				\KwRet \False \tcp* {key is already in the list}
-			}{
+			} \uElse {
 				node.next := unmarked curr\;
 				\textcolor{blue} {Backup[p] := new Info (Insert, pred, curr, new)}\;
-				\If{pred.next.\CAS (unmarked curr, unmarked new)}{
+				\uIf{pred.next.\CAS (unmarked curr, unmarked new)}{
 				%	Backup[p].type = InsertDone\;
 					\KwRet \True \tcp*{new node has been inserted}
 				}
@@ -92,18 +97,18 @@ For simplicity, a process creates a new operation structure each time it writes 
 	
 	
 	\begin{procedure}[H]
-		\caption{Delete (int key)}
+		\caption{boolean Delete (T key)}
 		
 		\textbf{Data: } Node *pred, *curr, *succ
 		
 		\While{\True}{ \label{recover-delete}
 			$\langle$pred, curr$\rangle$ := lookup(key)\;
-			\eIf{curr.key $\neq$ key} {
+			\uIf{curr.key $\neq$ key} {
 				\KwRet \False \tcp*{key is not in the list}
-			}{
+			} \uElse {
 				succ := curr.next\;
 				\textcolor{blue}{Backup[p] := new Info (Delete, pred, curr, null)}\;
-				\If(\tcp*[f]{logical delete}) {curr.next.\CAS (unmarked succ, marked succ)} { 
+				\uIf(\tcp*[f]{logical delete}) {curr.next.\CAS (unmarked succ, marked succ)} { 
 					\textcolor{blue}{curr.deleter.\CAS (null, p)} \tcp*{announce yourself as deleter} \label{recoverable-logical-delete}
 					pred.next.\CAS (unmarked curr, unmarked succ) \tcp*{physical delete}
 					\textcolor{blue}{\KwRet (curr.deleter = p)} \tcp*{originally return true}
@@ -114,7 +119,7 @@ For simplicity, a process creates a new operation structure each time it writes 
 	\end{procedure}
 
 	\begin{procedure}[H]
-		\caption{Find (int key)}
+		\caption{boolean Find (T key)}
 		
 		\KwData{Node* curr = head}	
 		
@@ -132,21 +137,23 @@ For simplicity, a process creates a new operation structure each time it writes 
 
 
 
-\begin{procedure}[b]
+\begin{procedure}[H]
 	\caption{Recover ()}
 	
-	\If{Backup[p].optype = Insert}{
-		\eIf{Backup[p].new is in the list $||$ Backup[p].curr.next is marked}{
+	\uIf{Backup[p].optype = Insert}{
+		\uIf{Backup[p].new is in the list $||$ Backup[p].curr.next is marked}{
 			\KwRet \True\;
-		}{
-			\textbf{go to} \ref{recover-insert} \tcp*{restart Insert}
+		} \uElse {
+			\KwRet FAIL
+			%\textbf{go to} \ref{recover-insert} \tcp*{restart Insert}
 		}	
 	}
-	\If{Backup[p].optype = Delete}{
-		\eIf{Backup[p].curr.next is marked}{
+	\uIf{Backup[p].optype = Delete}{
+		\uIf{Backup[p].curr.next is marked}{
 			\textbf{go to} \ref{recoverable-logical-delete} \tcp*{try to complete the deletation}
-		}{
-			\textbf{go to} \ref{recover-delete} \tcp*{restart Delete}
+		} \uElse {
+			\KwRet FAIL
+			%\textbf{go to} \ref{recover-delete} \tcp*{restart Delete}
 		}
 	}
 	
@@ -157,7 +164,11 @@ For simplicity, a process creates a new operation structure each time it writes 
 \subsubsection*{Correctness Argument}
 In the following, we give an high-level proof for the correctness of the algorithm.
 
-First, notice that quiting the Lookup procedure at any point, or repeating it, can not violet the list consistency. The Lookup procedure only traverses the list, while trying to physically delete marked nodes. Moreover, once a node curr is marked only the first process to perform a CAS which tries and physically delete curr will succeed.
+First, notice that quitting the Lookup procedure at any point, or repeating it, can not violet the list consistency. The Lookup procedure simply traverse the list, while trying to physically delete marked nodes. Moreover, in order to mark a node curr as logically deleted, a process needs to mark the field next in its predecessor in the list, pred, which points to curr. Thus, once pred.next is marked, only the first process to perform a CAS which tries and physically delete curr will succeed. This follows from the fact that the first CAS will swing pred.next to point to a different node then curr, and thus succeed. Any future change to pred.next, if it is done by an insert operation, then a new located node is used, or by a later delete operation.
+
+which marks pred.next after the physical delete of curr, and thus no node in the list points to curr, and in particular it is not te successor of any node.
+
+once a node curr is marked only the first process to perform a CAS which tries and physically delete curr will succeed.
 
 
 This follows from the fact that no node can point to curr from the moment of the marking, except for pred, its predecessor at this point. Insert operation uses only new nodes, while any CAS which tries to change reference part of any next fields uses an 
@@ -168,8 +179,5 @@ Assume a process $p$ performs
 For the Insert operation, $p$ tries to add the new node by performing a CAS. If it succeeds it will return true if it suffers no failure. In case of a failure after writing to Backup[p], upon recovery $p$ tries to complete its operation. If it already performed a successful CAS, that is, the node was added to the list, then either it is still in the list or that it was deleted. Therefore, if $p$ can find the new node in the list (using a procedure similar to find), or that it is marked, it must be that the node was added, and $p$ can return true. Otherwise, $p$ either crashed before performing the CAS, or that the CAS was unsuccessful. In both cases, the new node was not added, and $p$ can restart the Insert procedure.
 
 For the delete operation, once $p$ logically delete a node $v$, it also tries to announce itself as the "removal" of the node by writing its id to deleter using CAS. Assume a process $p$ crash while trying to delete the node. Upon recovery, if $p$ sees the node is not marked, then obliviously its deletion did not took affect, and it can restart the delete operation. However, if the node is marked, it might be that $p$ marked it before the crash, or it might be some other process trying to delete the same node did so. As $p$ can not distinguish between the two, and since we desire for a lock-free implementation, we let $p$ to try and complete the deletion, even if it is not to process to logically delete the node. To avoid a scenario in which more then a single process "delete" the same node, they all compete for deleter using CAS. The first one to perform it will win, and it is the only process to return true. It is easy to verify once a process writes to deleter, then eventually, if given enough time with no crash, it returns true, while any other process trying to delete the same node will have to retry the delete operation.
-
-
-
 
  
