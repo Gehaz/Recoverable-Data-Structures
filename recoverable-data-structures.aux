@@ -1,25 +1,99 @@
 \relax 
-\@writefile{toc}{\contentsline {section}{\numberline {1}Linked-List}{1}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.0.1}Linked-List Recoverable Version}{1}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {-}{\ignorespaces Procedure\nobreakspace  Recover $ $ (void)}}{2}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {-}{\ignorespaces Procedure\nobreakspace  $<$ Node, Node$>$ Lookup $ $ (T key)}}{2}}
-\newlabel{find-outer-loop}{{2}{2}}
-\newsmartlabel{find-outer-loop}{{2}{0}}
-\newlabel{StructDefStart}{{$<$ Node, Node$>$ Lookup $ $ }{4}}
-\newsmartlabel{StructDefStart}{{$<$ Node, Node$>$ Lookup $ $ }{0}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {-}{\ignorespaces Procedure\nobreakspace  boolean Insert $ $ (T key)}}{4}}
-\newlabel{recover-insert}{{20}{4}}
-\newsmartlabel{recover-insert}{{20}{0}}
-\newlabel{insert-CAS}{{27}{4}}
-\newsmartlabel{insert-CAS}{{27}{0}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {-}{\ignorespaces Procedure\nobreakspace  boolean Delete $ $ (T key)}}{4}}
-\newlabel{recover-delete}{{33}{4}}
-\newsmartlabel{recover-delete}{{33}{0}}
-\newlabel{insert-key-in-list}{{35}{4}}
-\newsmartlabel{insert-key-in-list}{{35}{0}}
-\newlabel{recoverable-logical-delete}{{45}{4}}
-\newsmartlabel{recoverable-logical-delete}{{45}{0}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {-}{\ignorespaces Procedure\nobreakspace  boolean Find $ $ (T key)}}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Recoverable Non-Blocking Linked-List}}{4}}
-\newlabel{linked-list}{{1}{4}}
-\newsmartlabel{linked-list}{{1}{0}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Robust BST}{1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.0.1}Correctness}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Solution 1: R-linearizable \unhbox \voidb@x \hbox {\sc  Find} routine}}{3}}
+\newlabel{robust find - solution 1}{{1}{3}}
+\newsmartlabel{robust find - solution 1}{{1}{13}}
+\newlabel{mark-cas}{{1.0.1}{4}}
+\newsmartlabel{mark-cas}{{1.0.1}{26}}
+\newlabel{checkmark}{{1.0.1}{4}}
+\newsmartlabel{checkmark}{{1.0.1}{27}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Solution 2: R-linearizable \unhbox \voidb@x \hbox {\sc  Find} routine}}{4}}
+\newlabel{robust find - solution 2}{{2}{4}}
+\newsmartlabel{robust find - solution 2}{{2}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Type definitions and initialization.}}{4}}
+\newlabel{code1}{{3}{4}}
+\newsmartlabel{code1}{{3}{54}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \unhbox \voidb@x \hbox {\sc  Recover} routine}}{5}}
+\newlabel{restart-search}{{1.0.1}{6}}
+\newsmartlabel{restart-search}{{1.0.1}{64}}
+\newlabel{store-pupdate}{{1.0.1}{6}}
+\newsmartlabel{store-pupdate}{{1.0.1}{70}}
+\newlabel{read-child}{{1.0.1}{6}}
+\newsmartlabel{read-child}{{1.0.1}{71}}
+\newlabel{ins-search}{{1.0.1}{6}}
+\newsmartlabel{ins-search}{{1.0.1}{88}}
+\newlabel{insert-false}{{1.0.1}{6}}
+\newsmartlabel{insert-false}{{1.0.1}{89}}
+\newlabel{ins-help-unclean}{{1.0.1}{6}}
+\newsmartlabel{ins-help-unclean}{{1.0.1}{90}}
+\newlabel{create-internal}{{1.0.1}{6}}
+\newsmartlabel{create-internal}{{1.0.1}{93}}
+\newlabel{new-IFlag}{{1.0.1}{6}}
+\newsmartlabel{new-IFlag}{{1.0.1}{94}}
+\newlabel{insert-write-announce}{{1.0.1}{6}}
+\newsmartlabel{insert-write-announce}{{1.0.1}{95}}
+\newlabel{iflag-cas}{{1.0.1}{6}}
+\newsmartlabel{iflag-cas}{{1.0.1}{96}}
+\newlabel{finish-insert}{{1.0.1}{6}}
+\newsmartlabel{finish-insert}{{1.0.1}{98}}
+\newlabel{insert-true}{{1.0.1}{6}}
+\newsmartlabel{insert-true}{{1.0.1}{99}}
+\newlabel{ins-help-after-failure}{{1.0.1}{6}}
+\newsmartlabel{ins-help-after-failure}{{1.0.1}{101}}
+\newlabel{ichild-cas}{{1.0.1}{6}}
+\newsmartlabel{ichild-cas}{{1.0.1}{108}}
+\newlabel{iunflag-cas}{{1.0.1}{6}}
+\newsmartlabel{iunflag-cas}{{1.0.1}{109}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Pseudocode for \unhbox \voidb@x \hbox {\sc  Search}, \unhbox \voidb@x \hbox {\sc  Find} and \unhbox \voidb@x \hbox {\sc  Insert}.}}{6}}
+\newlabel{code2}{{5}{6}}
+\newsmartlabel{code2}{{5}{111}}
+\newlabel{del-search}{{1.0.1}{7}}
+\newsmartlabel{del-search}{{1.0.1}{118}}
+\newlabel{delete-false}{{1.0.1}{7}}
+\newsmartlabel{delete-false}{{1.0.1}{119}}
+\newlabel{del-help-unclean-1}{{1.0.1}{7}}
+\newsmartlabel{del-help-unclean-1}{{1.0.1}{120}}
+\newlabel{del-help-unclean-2}{{1.0.1}{7}}
+\newsmartlabel{del-help-unclean-2}{{1.0.1}{121}}
+\newlabel{new-DFlag}{{1.0.1}{7}}
+\newsmartlabel{new-DFlag}{{1.0.1}{123}}
+\newlabel{dflag-cas}{{1.0.1}{7}}
+\newsmartlabel{dflag-cas}{{1.0.1}{125}}
+\newlabel{delete-true}{{1.0.1}{7}}
+\newsmartlabel{delete-true}{{1.0.1}{127}}
+\newlabel{del-help-after-failure}{{1.0.1}{7}}
+\newsmartlabel{del-help-after-failure}{{1.0.1}{129}}
+\newlabel{mark-cas}{{1.0.1}{7}}
+\newsmartlabel{mark-cas}{{1.0.1}{137}}
+\newlabel{checkmark}{{1.0.1}{7}}
+\newsmartlabel{checkmark}{{1.0.1}{138}}
+\newlabel{call-hm1}{{1.0.1}{7}}
+\newsmartlabel{call-hm1}{{1.0.1}{139}}
+\newlabel{help-after-failed-mark}{{1.0.1}{7}}
+\newsmartlabel{help-after-failed-mark}{{1.0.1}{143}}
+\newlabel{backtrack-cas}{{1.0.1}{7}}
+\newsmartlabel{backtrack-cas}{{1.0.1}{144}}
+\newlabel{read-other}{{1.0.1}{7}}
+\newsmartlabel{read-other}{{1.0.1}{150}}
+\newlabel{dchild-cas}{{1.0.1}{7}}
+\newsmartlabel{dchild-cas}{{1.0.1}{151}}
+\newlabel{dunflag-cas}{{1.0.1}{7}}
+\newsmartlabel{dunflag-cas}{{1.0.1}{152}}
+\newlabel{call-HelpInsert}{{1.0.1}{7}}
+\newsmartlabel{call-HelpInsert}{{1.0.1}{156}}
+\newlabel{call-hm2}{{1.0.1}{7}}
+\newsmartlabel{call-hm2}{{1.0.1}{157}}
+\newlabel{call-HelpDelete}{{1.0.1}{7}}
+\newsmartlabel{call-HelpDelete}{{1.0.1}{158}}
+\newlabel{CAS-Child}{{1.0.1}{7}}
+\newsmartlabel{CAS-Child}{{1.0.1}{160}}
+\newlabel{which-child}{{1.0.1}{7}}
+\newsmartlabel{which-child}{{1.0.1}{161}}
+\newlabel{child-cas-1}{{1.0.1}{7}}
+\newsmartlabel{child-cas-1}{{1.0.1}{162}}
+\newlabel{child-cas-2}{{1.0.1}{7}}
+\newsmartlabel{child-cas-2}{{1.0.1}{164}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Pseudocode for \unhbox \voidb@x \hbox {\sc  Delete} and some auxiliary routines.}}{7}}
+\newlabel{code3}{{6}{7}}
+\newsmartlabel{code3}{{6}{165}}
