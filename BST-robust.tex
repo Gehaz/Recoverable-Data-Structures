@@ -30,7 +30,6 @@
 \newcommand{\tabcom}{\>\com}
 
 
-
 \newcommand{\Key}{Key}
 \newcommand{\R}{{\bf R}}
 \newcommand{\NULL}{\mbox{$\bot$}}
@@ -139,13 +138,27 @@ Before a process attempt to perform an operation, as it creates the \Flag\ struc
 Notice that the given implementation does not recover the \func{Find} routine, since this routine does not make any changes to the BST, hence it is always safe to consider it as having no linearization point and reissue it. Also, for ease of presentation, we only write to Announce[id] once we are about to capture a node using a CAS. However, writing to Announce[id] at the beginning of the routine may be helpful in case of a crash early in the routine, so that the process will be able to use the data stored in Announce[id] in such case also. The same is true with response value - Announce[id].done is updated only if the routine made changes to the BST.
 
 \subsubsection{Correctness}
-In this subsection we give a proof sketch for the algorithm correctness. The proof relies on the correctness of the original algorithm, which can be found on [....]. Moreover, the original algorithm is anonymous and uniform, i.e., any number of processes can use the BST, and there is no need for a process to know the number of processes in the system in order to use the BST. Thus, if we consider an execution and prove it is indistinguishable to a process $p$ from some execution of the original algorithm in which more processes can participate, then it has to return the same response on both.
 
-It is easy to verify the post-conditions of the \func{Search} routine still holds, as they follow directly from the code. Also, since no changes are made to the \func{Search} routine, it does not make changes to the BST, but simply traverse it. Therefore \func{Find} routine, which only uses \func{Search}, does not affect any process, and in case of a failure along \func{Find} execution, reissuing it satisfies NRL. A key argument in the proof is that a node in the tree never point twice to the same node. This attributes to the fact an \func{Insert} presents a node with two fresh children. Therefore, if we assume node $nd_1$ points to $nd_2$, in order to point to a different node we must either delete $nd_2$, or insert a new node between the two. In the last case, a copy of $nd_2$ is created, and thus $nd_2$ will no longer bu used.
+In this subsection we give a proof sketch for the algorithm correctness. We assume for simplicity nodes and \Flag\ records are always allocated new memory locations, although it is enough to require no location is reallocated as long as there is a chain of pointers leading to it. The proof relies on the correctness of the original algorithm, which can be found on [....]. Moreover, the original algorithm is anonymous and uniform, i.e., any number of processes can use the BST, and there is no need to know the number of processes in the system in order to use the BST. Thus, if we consider an execution and prove it is indistinguishable to a process $q$ from some execution of the original algorithm in which more processes can participate, then it has to return the same response on both.
+The proof relies on several key arguments given below.
 
-Consider a process $q$ performs an \func{Insert}(k) operation. As argued before, a crash before writing to Announce[q] implies no changes has been made to the BST. Assume thus $q$ executes line \lref{insert-write-announce}, i.e., $q$ stored in Announce[q] a pointer to an \IFlag\ record containing all the data needed for the current attempt to complete the \func{Insert} routine. Since $q$ is in the middle of a while loop, it is enough to prove that if $q$ crash before the next time it writes to Announce[q], if there is such write, upon recovery it will either complete its operation with the right response, or will continue to the next write to Announce[q] without having any affect on the BST. Hence, the same argument can be applied once $q$ writes to Announce[q] again.
+\newcommand{\argSearch}{argument 1}
+1. It is easy to verify the post-conditions of the \func{Search} routine still holds, as they follow directly from the code. Also, since no changes are made to the \func{Search} routine, it does not make any changes to the BST, but rather simply traverse it. Therefore \func{Find} routine, which only uses \func{Search}, does not affect any process, and in case of a failure along \func{Find} execution, reissuing it satisfies NRL.
 
-Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, the \IFlag\ op is stored in $p\leftarrow update$, and it is also iflaged. Notice that p was not changed since the \func{Search} routine read it. This follows from the fact that any change to a node must store a pointer to a new created record, different then any other record. Thus, a successful \CASB\ implies no changes have been applied. Starting from this point, no changes can be made to $p$, except for the change point to by op, as the node is flagged. Relying on the correctness of the original algorithm, no matter how many times \func{HelpInsert}(op) will be executed, the change will occur only once. This follows from the fact that many process can observe op, and will try to complete it in the future. The core for this argument is that a node never point twice to the same node.
+\newcommand{\argNodeRef}{argument 2}
+2. If an internal node $nd_1$ stops pointing to a node $nd_2$ at some point of the execution, it can not point to $nd_2$ again. This attributes to the fact an \func{Insert} presents a node with two new children. Therefore, if $nd_2$ is a leaf, it can either be deleted, or replace with a new copy when an insert operation takes affect. Otherwise, $nd_2$ is an internal node, and as such, it can not be replaced by an insert operation (which only allows to replace a leaf), and therefore it can only be removed from the tree.
+
+\newcommand{\argNodeUpdate}{argument 3}
+3. The field update of a node $nd$ can have any value only once along the execution. This follows from the fact that any attempt to perform an operation creates new record in the memory. If $nd\leftarrow update$ is marked, it can be unmarked or change. Otherwise, any attempt to flag it uses a new created record $op$. If the attempt succeed, then eventually it will be unflagged while still referring to $op$. In order to replace the value again, there must be an operation reading $nd\leftarrow update$ after it was unflagged (as any operation first help a flagged node). This operation must create a new record, and thus we can use the same argument. As a corollary, if a process successfully flag or mark a node, there was no change in the node since the last time it read the node update field.
+
+
+
+Assume process $q$ performs an \func{Insert}(k) operation. As argued in \argSearch, a crash before writing to Announce[q] implies no changes has been made to the BST. Assume thus $q$ executes line \lref{insert-write-announce}, i.e., $q$ stored in Announce[q] a pointer to an \IFlag\ record containing all the data needed for the current attempt to complete the \func{Insert} routine. Since $q$ is in the middle of a while loop, it is enough to prove that if $q$ crash before the next time it writes to Announce[q], if there is such write, upon recovery it will either complete its operation with the right response, or will continue to the next write to Announce[q] without having any affect on the BST. Hence, the same argument can be applied once $q$ writes to Announce[q] again.
+
+Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, a reference to the \IFlag\ $op$ is stored in $p\leftarrow update$, which is also flagged. Following \argNodeUpdate, $p$ was not changed since the \func{Search} routine read it, and it still points to $l$.
+Starting from this point, no changes can be made to $p$, except for the change point to by $op$, as the node is flagged. Now, only the first process 
+
+Relying on the correctness of the original algorithm, no matter how many times \func{HelpInsert}(op) will be executed, the change will occur only once. This follows from the fact that many process can observe op, and will try to complete it in the future. The core for this argument is that a node never point twice to the same node.
 
 
 
@@ -244,14 +257,14 @@ Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, the \IFlag\
 		type \IFlag\ \{ \hspace*{17.7mm} \com subtype of \Flag\nlc
 		\n Internal *$p$, *$newInternal$\nlc
 		Leaf *$l$\nlc
-		\textcolor{blue}{boolean $done$} \nlc
+		\textcolor{blue}{\{\clean,\deleteflag,\insertflag,\mk, \TRUE\} $done$} \nlc
 		\p\}
 		\nlc
 		type \DFlag\ \{ \hspace*{16.4mm} \com subtype of \Flag\nlc
 		\n Internal *$gp$, *$p$\nlc
 		Leaf *$l$\nlc
 		Update $pupdate$\nlc
-		\textcolor{blue}{boolean $done$} \nlc
+		\textcolor{blue}{\{\clean,\deleteflag,\insertflag,\mk, \TRUE\} $done$} \nlc
 		\p\}   
 		\ul
 		\com Initialization:\nlc
@@ -348,7 +361,7 @@ Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, the \IFlag\
 		\n      $update$ field $\langle \clean, \NULL\rangle$, and with two
 		child fields equal to $new$ and $newSibling$\ul 
 		(the one with the smaller key is the left child)\nlc
-		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal, \textcolor{blue}{\FALSE}\rangle$\label{new-IFlag}\nlc
+		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal, \textcolor{blue}{\clean}\rangle$\label{new-IFlag}\nlc
 		\textcolor{blue}{$Announce[id] := op$} \label{insert-write-announce} \nlc
 		$result := \CASB(p\rightarrow update, pupdate, \langle \insertflag, op\rangle)$ \tabtabcom {\bf iflag \CASB}\label{iflag-cas} \nlc
 		if $result = pupdate$ \textcolor{blue}{or $result = \langle \insertflag,op \rangle$} then \{ \tabtabcom The iflag \CASB\ was successful\nlc
@@ -366,9 +379,10 @@ Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, the \IFlag\
 		
 		\func{HelpInsert}(\IFlag\ *$op$) \{\ul
 		\n     \com {\it Precondition}:  $op$ points to an \IFlag\ \record\  (\ie, it is not $\NULL$)\nlc
+		\textcolor{blue}{$op \rightarrow done := \insertflag$} \tabtabcom {announce the iflag \CASB\ was successful}\nlc 
 		\func{CAS-Child}$(op\rightarrow p, op\rightarrow l, op\rightarrow newInternal)$ \tabtabcom {\bf ichild \CASB}\label{ichild-cas}\nlc
 		$\CASB(op\rightarrow p\rightarrow update, \langle \insertflag, op \rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf iunflag \CASB} \label{iunflag-cas}\nlc
-		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {mark the operation as completed}\nlc 
+		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {announce the operation is completed}\nlc 
 		\p
 		\}
 	\end{code}
@@ -391,7 +405,7 @@ Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, the \IFlag\
 		if $gpupdate.state \neq \clean$ then \func{Help}$(gpupdate)$ \label{del-help-unclean-1}\nlc
 		else if $pupdate.state \neq \clean$ then \func{Help}$(pupdate)$\label{del-help-unclean-2}\nlc
 		else \{ \tabtabcom Try to flag $gp$\nlc
-		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate, \textcolor{blue}{\FALSE} \rangle$\label{new-DFlag}\nlc
+		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate, \textcolor{blue}{\clean} \rangle$\label{new-DFlag}\nlc
 		\textcolor{blue}{$Announce[id] := op$} \nlc
 		$result := \CASB(gp\rightarrow update, gpupdate, \langle \deleteflag, op \rangle)$ \tabtabcom {\bf dflag \CASB}\label{dflag-cas}\nlc
 		if $result = gpupdate$ \textcolor{blue}{ or $result = \langle \deleteflag, op \rangle$} then \{ \tabtabcom \CASB\ successful \nlc
