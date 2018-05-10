@@ -39,6 +39,7 @@
 \newcommand{\deleteflag}{\mbox{D\Flag}}
 \newcommand{\record}{\mbox{record}}
 \newcommand{\info}{\mbox{info}}
+\newcommand{\FAIL}{\mbox{\sc Fail}}
 
 \newcommand{\Flag}{Flag}
 \newcommand{\DFlag}{DInfo}
@@ -131,35 +132,60 @@ Once a process flags a node during operation $Op$ with input key $k$ (either \fu
 
 The suggested modification, although being simple and local, only guarantee the implementation satisfy R-linearzability. However, the problem of response being lost in case of a crash is not addressed. Roughly speaking, the critical points in the code for recovery are the \CASB\ primitives, as a crash right after applying \CASB\ operation results the lost of the response, and in order to complete the operation the process needs to know the result of the \CASB. In addition, because of the helping mechanism, a suspended \func{Delete} operation which flagged a node and yet to mark one, may be completed by other process in the future, and may not. Upon recovery, the process needs to distinguish between the two cases, in order to obtain the right response.
 
-To address this issue, we expend the helping mechanism, so that the helping process needs also to update the info structure in case of a success. This is done by adding a boolean field to the Flag structure. This way, if a process crash along an operation $Op$, upon recovery it can check whether the operation was completed by some different process. 
+To address this issue, we expend the helping mechanism so that it also update the info structure in case of a success. This is done by adding a boolean field, done, to the Flag structure. This way, if a process crash along an operation $Op$, upon recovery it can check to see if the operation was already completed. A crucial point is to update the $done$ bit before performing the unflagging. Therefore, if a node is no longer flagged we can be sure done was already updated.
+If we switch the order, then it might be an operation and unflagging were completed, but the done bit is yet to be updated. Therefore, other processes can change the BST structure. However, if the process crash and recover at this point, the done bit is off, and the BST structure has been changed, so it will be harder for the process to conclude whether the operation took affect.
 
-Before a process attempt to perform an operation, as it creates the \Flag\ structure $op$ describing the operation and its affect on the data structure, the process stores $op$ in a designated location (for simplicity, we use an array). Upon recovery, the process reads this location, and if the operation is not completed yet, it retries to perform it, starting from the point of the first flagging (the first \CASB). Otherwise, the operation was completed, and the response value is already known. Notice that there is a scenario in which process $q$ recovers and observes an operation $Op$ as not being completed, but just before it retries it, some other process complete the operation. We need to prove that even in such case, the operation will affect the data structure exactly once, and the right response is returned.
+Before a process $q$ attempt to perform an operation, as it creates the \Flag\ structure $op$ describing the operation and its affect on the data structure, the process stores $op$ in a designated location in the shared memory (for simplicity, we use an array). As a result, upon recovery $q$ has an access to this information. Now, $q$ can check to see if the operation is still in progress, i.e., if the relevant node (parent or grandparent) is still flagged. If so, it first tries to complete the operation. Otherwise, it implies either the operation was completed, and therefore done bit is updated, or that the attempt was unsuccessful and there wa no write to the done bit. Hence, the done bit can distinguish between the two scenarios.
+Notice that there is a scenario in which process $q$ recovers and observes an operation $Op$ as it in a progress, but just before it retries it, some other process complete the operation. We need to prove that even in such case, the operation will affect the data structure exactly once, and the right response is returned.
 
-Notice that the given implementation does not recover the \func{Find} routine, since this routine does not make any changes to the BST, hence it is always safe to consider it as having no linearization point and reissue it. Also, for ease of presentation, we only write to Announce[id] once we are about to capture a node using a CAS. However, writing to Announce[id] at the beginning of the routine may be helpful in case of a crash early in the routine, so that the process will be able to use the data stored in Announce[id] in such case also. The same is true with response value - Announce[id].done is updated only if the routine made changes to the BST.
+The given implementation does not recover the \func{Find} routine, since this routine does not make any changes to the BST, hence it is always safe to consider it as having no linearization point and reissue it. Also, for ease of presentation, we only write to $Announce[id]$ once we are about to capture a node using a CAS. However, writing to $Announce[id]$ at the beginning of the routine may be helpful in case of a crash early in the routine, so that the process will be able to use the data stored in $Announce[id]$ in such case also. The same is true with response value, $Announce[id]\rightarrow done$ is updated only if the routine made changes to the BST.
 
 \subsubsection{Correctness}
 
-In this subsection we give a proof sketch for the algorithm correctness. We assume for simplicity nodes and \Flag\ records are always allocated new memory locations, although it is enough to require no location is reallocated as long as there is a chain of pointers leading to it. The proof relies on the correctness of the original algorithm, which can be found on [....]. Moreover, the original algorithm is anonymous and uniform, i.e., any number of processes can use the BST, and there is no need to know the number of processes in the system in order to use the BST. Thus, if we consider an execution and prove it is indistinguishable to a process $q$ from some execution of the original algorithm in which more processes can participate, then it has to return the same response on both.
+In the following section we give a proof sketch for the algorithm correctness. We assume for simplicity nodes and \Flag\ records are always allocated new memory locations, although it is enough to require no location is reallocated as long as there is a chain of pointers leading to it. The proof relies on the correctness of the original algorithm, which can be found on [....].
+
 The proof relies on several key arguments given below.
 
-\newcommand{\argSearch}{argument 1}
-1. It is easy to verify the post-conditions of the \func{Search} routine still holds, as they follow directly from the code. Also, since no changes are made to the \func{Search} routine, it does not make any changes to the BST, but rather simply traverse it. Therefore \func{Find} routine, which only uses \func{Search}, does not affect any process, and in case of a failure along \func{Find} execution, reissuing it satisfies NRL.
+\newcommand{\argAnonymous}{arg1}
+[\textbf{Arg1}] The original algorithm is anonymous and uniform, i.e., any number of processes can use the BST, and there is no need to know the number of processes in the system in order to use the BST. Notice that all helping routines in the given implementation are completely anonymous, and an execution of such a routine by either the process which invoked $op$ or any other helping process executes the exact same code. This observation allows the use of the following argument. If a process crash while executing some helping routine, we can consider it as an helping process which stop taking steps (more formally, there is an equivalent execution in which there is such a process, and it is indistinguishable to all process in the system). Since such process can not cause a wrong behaviour of the algorithm, so does the crash. 
+A corollary of this argument is that repeating an helping routine multiple times by the same process can not violate the BST specification, as there is an equivalent executions in which multiple processes executes the different helping routines.
 
-\newcommand{\argNodeRef}{argument 2}
-2. If an internal node $nd_1$ stops pointing to a node $nd_2$ at some point of the execution, it can not point to $nd_2$ again. This attributes to the fact an \func{Insert} presents a node with two new children. Therefore, if $nd_2$ is a leaf, it can either be deleted, or replace with a new copy when an insert operation takes affect. Otherwise, $nd_2$ is an internal node, and as such, it can not be replaced by an insert operation (which only allows to replace a leaf), and therefore it can only be removed from the tree.
+\newcommand{\argSearch}{arg2}
+[\textbf{Arg2}] It is easy to verify the post-conditions of the \func{Search} routine still holds, as they follow directly from the routine's code, and does not rely on the structure or correctness of the BST. Also, the \func{Search} routine does not make any changes to the BST, but rather simply traverse it. Therefore \func{Find} routine, which only uses \func{Search}, does not affect any process, and in case of a failure along \func{Find} execution, reissuing it satisfies NRL.
 
-\newcommand{\argNodeUpdate}{argument 3}
-3. The field update of a node $nd$ can have any value only once along the execution. This follows from the fact that any attempt to perform an operation creates new record in the memory. If $nd\leftarrow update$ is marked, it can be unmarked or change. Otherwise, any attempt to flag it uses a new created record $op$. If the attempt succeed, then eventually it will be unflagged while still referring to $op$. In order to replace the value again, there must be an operation reading $nd\leftarrow update$ after it was unflagged (as any operation first help a flagged node). This operation must create a new record, and thus we can use the same argument. As a corollary, if a process successfully flag or mark a node, there was no change in the node since the last time it read the node update field.
+\newcommand{\argNodeRef}{arg3}
+[\textbf{Arg3}] If an internal node $nd_1$ stops pointing to a node $nd_2$ at some point of the execution, it can not point to $nd_2$ again. This attributes to the fact an \func{Insert} presents a node with two new children. Therefore, if $nd_2$ is a leaf, it can either be delete, or replaced by a new copy of an \func{Insert} operation. Otherwise, $nd_2$ is an internal node, and as such, the pointer to it by $nd_1$ can not be replaced by an \func{Insert} operation (which only allows to replacement a leaf), and therefore it can only be removed from the tree.
+
+\newcommand{\argNodeUpdate}{arg4}
+[\textbf{Arg4}] The field update of a node $nd$ can have any value only once along an execution. Any attempt to perform an operation creates a new record in the memory. If $nd\rightarrow update$ is marked, it can not be unmarked or changed. Otherwise, any attempt to flag it uses a new created record $op$. If the attempt succeed, then eventually it will be unflagged while still referring to $op$. In order to replace the value again, there must be an operation reading $nd\rightarrow update$ after it was unflagged (as any operation first help a flagged node). This operation must create a new record, and thus we can use the same argument again. As a corollary, if a process successfully flag or mark a node, there was no change to the node since the last time it read the update field of the node.
+
+\paragraph{Proof Sketch}
+Assume a process $q$ performs an operation $Op$ (either \func{Insert} or \func{Delete}). If $q$ does not crash, the algorithm is identical to the original algorithm, except for the additional write to $Announce[q]$ and $op\rightarrow done$, and thus the correctness of the original algorithm can be applied. Otherwise, $q$ crash at some point, and upon recovery it reads $op$ from $Announce[q]$. This record represent the last attempt of $q$ to complete $Op$. We split the proof based on the type of operation.
+
+$Op = \func{Insert}$. Consider the read of $op\rightarrow p\rightarrow update$ upon recovery, and denote this value by $pupdate$. If $pupdate = \langle \insertflag, op \rangle$, this implies the iflag \CASB\ in line \lref{iflag-cas} was successful and the operation is yet to complete. It might be that \func{Insert} already took affect, that is, the new key is part of the tree, but the unflagging is yet to happen. In such case, $q$ calls \func{HelpInsert}$(op)$ in order to try and complete the operation. Considering \argAnonymous, this call can not violate the BST correctness, even if it not the first time $q$ executes it. Moreover, during \func{HelpInsert} there is a write to $op\rightarrow done$, and thus after completing the routine $q$ returns \TRUE, as required.
+
+Else $pupdate \neq \langle \insertflag, op \rangle$. There are two scenarios to consider. Either the iflag \CASB\ of $q$ in line \lref{iflag-cas} was successful or not. If it was successful, then $p\rightarrow update = \langle \insertflag, op \rangle$ at this point. The only way to change it is to first unflag $p$. To do so, a process needs to complete an \func{HelpInsert}$(op)$ routine, and in particular must write to $op\rightarrow done$. In such case, the \func{Insert} operation was completed, and $q$ returns \TRUE. Otherwise, the \CASB\ was not successful, either because it failed, or the crash was before the \CASB. In both cases, the \func{Insert} operation will not be completed, as $op$ is not stored in $p\rightarrow update$, and thus no process has an access to it. Consequently, no process can update $op\rightarrow done$, and $q$ returns \FAIL.
+
+$Op = \func{Delete}$. Consider the read of $op\rightarrow gp\rightarrow update$ upon recovery, and denote this value by $gpupdate$. If $gpupdate = \langle \deleteflag, op \rangle$, this implies the dflag \CASB\ of $q$ in line \lref{dflag-cas} was successful, and the operation is yet to complete. As in the \func{Insert}, it might be the operation already changed the tree. After reading $gpupdate$ $q$ invokes \func{HelpDelete}$(op)$ routine. Again, following \argAnonymous, executing this multiple times by $q$ can not violate the BST correctness.
+The first process to try and mark $op\rightarrow p\rightarrow update$ during an \func{HelpDelete}$(op)$ routine is the one to determine the outcome of it. If it is successful, then $p$ is marked, and the $update$ field can not be changed. That is, any \func{HelpDelete}$(op)$ execution will obtain true in line \lref{checkmark}, and will call \func{HelpMarked}$(op)$ routine. Otherwise, the \CASB\ fails, and so $p\rightarrow update$ is no longer equal to $op\rightarrow pupdate$. By \argNodeUpdate\ it will never get this value again, and thus any marking \CASB\ during a \func{HelpDelete}$(op)$ execution will fail, and there is no call to \func{HelpMarked}$(op)$. In the first case, any \func{HelpDelete}$(op)$ routine must first complete a \func{HelpMarked}$(op)$, and thus must write to $op\rightarrow done$, while in the later case, there is no write to $op\rightarrow done$, as no \func{HelpMarked}$(op)$ is ever invoked. Therefore, in both cases, when $q$ completes \func{HelpMarked}$(op)$ it reads $op\rightarrow done$ and returns the right response.
+
+
+Otherwise $gpupdate \neq \langle \deleteflag, op \rangle$, and there are two scenarios to consider. If the dflag \CASB\ of $q$ in line \lref{dflag-cas} never took affect, because it either failed, or the crash preceded it, then $op$ is never written to $gp\rightarrow update$, or to any update field. Thus, no process is aware of it, and $op\rightarrow done$ remains \FALSE, resulting $q$ returning \FAIL\ as required. Else, the \CASB\ was successful, and $gp\rightarrow update$ was flagged. The only way to change it is to first unflag it, and this in turn can be done only during an \func{HelpDelete}$(op)$ routine. In this case, it can be unflagged in either the \func{HelpMarked} routine in line \lref{dunflag-cas}, or in line \lref{backtrack-cas} of the \func{HelpDelete} routine. As mention before, the first \CASB\ in line \lref{mark-cas} of an \func{HelpDelete}$(op)$ execution determines the outcome for all \func{HelpDelete}$(op)$. If it is successful, $p\rightarrow update$ is forever marked, and all \func{HelpDelete}$(op)$ must invoke \func{HelpMarked}$(op)$. Therefore, the only option to unflag $gp\rightarrow update$ is at the end of \func{HelpMarked}$(op)$ routine, and this done only after setting $op\rightarrow done$. In such case, the \func{Delete} operation took affect, and $q$ will return \TRUE. On the other hand, if the \CASB\ was not successful, then any \func{HelpDelete}$(op)$ will fail to mark $p\rightarrow update$, and hence no \func{HelpMarked}$(op)$ is ever invoked. As a result, there is no write to $op\rightarrow done$. In such case, the \func{Delete} operation did not took affect, nor will be, and indeed $q$ will return \FAIL. 
 
 
 
-Assume process $q$ performs an \func{Insert}(k) operation. As argued in \argSearch, a crash before writing to Announce[q] implies no changes has been made to the BST. Assume thus $q$ executes line \lref{insert-write-announce}, i.e., $q$ stored in Announce[q] a pointer to an \IFlag\ record containing all the data needed for the current attempt to complete the \func{Insert} routine. Since $q$ is in the middle of a while loop, it is enough to prove that if $q$ crash before the next time it writes to Announce[q], if there is such write, upon recovery it will either complete its operation with the right response, or will continue to the next write to Announce[q] without having any affect on the BST. Hence, the same argument can be applied once $q$ writes to Announce[q] again.
 
-Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, a reference to the \IFlag\ $op$ is stored in $p\leftarrow update$, which is also flagged. Following \argNodeUpdate, $p$ was not changed since the \func{Search} routine read it, and it still points to $l$.
+
+\remove{
+%%%%%%%REMOVE%%%%%%%%%%%%%%
+Assume process $q$ performs an \func{Insert}$(k)$ operation. As argued in \argSearch, a crash before writing to $Announce[q]$ implies no changes has been made to the BST. Assume thus $q$ executes line \lref{insert-write-announce}, i.e., $q$ stored in $Announce[q]$ a pointer to an \IFlag\ record $op$ containing all the data of the current attempt to complete the \func{Insert} routine. Since $q$ is in the middle of a while loop, it is enough to prove that if $q$ crash before the next time it writes to $Announce[q]$, if there is such write, upon recovery it will either complete its operation with the right response, or will continue to the next write to $Announce[q]$ without having any affect on the BST. Hence, the same argument can be applied once $q$ writes to $Announce[q]$ again. Notice that if $q$ does not crash, the algorithm is identical to the original algorithm, except for the additional write to $op\rightarrow done$, and thus the original proof can 
+
+
+Assume $q$ performs a successful CAS in line \lref{iflag-cas}. Then, a reference to the \IFlag\ $op$ is stored in $p\rightarrow update$, which is also flagged. Following \argNodeUpdate, $p$ was not changed since the \func{Search} routine read it, and it still points to $l$.
 Starting from this point, no changes can be made to $p$, except for the change point to by $op$, as the node is flagged. Now, only the first process 
 
 Relying on the correctness of the original algorithm, no matter how many times \func{HelpInsert}(op) will be executed, the change will occur only once. This follows from the fact that many process can observe op, and will try to complete it in the future. The core for this argument is that a node never point twice to the same node.
-
+}
 
 
 
@@ -185,7 +211,7 @@ Relying on the correctness of the original algorithm, no matter how many times \
 		$\langle gp, p, l, pupdate, gpupdate \rangle := \func{Search}(k)$\nlc
 		if $gpupdate.state \neq \clean$ then $\func{Help}(gpupdate)$ \nlc
 		else if $pupdate.state \neq \clean$ then $\func{Help}(pupdate)$ \nlc
-		else if $gp \leftarrow update = gpupdate$ and $p \leftarrow update = pupdate$ then \{ \nlc \n
+		else if $gp \rightarrow update = gpupdate$ and $p \rightarrow update = pupdate$ then \{ \nlc \n
 		if $l \rightarrow key = k$ then return $l$ \nlc
 		else return \NULL \nlc
 		\p \} \nlc
@@ -216,8 +242,8 @@ Relying on the correctness of the original algorithm, no matter how many times \
 					\n return leaf with key $k$ from $pupdate.info$ \nlc \p
 				else return \NULL \nlc \p
 			\} \nlc
-			if ($pupdate.state = \mk$ and $pupdate.info \leftarrow l \leftarrow key = k$) then return \NULL \nlc
-			if ($gpupdate.state = \deleteflag$ and $gpupdate.info \leftarrow l \leftarrow key = k$) then \{ \nlc
+			if ($pupdate.state = \mk$ and $pupdate.info \rightarrow l \rightarrow key = k$) then return \NULL \nlc
+			if ($gpupdate.state = \deleteflag$ and $gpupdate.info \rightarrow l \rightarrow key = k$) then \{ \nlc
 				\n $op := gpupdate.info$ \nlc
 				$result := \CASB(op\rightarrow p\rightarrow update, op\rightarrow pupdate, \langle \mk, op\rangle)$ \tabtabcom {\bf mark \CASB}\label{mark-cas}\nlc     
 				if ($result = op\rightarrow pupdate$ or $result = \langle \mk, op\rangle$) then return \NULL \label{checkmark} \tabtabcom $op\rightarrow p$ is successfully marked \nlc \p
@@ -257,14 +283,14 @@ Relying on the correctness of the original algorithm, no matter how many times \
 		type \IFlag\ \{ \hspace*{17.7mm} \com subtype of \Flag\nlc
 		\n Internal *$p$, *$newInternal$\nlc
 		Leaf *$l$\nlc
-		\textcolor{blue}{\{\clean,\deleteflag,\insertflag,\mk, \TRUE\} $done$} \nlc
+		\textcolor{blue}{boolean $done$} \nlc
 		\p\}
 		\nlc
 		type \DFlag\ \{ \hspace*{16.4mm} \com subtype of \Flag\nlc
 		\n Internal *$gp$, *$p$\nlc
 		Leaf *$l$\nlc
 		Update $pupdate$\nlc
-		\textcolor{blue}{\{\clean,\deleteflag,\insertflag,\mk, \TRUE\} $done$} \nlc
+		\textcolor{blue}{boolean $done$} \nlc
 		\p\}   
 		\ul
 		\com Initialization:\nlc
@@ -284,14 +310,26 @@ Relying on the correctness of the original algorithm, no matter how many times \
 	
 	\begin{code}
 		\func{Recover}() \{ \nlc \n
-			Flag $*op$ = Announce[id] \bl \nlc
+			Flag $*op = Announce[id]$ \bl \nlc
 			
-			if $op \leftarrow done = \TRUE$ then return \TRUE \nlc
-			if $op$ of type \IFlag\ then \nlc \n
-				go to line \lref{iflag-cas} \nlc \p
-			if $op$ of type \DFlag\ then \nlc \n
-				go to line \lref{dflag-cas} \nlc \p
+			if $op$ of type \IFlag\ then \{ \nlc \n
+				$result := op\rightarrow p\rightarrow update$ \tabtabcom Check {\bf flag}\label{iflag-cas} \nlc
+				if $result = \langle \insertflag,op \rangle$ then \func{HelpInsert}$(op)$ \tabtabcom Finish the insertion\label{finish-insert}\nlc
+				%if $op\rightarrow p$ points to $op\rightarrow newInternal$ or \nlc
+				%\n $op\rightarrow newInternal \rightarrow update \neq \langle \clean, \NULL\rangle$ then return \TRUE \nlc
+				%\p else return \FAIL \nlc
+			\p \} \nlc
+			if $op$ of type \DFlag\ then \{ \nlc \n
+				$result := op\rightarrow gp\rightarrow update$ \tabtabcom Check {\bf flag}\label{dflag-cas}\nlc
+				if $result = \langle \deleteflag, op \rangle$ then \func{HelpDelete}$(op)$ \label{delete-true} \tabtabcom Either finish deletion or unflag \nlc
+				%if $op\rightarrow p\rightarrow update = \langle \mk, op \rangle$ then return \TRUE \nlc
+				%else return \FAIL \nlc
+			\p \} \nlc
+			if $op\rightarrow done = \TRUE$ then return \TRUE\ \nlc
+			else return \FAIL \nlc
 		\p \}
+			
+			
 	\end{code}
 
 \caption{\func{Recover} routine}
@@ -361,17 +399,15 @@ Relying on the correctness of the original algorithm, no matter how many times \
 		\n      $update$ field $\langle \clean, \NULL\rangle$, and with two
 		child fields equal to $new$ and $newSibling$\ul 
 		(the one with the smaller key is the left child)\nlc
-		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal, \textcolor{blue}{\clean}\rangle$\label{new-IFlag}\nlc
+		\p        $op :=$ pointer to a new \IFlag\ \record\  containing $\langle p, l, newInternal, \textcolor{blue}{\FALSE}\rangle$\label{new-IFlag}\nlc
 		\textcolor{blue}{$Announce[id] := op$} \label{insert-write-announce} \nlc
 		$result := \CASB(p\rightarrow update, pupdate, \langle \insertflag, op\rangle)$ \tabtabcom {\bf iflag \CASB}\label{iflag-cas} \nlc
-		if $result = pupdate$ \textcolor{blue}{or $result = \langle \insertflag,op \rangle$} then \{ \tabtabcom The iflag \CASB\ was successful\nlc
+		if $result = pupdate$ then \{ \tabtabcom The iflag \CASB\ was successful\nlc
 		\n            \func{HelpInsert}$(op)$ \tabtabcom Finish the insertion\label{finish-insert}\nlc
 		return \TRUE\ \label{insert-true}\nlc
 		\p        \}\nlc 
 		else \func{Help}$(result)$ \tabcom The iflag \CASB\ failed; help the operation that caused failure\label{ins-help-after-failure}\nlc
 		\p    \}\nlc
-		\textcolor{blue}{if $op \rightarrow done = \TRUE$ then} \nlc
-		\n		\textcolor{blue}{return \TRUE} \nlc \p
 		\p\}\nlc 
 		\p
 		\}\bl
@@ -379,10 +415,10 @@ Relying on the correctness of the original algorithm, no matter how many times \
 		
 		\func{HelpInsert}(\IFlag\ *$op$) \{\ul
 		\n     \com {\it Precondition}:  $op$ points to an \IFlag\ \record\  (\ie, it is not $\NULL$)\nlc
-		\textcolor{blue}{$op \rightarrow done := \insertflag$} \tabtabcom {announce the iflag \CASB\ was successful}\nlc 
+	%	\textcolor{blue}{$op \rightarrow done := \insertflag$} \tabtabcom {announce the iflag \CASB\ was successful}\nlc 
 		\func{CAS-Child}$(op\rightarrow p, op\rightarrow l, op\rightarrow newInternal)$ \tabtabcom {\bf ichild \CASB}\label{ichild-cas}\nlc
+		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {announce the operation completed}\nlc 
 		$\CASB(op\rightarrow p\rightarrow update, \langle \insertflag, op \rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf iunflag \CASB} \label{iunflag-cas}\nlc
-		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {announce the operation is completed}\nlc 
 		\p
 		\}
 	\end{code}
@@ -405,16 +441,14 @@ Relying on the correctness of the original algorithm, no matter how many times \
 		if $gpupdate.state \neq \clean$ then \func{Help}$(gpupdate)$ \label{del-help-unclean-1}\nlc
 		else if $pupdate.state \neq \clean$ then \func{Help}$(pupdate)$\label{del-help-unclean-2}\nlc
 		else \{ \tabtabcom Try to flag $gp$\nlc
-		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate, \textcolor{blue}{\clean} \rangle$\label{new-DFlag}\nlc
+		\n          $op :=$ pointer to a new \DFlag\ \record\  containing $\langle gp, p, l, pupdate, \textcolor{blue}{\FALSE} \rangle$\label{new-DFlag}\nlc
 		\textcolor{blue}{$Announce[id] := op$} \nlc
 		$result := \CASB(gp\rightarrow update, gpupdate, \langle \deleteflag, op \rangle)$ \tabtabcom {\bf dflag \CASB}\label{dflag-cas}\nlc
-		if $result = gpupdate$ \textcolor{blue}{ or $result = \langle \deleteflag, op \rangle$} then \{ \tabtabcom \CASB\ successful \nlc
+		if $result = gpupdate$ then \{ \tabtabcom \CASB\ successful \nlc
 		\n             if \func{HelpDelete}$(op)$ then return \TRUE \label{delete-true} \tabtabcom Either finish deletion or unflag\nlc
 		\p          \}\nlc                 
 		else \func{Help}$(result)$ \tabcom The dflag \CASB\ failed; help the operation that caused the failure \label{del-help-after-failure}\nlc%; help operation that is in the way 
 		\p     \}\nlc
-		\textcolor{blue}{if $op \rightarrow done = \TRUE$ then} \nlc
-		\n		\textcolor{blue}{return \TRUE} \nlc \p
 		\p \}\nlc
 		\p
 		\}\bl
@@ -449,8 +483,8 @@ Relying on the correctness of the original algorithm, no matter how many times \
 		\com Splice the node to which $op\rightarrow p$ points out of the tree, replacing it by $other$\nlc
 		\func{CAS-Child}$(op\rightarrow gp, op\rightarrow p, other)$ \tabtabcom {\bf dchild \CASB}\label{dchild-cas}\nlc
 		%     \com Unflag the node $op\rightarrow gp$ points to\nlc
+		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {announce the operation completed} \nlc
 		\CASB$(op\rightarrow gp\rightarrow update, \langle \deleteflag, op\rangle, \langle \clean, op\rangle)$ \tabtabcom {\bf dunflag \CASB}\label{dunflag-cas}\nlc
-		\textcolor{blue}{$op \rightarrow done := \TRUE$} \tabtabcom {mark the operation as completed} \nlc
 		\p
 		\}\bl\nlc
 		
