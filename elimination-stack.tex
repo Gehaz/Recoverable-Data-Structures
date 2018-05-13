@@ -1,35 +1,70 @@
+
+\newcommand{\push}{\mbox{\sc Push}}
+\newcommand{\trypush}{\mbox{\sc TryPush}}
+\newcommand{\recoverPush}{\mbox{\sc Push-Roceover}}
+\newcommand{\pop}{\mbox{\sc Pop}}
+\newcommand{\trypop}{\mbox{\sc TryPop}}
+\newcommand{\recoverPop}{\mbox{\sc Pop-Recover}}
+\newcommand{\recover}{\mbox{\sc Recover}}
+\newcommand{\exchange}{\mbox{\sc Exchange}}
+\newcommand{\recoverExchange}{\mbox{\sc Exchange-Recover}}
+\newcommand{\visit}{\mbox{\sc Visit}}
+\newcommand{\switchPair}{\mbox{\sc SwitchPair}}
+
+
+\newcommand{\init}{\mbox{$\bot$}}
+\newcommand{\NULL}{\mbox{\sc Null}}
+\newcommand{\fail}{\mbox{\sc Fail}}
+\newcommand{\emptyst}{\mbox{\sc Empty}}
+\newcommand{\waiting}{\mbox{\sc Waiting}}
+\newcommand{\busy}{\mbox{\sc Busy}}
+\newcommand{\timeout}{\mbox{\sc Timeout}}
+
+\newcommand{\Info}{\mbox{Info}}
+\newcommand{\opInfo}{\mbox{OpInfo}}
+\newcommand{\exInfo}{\mbox{ExInfo}}
+
+
+\newcommand{\comnospace}{\mbox{$\triangleright$}}
+\newcommand{\com}{\mbox{\comnospace\ }}
+\newcommand{\tabtabcom}{\>\>\com}
+\newcommand{\tabcom}{\>\com}
+
+
 \section{Elimination Stack}
 
-The Elimination Stack combines both techniques.
+For simplicity, we assume a value \init, which is different from \NULL\ and any other value the stack can store. Since \NULL\ is used as a legit return value, representing the value of \pop\ operation (when exchanging values using the elimination array), \NULL\ can not be used to represent an initialization value, different then any stack value. The same holds for a Node, since a \NULL\ node represent an empty stack, the value \init\ is used to distinguish between initialization value and empty stack.
 
-We assume the value INIT, which is different from NULL and any other value. Since NULL is used as a legit return value, representing the value of pop operation (when exchanging values using the elimination array), NULL can not be used to represent an initialization value, different then any stack value. The same holds for Node, since NULL node represent an empty stack, the value INIT is used to distinguish between initialization value and empty stack.
+For simplicity, we split the \recover\ routine into sub-routines, based on which operation (\push, \pop, \exchange) is pending, or needs to be recover. This can be concluded easily by the type of record stored in $Announce[pid]$ (\exInfo\ or \opInfo), thus there is no need to explicitly know where exactly in the code the crash took place. Also, the \recover\ routine returns \fail\ in case the last pending operation did not took affect (no linearization point), nor it will take in any future run. In such case, the user has the option to either re-invoke the operation, or to skip it, depends on the needs and circumstances of the specific use of the data structure.
 
-For simplicity, we split the recover routine into sub-routines, based on which operation (Push, Pop, Exchange) is pending, or needs to be recover. This can be easily conclude by the type of structure stored in Announce[id] (ExInfo or OpInfo), thus there is no need to explicitly know where exactly in the code the crash took place. Also, the recover routine returns FAIL in case the last pending operation did not took affect (no linearization point), nor it will take in any future run. In such case, the user have the option to either reinvoke the operation, or the skip it, depends on the needs and circumstances of the specific use of the data structure.
+The given implementation ignores the log of failures and successes of the exchange routine when recovering. That is, in case of a crash during an \exchange, a process is able to recover the \exchange\ routine, however, the log of successes and failures is not update, since it might be the process already updated it. In addition, in case of a \fail\ response, we do not know whether the time limit (timeout) was reached, or that the process simply crashed earlier in the routine without completing it. The given implementation can be expanded to also consider the log. Nonetheless, for ease of presentation we do not handle the log in case of a crash. Assuming crash events are rare, the log still gives a roughly good approximation to the number of failures and successes, thus our approach might be useful in practice.
 
-The given implementation ignores the log of failures and successes of the exchange routine when recovering. That is, in case of a crash during an exchange, a process is able to recover the exchange routine, however, even in case of success we do not record it, since it might be the process already recorded it. In addition, in case of a FAIL response, we do not know whether the time limit (timeout) was reached, or that the process simply crashed earlier in the routine without completing it. The given implementation can be expanded to also consider the log, however, for ease of presentation we do not handle the log in case of a failure. Assuming crash events are rare, the log still gives a roughly good approximation to the ratio of failures and successes, thus our approach might be useful in practice.
+\subsection{A Lock-Free Exchanger}
+An exchanger object supports the \exchange\ procedure, which allows 
+
 
 
 \begin{figure*}[b]
-	
+	\small
 	
 	Type Node \{ \\
-		\hspace*{6mm} T value \\
-		\hspace*{6mm} int popby \\
-		\hspace*{6mm} Node *next \\
+		\hspace*{6mm} T $value$ \\
+		\hspace*{6mm} int $popby$ \\
+		\hspace*{6mm} Node $*next$ \\
 	\} \\
 	
 	
-	Type OpInfo \{ \\
-		\hspace*{6mm} \{Push, Pop\} optype \\
-		\hspace*{6mm} Node *curr \\
-		\hspace*{6mm} boolean done \\
+	Type \opInfo \{ \hspace*{17.7mm} $\triangleright$ subtype of \Info \\
+		\hspace*{6mm} \{\push, \pop\} $optype$ \\
+		\hspace*{6mm} Node $*curr$ \\
+		\hspace*{6mm} boolean $done$ \\
 	\} \\
 	
 	
-	Type ExInfo \{ \\
-	\hspace*{6mm} \{EMPTY, WAITING, BUSY\} state \\
-	\hspace*{6mm} T value, result \\
-	\hspace*{6mm} ExInfo *partner, *slot \\
+	Type \exInfo \{ \hspace*{17.7mm} $\triangleright$ subtype of \Info \\
+	\hspace*{6mm} \{\emptyst, \waiting, \busy\} $state$ \\
+	\hspace*{6mm} T $value, result$ \\
+	\hspace*{6mm} \exInfo\ $*partner, *slot$ \\
 	\}
 	
 	\caption{Type definition}
@@ -39,131 +74,150 @@ The given implementation ignores the log of failures and successes of the exchan
 
 %%%%%%%%%%%%%%%%%%Elimination array%%%%%%%%%%%%%%%%%
 \begin{figure*}
+	\small
 	
-	ExInfo *default - a global ExInfo object with state = EMPTY
+	\exInfo\ $default$ - a global static \exInfo\ object with state = \emptyst
 	
-\begin{procedure}[H]
-	\caption{T Exchange (ExInfo *slot, T myitem, long timeout)}
+\begin{algorithm}[H]
+	\caption{T \exchange\ (\exInfo\ $*slot$, T $myitem$, long $timeout$)}
 	
-	long timeBound := getNanos() + timeout \;
-	ExInfo myop := new ExInfo (WAITING, myitem, INIT, NULL, slot)\;
-	Announce[id] := myop \;
+	long $timeBound$ := getNanos() + $timeout$ \;
+	\exInfo\ $myop$ := new \exInfo (\waiting, $myitem$, \init, \init, $slot$)\;
+	$Announce[pid]$ := $myop$ \;
 	
-	\While{\True}{
-		\uIf{getNanos() $>$ timeBound} {\KwRet TIMEOUT}
-		myop.state := WAITING \;
-		yourop := slot \;
+	\While{\True} {
+		\uIf{getNanos() $> timeBound$} {
+			$myop.result := \timeout$ \tcp*{time limit reached}
+			\KwRet \timeout 
+		}
+		%$myop.state$ := \waiting \tcp*{set to default state}
+		$yourop := slot$ \;
 %		$\langle$youritem,state$\rangle$ := slot\;
-		\Switch{yourop.state} {
-			\uCase{EMPTY} {
-				myop.partner := NULL \;
-				\If{slot.\CAS(yourop, myop)}{
-					\While{getNanos() $<$ timeBound}{
-						yourop := slot\;
-						\uIf{yourop $\neq$ myop} {
-							\uIf {youop.parnter = myop} {
-								PairSwitch(myop, yourop) \;
-								slot.\CAS (yourop, default) \;
+		\Switch{$yourop.state$} {
+			\uCase{\emptyst} {
+				$myop.state$ := \waiting \tcp*{try to replace $default$}
+				$myop.partner := \init$ \;
+				\If {$slot.\CAS (yourop, myop)$} {
+					\While{getNanos() $< timeBound$}{
+						$yourop := slot$ \;
+						\uIf(\tcp*[f]{a collision was done}) {$yourop \neq myop$} {
+							\uIf (\tcp*[f]{$yourop$ collide with $myop$}) {$youop.parnter = myop$} {
+								\switchPair $(myop, yourop)$ \;
+								$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
 							}
-							\KwRet myop.result \;
+							\KwRet $myop.result$ \;
 						}
 					}
-					\uIf{slot.\CAS(myop, default)}{
-						myop.result := TIMEOUT \;
-						\KwRet TIMEOUT\;
-					} \uElse {
-						yourop := slot \;
-						\uIf{yourop.partner = myop} {
-							PairSwitch(myop, yourop) \;
-							slot.\CAS (yourop, default) \;
+					\tcp{time limit reached and no process collide with me}
+					\uIf (\tcp*[f]{try to release $slot$}) {$slot.\CAS(myop, default)$}{
+						$myop.result := \timeout$ \;
+						\KwRet \timeout\;
+					} \uElse (\tcp*[f]{some process show up}) {
+						$yourop := slot$ \;
+						\uIf{$yourop.partner = myop$} {
+							\switchPair $(myop, yourop)$ \tcp*{complete the collision}
+							$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
 						}
-						\KwRet myop.result \;
+						\KwRet $myop.result$ \;
 					}
 				}
-				break\;
+				break \;
 			}
-			\uCase{WAITING} {
-				myop.partner := yourop \;
-				myop.state := BUSY \;
-				\uIf{slot.\CAS (yourop, myop)}{
-					PairSwitch(myop, yourop) \;
-					slot.\CAS (myop, default) \;
-					\KwRet myop.result \;
+			\uCase (\tcp*[f]{some process is waiting in $slot$}){\waiting} {
+				$myop.partner := yourop$ \tcp*{attempt to replace $yourop$}
+				$myop.state := \busy$ \;
+				\uIf (\tcp*[f]{try to collide}){$slot.\CAS (yourop, myop)$} {
+					\switchPair $(myop, yourop)$ \tcp*{complete the collision}
+					$slot.\CAS (myop, default)$ \tcp*{release $slot$}
+					\KwRet $myop.result$ \;
 				}
-				break\;
+				break \;
 			}
-			\uCase{BUSY} {
-				PairSwitch(yourop, yourop.parnter) \;
-				slot.\CAS (yourop, default) \;
-				break\;
+			\uCase (\tcp*[f]{a collision in progress}) {\busy} {
+				\switchPair $(yourop, yourop.parnter)$ \tcp*{help to complete the collision}
+				$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+				break \;
 			}
 		}	
-	}
-\end{procedure}
+	} 
+\end{algorithm}
 
 \end{figure*}
 
 
 
+
 \begin{figure*}
+	\small
 	
-\begin{procedure}[H]
-	\caption{void PairSwitch (ExInfo first, ExInfo second)}
+\begin{algorithm}[H]
+	\caption{void \switchPair (\exInfo\ $first$, \exInfo\ $second$)}
 	
-	first.result := second.value \;
-	second.result := first.value \;
+	\tcp{exchange the valus of the two operations}
+	$first.result := second.value$ \;
+	$second.result := first.value$ \;
 	
-\end{procedure}
+\end{algorithm}
 
-\begin{procedure}[H]
-	\caption{T visit (T value, int range, long duration)}
+\begin{algorithm}[H]
+	\caption{T \visit\ (T $value$, int $range$, long $duration$)}
 	
-	int cell := randomnumber(range) \;
-	\KwRet exchange(exchanger[cell], value, duration)
-\end{procedure}
+	\tcp{invoke \exchange\ on a random selected entery in the collision array}
+	int $cell$ := randomNumber$(range)$ \;
+	\KwRet \exchange$(exchanger[cell], value, duration)$
+\end{algorithm}
 
-\begin{procedure}[H]
-	\caption{T Exchanger-Recover (void)}
+\begin{algorithm}[H]
+	\caption{T \recoverExchange\ $()$}
 	
-	ExInfo *myop := Announce[id] \;
-	ExInfo *slot := myop.slot \;
+	\exInfo\ $*myop := Announce[pid]$ \tcp*{read your last operation record,}
+	\exInfo\ $*slot := myop.slot$ \tcp*{and the slot on which it act}
 	
-	\uIf {myop.state = WAITING} {
-		yourop := slot \;
-		\uIf {yourop = myop} {
-			\uIf{slot.\CAS(myop, default)}{\KwRet FAIL}
-			\uElse {
-				yourop := slot \;
-				\uIf{yourop.partner = myop} {
-					PairSwitch(myop, yourop) \;
-					slot.\CAS (yourop, default) \;
+	\uIf {$myop.state = \waiting$} {
+		\tcp{crash while trying to exchange $defualt$, or waiting for a process to collide with me}
+		$yourop := slot$ \;
+		\uIf (\tcp*[f]{still waiting for a collide}) {$yourop = myop$} {
+			\uIf (\tcp*[f]{try to release $slot$}){$slot.\CAS(myop, default)$}{\KwRet \fail}
+			\uElse (\tcp*[f]{some process show up}) {
+				$yourop := slot$ \;
+				\uIf{$yourop.partner = myop$} {
+					\switchPair$(myop, yourop)$ \tcp*{complete the collision}
+					$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
 				}
-				\textbf{go to} \ref{ExRecover-successful} \;
+				\KwRet $myop.result$ \;
+				%\textbf{go to} \ref{ExRecover-successful} \;
 			}	
 		}
-		\uIf {yourop.partner = myop} {
-			PairSwitch(myop, yourop) \;
-			slot.\CAS (myop, default) \;
-			\textbf{go to} \ref{ExRecover-successful} \;
+		\uIf (\tcp*[f]{$yourop$ collide with $myop$}) {$yourop.partner = myop$} {
+			\switchPair$(myop, yourop)$ \tcp*{complete the collision}
+			$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+			\KwRet $myop.result$ \;
 		}
-		\uIf {myop.result $\neq$ INIT} {\textbf{go to} \ref{ExRecover-successful}}
-		\KwRet FAIL	
+		%\uIf {$myop.result \neq \init$} {\KwRet $myop.result$ \;}
+		%\KwRet \fail	
 	}
-	\uIf {myop.state = BUSY} {
-		yourop := slot \;
-		\uIf {yourop = myop} {
-			PairSwitch(myop, yourop) \;
-			slot.\CAS (myop, default) \;
-			\textbf{go to} \ref{ExRecover-successful} \;
-		}
-		\uIf {myop.result $\neq$ INIT} {\textbf{go to} \ref{ExRecover-successful}}
-		\KwRet FAIL	
+	\uIf {$myop.state = \busy$} {
+		\tcp{crash while trying to collide with $myop.partner$}
+		$yourop := slot$ \;
+		\uIf (\tcp*[f]{collide was successful}) {$yourop = myop$} {
+			\switchPair$(myop, myop.partner)$ \tcp*{complete the collision}
+			$slot.\CAS (myop, default)$ \tcp*{release $slot$}
+			\KwRet $myop.result$ \;
+			%\textbf{go to} \ref{ExRecover-successful} \;
+		}	
 	}
+	\uIf {$myop.result \neq \init$} {
+		\KwRet $myop.result$ \tcp*{collide was successfuly completed}
+	}
+	\uElse {\KwRet \fail}
+
+	\remove{
 	returnCode: \tcp*{successful exchange} \label{ExRecover-successful}
-	\uIf {exactly one of \{myop.value, myop.result\} is NULL}
-		{KwRet myop.result \tcp*[f]{Exchange of Push and Pop}}
-	\uElse {\KwRet FAIL \tcp*[f]{Exchange of two operations of the same type}}
-\end{procedure}
+	\uIf {exactly one of \{myop.value, myop.result\} is \NULL}
+		{KwRet myop.result \tcp*[f]{Exchange of \push and \pop}}
+	\uElse {\KwRet \fail \tcp*[f]{Exchange of two operations of the same type}}
+	}
+\end{algorithm}
 
 \caption{Elimination Array routines}
 \end{figure*}
@@ -173,58 +227,58 @@ The given implementation ignores the log of failures and successes of the exchan
 %%%%%%%%%%%%%%%%%%PUSH%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
 	
-\begin{procedure}[H]
-	\caption{boolean TryPush (Node *new)}
+\begin{algorithm}[H]
+	\caption{boolean \trypush\ (Node $*new$)}
 	
-	Node *oldTop := Top\;
-	new.next := oldTop\;
-	\KwRet Top.\CAS(oldTop, new)
-\end{procedure}
+	Node $*oldTop := Top$\;
+	$new.next := oldTop$\;
+	\KwRet $Top.\CAS(oldTop, new)$
+\end{algorithm}
 
-\begin{procedure}[H]
-	\caption{boolean push (T myitem)}
+\begin{algorithm}[H]
+	\caption{boolean \push\ (T $myitem$)}
 	
-	Node *nd = new Node (myitem)\;
-	nd.popby := NULL \;
+	Node $*nd$ = new Node $(myitem)$ \;
+	$nd.popby := \init$ \;
 	
-	OpInfo data := new OpInfo (PUSH, nd, \False) \;
+	\opInfo\ $data$ := new \opInfo\ (\push, $nd$, \False) \;
 	\While{\True}{
-		Announce[id] := data \;
-		\uIf{TryPush(nd)}{
-			data.done := \True \;
+		$Announce[pid] := data$ \;
+		\uIf{\trypush$(nd)$}{
+			$data.done := \True$ \;
 			\KwRet \True
 		}
-		range := CalculateRange()\;
-		duration := CalculateDuration()\;
-		othervalue := visit(myitem, range, duration)\;
-		\uIf{othervalue = NULL}{
-			Record Success ()\;
+		$range$ := CalculateRange()\;
+		$duration$ := CalculateDuration()\;
+		$othervalue$ := \visit$(myitem, range, duration)$\;
+		\uIf{$othervalue = \NULL$}{
+			RecordSuccess ()\;
 			\KwRet \True\;
-		} \uElseIf {othervalue = TIMEOUT} {Record Failure ()}
+		} \uElseIf {$othervalue = \timeout$} {RecordFailure ()}
 	}
-\end{procedure}
+\end{algorithm}
 
-\begin{procedure}[H]
-	\caption{Push-Recover (void)}
+\begin{algorithm}[H]
+	\caption{boolean \recoverPush\ $()$}
 	
-	OpInfo *data := Announce[id] \;
-	\uIf {data.done = \True} {\KwRet \True}
-	Node *iter := Top \;
-	\While{iter $\neq$ NULL}{
-		\uIf {iter = data.curr} {
-			data.done := \True \;
+	\opInfo\ $*data := Announce[pid]$ \;
+	\uIf {$data.done = \True$} {\KwRet \True}
+	Node $*iter := Top$ \;
+	\While{$iter \neq \NULL$}{
+		\uIf {$iter = data.curr$} {
+			$data.done := \True$ \;
 			\KwRet \True \;
 		}
-		iter = iter.next \;	
+		$iter = iter.next$ \;	
 	}
-	\uIf {data.curr.popby $\neq$ NULL} {
-			data.done := \True \;
+	\uIf {$data.curr.popby \neq \init$} {
+			$data.done := \True$ \;
 			\KwRet \True \;
 	}
-	\KwRet FAIL \;
-\end{procedure}
+	\KwRet \fail \;
+\end{algorithm}
 
-\caption{Push routine}
+\caption{\push\ routine}
 \end{figure*}
 
 
@@ -233,58 +287,58 @@ The given implementation ignores the log of failures and successes of the exchan
 %%%%%%%%%%%%%%%%%%POP%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
 
-\begin{procedure}[H]
-	\caption{T TryPop (void)}
+\begin{algorithm}[H]
+	\caption{T \trypop $()$}
 	
-	Node *oldTop := Top\;
-	Node *newTop\;
-	Announce[id].curr := oldTop \;
-	\uIf{oldTop = NULL}{\KwRet EMPTY}
-	newTop := oldTop.next\;
-	\uIf{Top.\CAS(oldTop, newTop)}{\KwRet oldTop}
-	\uElse {\KwRet NULL}
-\end{procedure}
+	Node $*oldTop := Top$ \;
+	Node $*newTop$ \;
+	$Announce[pid].curr := oldTop$ \;
+	\uIf{$oldTop = \NULL$}{\KwRet \emptyst}
+	$newTop := oldTop.next$\;
+	\uIf{$Top.\CAS(oldTop, newTop)$}{\KwRet $oldTop$}
+	\uElse {\KwRet \init}
+\end{algorithm}
 
-\begin{procedure}[H]
-	\caption{T pop (void)}
+\begin{algorithm}[H]
+	\caption{T \pop\ $()$}
 	
-	Node *result \;
-	OpInfo data := new OpInfo (POP, INIT, \False) \;
-	Announce[id] := data \;
+	Node $*result$ \;
+	\opInfo\ $data$ := new \opInfo\ (\pop, \init, \False) \;
 	
 	\While{\True}{
-		result := TryPop () \;
-		\uIf {result = EMPTY} {\KwRet EMPTY}
-		\uElseIf {result $\neq$ NULL} {
-			\uIf {result.popby.\CAS(NULL, id)} {\KwRet result.value}
+		$Announce[pid] := data$ \;
+		$result$ := \trypop $()$ \;
+		\uIf {$result = \emptyst$} {\KwRet \emptyst}
+		\uElseIf {$result \neq \init$} {
+			\uIf {$result.popby.\CAS(\init, pid)$} {\KwRet $result.value$}
 		}
-		range := CalculateRange()\;
-		duration := CalculateDuration()\;
-		othervalue := visit(NULL, range, duration)\;
-		\uIf{othervalue = TIMEOUT}{Record Failure ()}
-		\uElseIf {othervalue $\neq$ NULL} {
-			Record Success ()\;
-			\KwRet othervalue
+		$range$ := CalculateRange()\;
+		$duration$ := CalculateDuration()\;
+		$othervalue$ := \visit $(\NULL, range, duration)$ \;
+		\uIf{$othervalue = \timeout$}{RecordFailure ()}
+		\uElseIf {$othervalue \neq \NULL$} {
+			RecordSuccess ()\;
+			\KwRet $othervalue$
 		}
 	}
 	
-\end{procedure}
+\end{algorithm}
 
-\begin{procedure}[H]
-	\caption{Pop-Recover (void)}
+\begin{algorithm}[H]
+	\caption{T \recoverPop $()$}
 	
-	Node *result := Announce[id].curr \;
-	\uIf {result = NULL} {\KwRet EMPTY}
-	\uIf {result = INIT} {\KwRet FAIL}
-	\uIf {result.popby $\neq$ NULL} {
-		\uIf {result.popby = id} {\KwRet result.value}
-		\uElse {\KwRet FAIL}
+	Node $*nd := Announce[pid].curr$ \;
+	\uIf {$nd = \emptyst$} {\KwRet \emptyst}
+	\uIf {$nd = \init$} {\KwRet \fail}
+	\uIf {$nd.popby \neq \init$} {
+		\uIf {$nd.popby = pid$} {\KwRet $nd.value$}
+		\uElse {\KwRet \fail}
 	}
-	\uIf {result.popby.\CAS(NULL, id)} {\KwRet result.value}
-	\uElse {\KwRet FAIL}
-\end{procedure}
+	\uIf {nd.popby.\CAS(\NULL, id)} {\KwRet result.value}
+	\uElse {\KwRet \fail}
+\end{algorithm}
 
-\caption{Pop routine}
+\caption{\pop\ routine}
 \end{figure*}
 
 

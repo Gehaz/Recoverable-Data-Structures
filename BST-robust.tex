@@ -162,7 +162,7 @@ A corollary of this argument is that repeating an helping routine multiple times
 \paragraph{Proof Sketch}
 Assume a process $q$ performs an operation $Op$ (either \func{Insert} or \func{Delete}). If $q$ does not crash, the algorithm is identical to the original algorithm, except for the additional write to $Announce[q]$ and $op\rightarrow done$, and thus the correctness of the original algorithm can be applied. Otherwise, $q$ crash at some point, and upon recovery it reads $op$ from $Announce[q]$. This record represent the last attempt of $q$ to complete $Op$. We split the proof based on the type of operation.
 
-$Op = \func{Insert}$. Consider the read of $op\rightarrow p\rightarrow update$ upon recovery, and denote this value by $pupdate$. If $pupdate = \langle \insertflag, op \rangle$, this implies the iflag \CASB\ in line \lref{iflag-cas} was successful and the operation is yet to complete. It might be that \func{Insert} already took affect, that is, the new key is part of the tree, but the unflagging is yet to happen. In such case, $q$ calls \func{HelpInsert}$(op)$ in order to try and complete the operation. Considering \argAnonymous, this call can not violate the BST correctness, even if it not the first time $q$ executes it. Moreover, during \func{HelpInsert} there is a write to $op\rightarrow done$, and thus after completing the routine $q$ returns \TRUE, as required.
+$Op = \func{Insert}$. Consider the read of $op\rightarrow p\rightarrow update$ upon recovery, and denote this value by $pupdate$. If $pupdate = \langle \insertflag, op \rangle$, this implies the iflag \CASB\ of $q$ in line \lref{iflag-cas} was successful and the operation is yet to complete. It might be that \func{Insert} already took affect, that is, the new key is part of the tree, but the unflagging is yet to happen. In such case, $q$ calls \func{HelpInsert}$(op)$ in order to try and complete the operation. Considering \argAnonymous, this call can not violate the BST correctness, even if it not the first time $q$ executes it. Moreover, during \func{HelpInsert} there is a write to $op\rightarrow done$, and thus after completing the routine $q$ returns \TRUE, as required.
 
 Else $pupdate \neq \langle \insertflag, op \rangle$. There are two scenarios to consider. Either the iflag \CASB\ of $q$ in line \lref{iflag-cas} was successful or not. If it was successful, then $p\rightarrow update = \langle \insertflag, op \rangle$ at this point. The only way to change it is to first unflag $p$. To do so, a process needs to complete an \func{HelpInsert}$(op)$ routine, and in particular must write to $op\rightarrow done$. In such case, the \func{Insert} operation was completed, and $q$ returns \TRUE. Otherwise, the \CASB\ was not successful, either because it failed, or the crash was before the \CASB. In both cases, the \func{Insert} operation will not be completed, as $op$ is not stored in $p\rightarrow update$, and thus no process has an access to it. Consequently, no process can update $op\rightarrow done$, and $q$ returns \FAIL.
 
@@ -313,14 +313,14 @@ Relying on the correctness of the original algorithm, no matter how many times \
 			Flag $*op = Announce[id]$ \bl \nlc
 			
 			if $op$ of type \IFlag\ then \{ \nlc \n
-				$result := op\rightarrow p\rightarrow update$ \tabtabcom Check {\bf flag}\label{iflag-cas} \nlc
+				$result := op\rightarrow p\rightarrow update$ \nlc
 				if $result = \langle \insertflag,op \rangle$ then \func{HelpInsert}$(op)$ \tabtabcom Finish the insertion\label{finish-insert}\nlc
 				%if $op\rightarrow p$ points to $op\rightarrow newInternal$ or \nlc
 				%\n $op\rightarrow newInternal \rightarrow update \neq \langle \clean, \NULL\rangle$ then return \TRUE \nlc
 				%\p else return \FAIL \nlc
 			\p \} \nlc
 			if $op$ of type \DFlag\ then \{ \nlc \n
-				$result := op\rightarrow gp\rightarrow update$ \tabtabcom Check {\bf flag}\label{dflag-cas}\nlc
+				$result := op\rightarrow gp\rightarrow update$ \nlc
 				if $result = \langle \deleteflag, op \rangle$ then \func{HelpDelete}$(op)$ \label{delete-true} \tabtabcom Either finish deletion or unflag \nlc
 				%if $op\rightarrow p\rightarrow update = \langle \mk, op \rangle$ then return \TRUE \nlc
 				%else return \FAIL \nlc
