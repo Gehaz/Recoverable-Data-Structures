@@ -233,11 +233,11 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{figure*}
 	
 \begin{algorithm}[H]
-	\caption{boolean \trypush\ (Node $*new$)}
+	\caption{boolean \trypush\ (Node $*nd$)}
 	
 	Node $*oldTop := Top$\;
-	$new.next := oldTop$\;
-	\uIf {$Top.\CAS(oldTop, new)$} {
+	$nd.next := oldTop$\;
+	\uIf {$Top.\CAS(oldTop, nd)$} {
 		$nd.popby.\CAS(\init, \NULL)$ \;
 		\KwRet \True
 	} 
@@ -306,7 +306,7 @@ An exchanger object supports the \exchange\ procedure, which allows
 	$newTop := oldTop.next$ \;
 	$oldTop.popby.\CAS(\init,\NULL)$ \;
 	\uIf{$Top.\CAS(oldTop, newTop)$}{
-		\uIf {$newTop.popby.\CAS(\NULL, pid)$} {\KwRet $oldTop$}
+		\uIf {$newTop.popby.\CAS(\NULL, pid)$} {\KwRet $oldTop.value$}
 	}
 	\uElse {\KwRet \init}
 \end{algorithm}
@@ -320,8 +320,8 @@ An exchanger object supports the \exchange\ procedure, which allows
 	\While{\True}{
 		$Announce[pid] := data$ \;
 		$result$ := \trypop $()$ \;
-		\uIf {$result = \emptyst$} {\KwRet \emptyst}
-		\uElseIf {$result \neq \init$} {\KwRet $result.value$}
+		%\uIf {$result = \emptyst$} {\KwRet \emptyst}
+		\uIf {$result \neq \init$} {\KwRet $result$}
 		$range$ := CalculateRange()\;
 		$duration$ := CalculateDuration()\;
 		$othervalue$ := \visit $(\NULL, range, duration)$ \;
