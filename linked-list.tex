@@ -1,3 +1,23 @@
+
+\newcommand{\search}{\mbox{\sc Search}}
+\newcommand{\recover}{\mbox{\sc Recover}}
+\newcommand{\insertlst}{\mbox{\sc Insert}}
+\newcommand{\delete}{\mbox{\sc Delete}}
+\newcommand{\find}{\mbox{\sc Find}}
+\newcommand{\getdata}{\mbox{get\_data()}}
+
+
+\newcommand{\init}{\mbox{$\bot$}}
+\newcommand{\NULL}{\mbox{\sc Null}}
+\newcommand{\fail}{\mbox{\sc Fail}}
+
+\newcommand{\Info}{\mbox{Info}}
+
+
+
+
+
+
 \section{Linked-List}
 
 Harris Linked-List uses an Atomic-Markable-Reference object, in which the next field of a Node, in addition to a reference to the next node in the list, is also marked or unmarked. The two fields can be update atomically, either together or individually. This can be done by using the most-significant-bit of next for the marking. For simplicity, we assume reading next returns the reference only, while get\_data() function is used to get (atomically) both the reference and mark bit. Moreover, whenever performing CAS on node.next, both reference and mark state should be mention.
@@ -29,61 +49,61 @@ Each process $p$ has a designated location in the memory, Backup[p]. Before tryi
 For simplicity, process $p$ creates new such structure for each of its operations, although a more efficient way will be to use two such structures in an alternating way. 
 
 
-\begin{procedure}[b]
+\begin{algorithm}[b]
 	\footnotesize
 	
-	\caption{$<$ Node, Node$>$ Lookup $ $ (T key)}
+	\caption{$\langle$Node, Node$\rangle$ \search\ (T $key$)}
 	
 	$ \begin{array}{rl}
-	\mbox{\textbf{Data: }}	&	\mbox{Node *pred, *curr, *succ} \\
-							&	\mbox{boolean mbit}
+	\mbox{\textbf{Data: }}	&	\mbox{Node $*pred, *curr, *succ$} \\
+							&	\mbox{boolean $mbit$}
 	\end{array} $
 	
 %	\textbf{Data: } Node *pred, *curr, *succ
 	
 	retry: \While{\True}{ \label{find-outer-loop}
-		pred := head\;
-		curr := head.next\;	
+		$pred := Head$ \;
+		$curr := pred.next$ \;	
 		\While{\True}{
-			$\langle$succ, mbit$\rangle$ := curr.next.get\_data() \;
-			\uIf(\tcp*[f]{is succ was logically deleted?}) {mbit} {
-				\uIf{pred.next.\CAS(unmarked curr,unmarked succ) = \False}{
+			$\langle succ, mbit \rangle := curr.next.\getdata$ \;
+			\uIf(\tcp*[f]{succ was logically deleted}) {$mbit$} {
+				\uIf (\tcp*[f]{help physical delete}) {$pred.next.\CAS$(unmarked $curr$,unmarked $succ$) = \False}{
 					\textbf{go to} retry \tcp*{help failed}
 				}
-				curr := succ \tcp*{help succeed}
+				$curr := succ$ \tcp*{help succeed}
 			} \uElse {
-				\uIf {curr.key $\geq$ key} {
-					\KwRet $\langle$pred,curr$\rangle$
+				\uIf (\tcp*[f]{$curr$ is the first unmarked node with key $\geq key$}) {$curr.key \geq key$} {
+					\KwRet $\langle pred,curr \rangle$
 				}
-				pred := curr\;
-				curr := succ\;
+				$pred := curr$ \tcp*{advance $pred$ and $curr$}
+				$curr := succ$ \;
 			}
 		}
 	}
 	
-\end{procedure}
+\end{algorithm}
 
 \begin{figure}[h]
 	\vspace{-10mm}
 	
 	\footnotesize
 	
-	\textbf{Shared variables:} Node *head \\
+	\textbf{Shared variables:} Node $*Head$ \\
 	
-	Type Info \{ \nllabel{StructDefStart} \\
-		\hspace*{6mm} \{Insert, Delete\} optype \\
-		\hspace*{6mm} Node *nd \\
-		\hspace*{6mm} boolean result \\
+	Type \Info\ \{ \\
+		\hspace*{6mm} \{\insertlst, \delete \} $optype$ \\
+		\hspace*{6mm} Node $*nd$ \\
+		\hspace*{6mm} boolean $result$ \\
 	\} \\
 	
 	Code for process p:
 	
-	\begin{procedure}[H]
-		\caption{boolean Insert $ $ (T key)}
+	\begin{algorithm}[H]
+		\caption{boolean \insertlst\ (T $key$)}
 		
 		$ \begin{array}{rl}
-			\mbox{\textbf{Data: }}	&	\mbox{Node *pred, *curr} \\
-									&	\mbox{Node newnd := \textbf{new} Node (key)}
+			\mbox{\textbf{Data: }}	&	\mbox{Node $*pred, *curr$} \\
+									&	\mbox{Node $newnd$ := \textbf{new} Node ($key$)}
 		\end{array} $
 		
 %		\begin{tabbing}
@@ -91,80 +111,69 @@ For simplicity, process $p$ creates new such structure for each of its operation
 %							\> Node new := \textbf{new} Node (key)
 %		\end{tabbing}
 %		\vspace*{-5mm}
-		\textcolor{blue} {Backup[p] := new Info (Insert, newnd, null)} \;
+		\textcolor{blue} {$Backup[pid]$ := \textbf{new} \Info\ (\insertlst, $newnd$, \init)} \;
 		\While{\True}{ \label{recover-insert}
-			$\langle$pred, curr$\rangle$ := lookup(key)\;
-			\uIf{curr.key = key}{
-				\textcolor{blue} {Backup[p].result := \False} \;
-				\KwRet \False \tcp* {key is already in the list}
+			$\langle pred, curr \rangle := \search(key)$ \tcp*{search for the right location for insertion}
+			\uIf (\tcp*[f]{$key$ is already in the list}) {$curr.key = key$}{
+				\textcolor{blue} {$Backup[pid].result := \False$} \;
+				\KwRet \False
 			} \uElse {
-				newnd.next := unmarked curr\;
-				\uIf{pred.next.\CAS (unmarked curr, unmarked newnd) \label{insert-CAS}} {
+				$newnd.next$ := unmarked $curr$\;
+				\uIf (\tcp*[f]{try to add $newnd$}) {$pred.next.\CAS$ (unmarked $curr$, unmarked $newnd$) \label{insert-CAS}} {
 				%	Backup[p].type = InsertDone\;
-					\textcolor{blue} {Backup[p].result := \True} \;
-					\KwRet \True \tcp*{new node has been inserted}
+					\textcolor{blue} {$Backup[pid].result := \True$} \;
+					\KwRet \True
 				}
 			}		
 		}
 		
-	\end{procedure}
+	\end{algorithm}
 	
 	
-	\begin{procedure}[H]
-		\caption{boolean Delete $ $ (T key)}
+	\begin{algorithm}[H]
+		\caption{boolean \delete\ (T $key$)}
 		
-		\textbf{Data: } Node *pred, *curr, *succ
+		$ \begin{array}{rl}
+		\mbox{\textbf{Data: }}	&	\mbox{Node $*pred, *curr, *succ$}
+		\end{array} $
 		
-		\textcolor{blue} {Backup[p] := new Info (Delete, null, null)} \;
+		
+		\textcolor{blue} {$Backup[pid]$ := \textbf{new} \Info\ (\delete, \init, \init)} \;
 		%\While{\True}{ \label{recover-delete}
-			$\langle$pred, curr$\rangle$ := lookup(key)\;
-			\uIf{curr.key $\neq$ key \label{insert-key-in-list}} {
-				\textcolor{blue} {Backup[p].result := \False} \label{delete-write-false} \;
-				\KwRet \False \tcp*{key is not in the list}
+			$\langle pred, curr \rangle := \search (key)$ \tcp*{search for $key$ in the list}
+			\uIf (\tcp*[f]{$key$ is not in the list}) {$curr.key \neq key$ \label{insert-key-in-list}} {
+				\textcolor{blue} {$Backup[pid].result := \False$} \label{delete-write-false} \;
+				\KwRet \False
 			} 
 			\uElse {
-				\textcolor{blue}{Backup[p].nd := curr}\;
-				\While (\tcp*[f]{repeatedly attempt logical delete}) {curr.next is unmarked \label{delete-while-loop}}{
-					succ := curr.next \;
-					curr.next.\CAS (unmarked succ, marked succ) \;
+				\textcolor{blue}{$Backup[pid].nd := curr$}\;
+				\While (\tcp*[f]{repeatedly attempt logical delete}) {$curr.next$ is unmarked \label{delete-while-loop}}{
+					$succ := curr.next$ \;
+					$curr.next.\CAS$ (unmarked $succ$, marked $succ$) \;
 				}
-				succ := curr.next \label{delete-read-succ-after-CAS}\;
-				pred.next.\CAS (unmarked curr, unmarked succ) \label{delete-physical-delete} \tcp*{physical delete}
-				\textcolor{blue}{curr.deleter.\CAS (null, p)} \tcp*{announce yourself as deleter} \label{delete-CAS-deleter}
-				\textcolor{blue}{Backup[p].result := (curr.deleter = p)} \label{delete-write-after-CAS} \;
-				\textcolor{blue}{\KwRet (curr.deleter = p)}
+				$succ := curr.next$ \label{delete-read-succ-after-CAS}\;
+				$pred.next.\CAS$ (unmarked $curr$, unmarked $succ$) \label{delete-physical-delete} \tcp*{physical delete attempt}
+				\textcolor{blue}{$res := curr.deleter.\CAS (\init, pid)$} \tcp*{try to announce yourself as deleter} \label{delete-CAS-deleter}
+				\textcolor{blue}{$Backup[pid].result := res$} \label{delete-write-after-CAS} \;
+				\textcolor{blue}{\KwRet $res$}
 				}
-			%}	
+			%}
 		
-		
-		
-	\remove{
-		\uElse {
-				\textcolor{blue}{Backup[p].nd := curr}\;
-				succ := curr.next\;
-				\uIf(\tcp*[f]{logical delete}) {curr.next.\CAS (unmarked succ, marked succ)} { 
-					\textcolor{blue}{curr.deleter.\CAS (null, p)} \tcp*{announce yourself as deleter} \label{recoverable-logical-delete}
-					pred.next.\CAS (unmarked curr, unmarked succ) \tcp*{physical delete}
-					\textcolor{blue}{Backup[p].result := (curr.deleter = p)} \;
-					\textcolor{blue}{\KwRet (curr.deleter = p)} \tcp*{originally return true}
-				}
-			}	
-		}
-		
-	\end{procedure}
+	\end{algorithm}
 
-	\begin{procedure}[H]
-		\caption{boolean Find $ $ (T key)}
+	\begin{algorithm}[H]
+		\caption{boolean \find\ (T $key$)}
 		
-		\textbf{Data: } Node *curr := head
-		%\KwData{Node* curr = head}	
+		$ \begin{array}{rl}
+		\mbox{\textbf{Data: }}	&	\mbox{Node $*curr := Head$}
+		\end{array} $
 		
-		\While{curr.key $<$ key}{
-			curr = curr.next\;	
+		\While (\tcp*[f]{search for the first node with key greater or equal to $key$}) {$curr.key < key$}{
+			$curr = curr.next$ \;	
 		}
-		\KwRet (curr.key = key $\&\&$ curr.next is unmarked)\;
+		\KwRet ($curr.key = key\ \&\&\ curr.next$ is unmarked)\;
 		
-	\end{procedure}
+	\end{algorithm}
 
 	
 	\caption{Recoverable Non-Blocking Linked-List}
@@ -173,30 +182,37 @@ For simplicity, process $p$ creates new such structure for each of its operation
 
 
 
-\begin{procedure}[H]
+\begin{algorithm}[H]
 	\footnotesize
 	
-	\caption{Recover $ $ (void)}
+	\caption{boolean \recover\ $()$}
 	
-	\uIf {Backup[p].result $\neq$ null} {\KwRet Backup[p].result}
-	\uIf{Backup[p].optype = Insert}{
-		\uIf{Backup[p].nd is in the list $||$ Backup[p].nd.next is marked}{
-			\KwRet \True\;
-		} \uElse {
-			\KwRet FAIL
-			%\textbf{go to} \ref{recover-insert} \tcp*{restart Insert}
-		}	
-	}
-	\uIf{Backup[p].optype = Delete}{
-		\uIf{Backup[p].nd $\neq$ null \&\& Backup[p].nd.next is marked}{
-			\textbf{go to} \ref{delete-CAS-deleter} with curr := nd\tcp*{try to complete the deletation}
-		} \uElse {
-			\KwRet FAIL
-			%\textbf{go to} \ref{recover-delete} \tcp*{restart Delete}
+	$ \begin{array}{rl}
+	\mbox{\textbf{Data: }}	&	\mbox{Node $*nd := Backup[pid].nd$}
+	\end{array} $
+	
+	\uIf (\tcp*[f]{operation was completed}) {$Backup[pid].result \neq \init$}
+		{\KwRet $Backup[pid].result$}
+	\uIf {$Backup[pid].optype = \insertlst$}{
+		$\langle pred, curr \rangle := \search (nd.key)$ \tcp*{search for $nd$ in the list}
+		\uIf (\tcp*[f]{$nd$ is in the list or marked}) {$curr = nd \mid \mid nd.next$ is marked} {
+			$Backup[pid] := \True$ \;
+			\KwRet \True \;
 		}
+		\KwRet \fail	
+	}
+	\uIf{$Backup[pid].optype = \delete$}{
+		\uIf (\tcp*[f]{$nd$ was logically deleted}){$nd \neq \init$ \&\& $nd.next$ is marked}{
+			$nd.deleter.\CAS (\init, pid)$ \tcp*{try to complete the deletation}
+			\uIf (\tcp*[f]{you are the deleter}) {$nd.deleter = pid$} {
+				$Backup[pid].result := \True$ \;
+				\KwRet \True \;
+			}
+		}
+		\KwRet \fail
 	}
 	
-\end{procedure}
+\end{algorithm}
 
 
 \clearpage
