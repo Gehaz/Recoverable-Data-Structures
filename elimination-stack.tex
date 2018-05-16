@@ -43,7 +43,13 @@ For simplicity, we split the \recover\ routine into sub-routines, based on which
 The given implementation ignores the log of failures and successes of the exchange routine when recovering. That is, in case of a crash during an \exchange, a process is able to recover the \exchange\ routine, however, the log of successes and failures is not update, since it might be the process already updated it. In addition, in case of a \fail\ response, we do not know whether the time limit (timeout) was reached, or that the process simply crashed earlier in the routine without completing it. The given implementation can be expanded to also consider the log. Nonetheless, for ease of presentation we do not handle the log in case of a crash. Assuming crash events are rare, the log still gives a roughly good approximation to the number of failures and successes, thus our approach might be useful in practice.
 
 \subsection{A Lock-Free Exchanger}
-An exchanger object supports the \exchange\ procedure, which allows 
+An exchanger object supports the \exchange\ procedure, which allows exactly two processes to exchange values. 
+If process A calls the \exchange\ with argument $a$, and B calls the \exchange\ of the same object with argument $b$, then A’s call will return value $b$ and vice versa.
+On a high level, the exchanger works by having
+the first thread arrive to write its value, and spin until a second arrives. The second then detects that the first is waiting, reads its value, and signals the exchange.
+They each have now read the other’s value, and can return. The first thread’s call
+may timeout if the second does not show up, allowing it to proceed and leave the
+exchanger, if it is unable to exchange a value within a reasonable duration.
 
 
 
@@ -58,11 +64,11 @@ An exchanger object supports the \exchange\ procedure, which allows
 	
 	
 	Type \pushInfo\ \{ \hspace*{20.0mm} $\triangleright$ subtype of \Info \\
-		\hspace*{6mm} Node $*pushNd$ \\
+		\hspace*{6mm} Node $*pushnd$ \\
 	\} \\
 	
 	Type \popInfo\ \{ \hspace*{22.0mm} $\triangleright$ subtype of \Info \\
-		\hspace*{6mm} Node $*popNd$ \\
+		\hspace*{6mm} Node $*popnd$ \\
 	\} \\
 	
 	
@@ -81,7 +87,7 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{figure*}
 	\small
 	
-	\exInfo\ $default$ - a global static \exInfo\ object with state = \emptyst
+	\exInfo\ $default$ - global static \exInfo\ object with state = \emptyst
 	
 \begin{algorithm}[H]
 	\caption{T \exchange\ (\exInfo\ $*slot$, T $myitem$, long $timeout$)}
@@ -100,9 +106,9 @@ An exchanger object supports the \exchange\ procedure, which allows
 %		$\langle$youritem,state$\rangle$ := slot\;
 		\Switch{$yourop.state$} {
 			\uCase{\emptyst} {
-				$myop.state$ := \waiting \tcp*{try to replace $default$}
+				$myop.state$ := \waiting \tcp*{attempt to replace $default$}
 				$myop.partner := \init$ \;
-				\If {$slot.\CAS (yourop, myop)$} {
+				\If (\tcp*[f]{try to collide}) {$slot.\CAS (yourop, myop)$} {
 					\While{getNanos() $< timeBound$}{
 						$yourop := slot$ \;
 						\uIf(\tcp*[f]{a collision was done}) {$yourop \neq myop$} {
@@ -158,7 +164,7 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{algorithm}[H]
 	\caption{void \switchPair (\exInfo\ $first$, \exInfo\ $second$)}
 	
-	\tcp{exchange the valus of the two operations}
+	\tcc{exchange the valus of the two operations}
 	$first.result := second.value$ \;
 	$second.result := first.value$ \;
 	
@@ -167,7 +173,7 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{algorithm}[H]
 	\caption{T \visit\ (T $value$, int $range$, long $duration$)}
 	
-	\tcp{invoke \exchange\ on a random selected entery in the collision array}
+	\tcc{invoke \exchange\ on a random entery in the collision array}
 	int $cell$ := randomNumber$(range)$ \;
 	\KwRet \exchange$(exchanger[cell], value, duration)$
 \end{algorithm}
@@ -175,13 +181,13 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{algorithm}[H]
 	\caption{T \recoverExchange\ $()$}
 	
-	\exInfo\ $*myop := Announce[pid]$ \tcp*{read your last operation record,}
-	\exInfo\ $*slot := myop.slot$ \tcp*{and the slot on which it act}
+	\exInfo\ $*myop := Announce[pid]$ \tcp*{read your last operation record}
+	\exInfo\ $*slot := myop.slot$ \tcp*{and the slot on which it acts}
 	
 	\uIf {$myop.state = \waiting$} {
-		\tcp{crash while trying to exchange $defualt$, or waiting for a process to collide with me}
+		\tcc{crash while trying to exchange $defualt$, or waiting for a collision}
 		$yourop := slot$ \;
-		\uIf (\tcp*[f]{still waiting for a collide}) {$yourop = myop$} {
+		\uIf (\tcp*[f]{still waiting for a collision}) {$yourop = myop$} {
 			\uIf (\tcp*[f]{try to release $slot$}){$slot.\CAS(myop, default)$}{\KwRet \fail}
 			\uElse (\tcp*[f]{some process show up}) {
 				$yourop := slot$ \;
@@ -193,7 +199,7 @@ An exchanger object supports the \exchange\ procedure, which allows
 				%\textbf{go to} \ref{ExRecover-successful} \;
 			}	
 		}
-		\uIf (\tcp*[f]{$yourop$ collide with $myop$}) {$yourop.partner = myop$} {
+		\uElseIf (\tcp*[f]{$yourop$ collide with $myop$}) {$yourop.partner = myop$} {
 			\switchPair$(myop, yourop)$ \tcp*{complete the collision}
 			$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
 			\KwRet $myop.result$ \;
@@ -202,9 +208,9 @@ An exchanger object supports the \exchange\ procedure, which allows
 		%\KwRet \fail	
 	}
 	\uIf {$myop.state = \busy$} {
-		\tcp{crash while trying to collide with $myop.partner$}
+		\tcc{crash while trying to collide with $myop.partner$}
 		$yourop := slot$ \;
-		\uIf (\tcp*[f]{collide was successful}) {$yourop = myop$} {
+		\uIf (\tcp*[f]{collide was successful and in progress}) {$yourop = myop$} {
 			\switchPair$(myop, myop.partner)$ \tcp*{complete the collision}
 			$slot.\CAS (myop, default)$ \tcp*{release $slot$}
 			\KwRet $myop.result$ \;
@@ -235,10 +241,11 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{algorithm}[H]
 	\caption{boolean \trypush\ (Node $*nd$)}
 	
-	Node $*oldTop := Top$\;
-	$nd.next := oldTop$\;
-	\uIf {$Top.\CAS(oldTop, nd)$} {
-		$nd.popby.\CAS(\init, \NULL)$ \;
+	\tcc{attempt to perform \push\ to the central stack}
+	Node $*oldtop := Top$\;
+	$nd.next := oldtop$\;
+	\uIf (\tcp*[f]{try to declare $nd$ as the new $Head$}) {$Top.\CAS(oldtop, nd)$} {
+		$nd.popby.\CAS(\init, \NULL)$ \tcp*{announce $nd$ is in the stack}
 		\KwRet \True
 	} 
 	\KwRet \False
@@ -252,25 +259,26 @@ An exchanger object supports the \exchange\ procedure, which allows
 	
 	\pushInfo\ $data$ := new \pushInfo\ ($nd$) \;
 	\While{\True}{
-		$Announce[pid] := data$ \;
-		\uIf{\trypush$(nd)$} {\KwRet \True}
-		$range$ := CalculateRange()\;
+		$Announce[pid] := data$ \tcp*{declare - trying to push node $nd$}
+		\uIf (\tcp*[f]{if central stack \push\ is successful}){\trypush$(nd)$} {\KwRet \True}
+		$range$ := CalculateRange() \tcp*{get parameters for collision array}
 		$duration$ := CalculateDuration()\;
-		$othervalue$ := \visit$(myitem, range, duration)$\;
-		\uIf{$othervalue = \NULL$}{
+		$othervalue$ := \visit$(myitem, range, duration)$ \tcp*{try to collide}
+		\uIf (\tcp*[f]{successfuly collide with \pop\ operation}) {$othervalue = \NULL$}{
 			RecordSuccess ()\;
 			\KwRet \True\;
-		} \uElseIf {$othervalue = \timeout$} {RecordFailure ()}
+		} \uElseIf (\tcp*[f]{failed to collide}) {$othervalue = \timeout$} {RecordFailure ()}
 	}
 \end{algorithm}
+
 
 \begin{algorithm}[H]
 	\caption{boolean \recoverPush\ $()$}
 	
-	Node $*nd := Announce[pid].pushNd$ \;
-	\uIf {$nd.popby \neq \init$} {\KwRet \True}
-	\uIf {$\search(nd) \mid \mid  nd.popby \neq \init$} {
-		$nd.popby.\CAS(\init, \NULL)$ \;
+	Node $*nd := Announce[pid].pushnd$ \;
+	\uIf (\tcp*[f]{$nd$ was announced to be in the stack}) {$nd.popby \neq \init$} {\KwRet \True}
+	\uIf (\tcp*[f]{$nd$ in the stack, or was announced as such}) {$\search(nd) \mid \mid  nd.popby \neq \init$} {
+		$nd.popby.\CAS(\init, \NULL)$ \tcp*{announce $nd$ is in the stack}
 		\KwRet \True \;
 	}
 	\KwRet \fail \;
@@ -278,6 +286,8 @@ An exchanger object supports the \exchange\ procedure, which allows
 
 \begin{algorithm}[H]
 	\caption{boolean \search\ (Node $*nd$)}
+	
+	\tcc{search for node $nd$ in the stack}
 	
 	Node $*iter := Top$ \;
 	\While{$iter \neq \init$}{
@@ -299,14 +309,14 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{algorithm}[H]
 	\caption{T \trypop $()$}
 	
-	Node $*oldTop := Top$ \;
-	Node $*newTop$ \;
-	$Announce[pid].popNd := oldTop$ \;
-	\uIf{$oldTop = \init$} {\KwRet \emptyst}
-	$newTop := oldTop.next$ \;
-	$oldTop.popby.\CAS(\init,\NULL)$ \;
-	\uIf{$Top.\CAS(oldTop, newTop)$}{
-		\uIf {$newTop.popby.\CAS(\NULL, pid)$} {\KwRet $oldTop.value$}
+	Node $*oldtop := Top$ \;
+	Node $*newtop$ \;
+	$Announce[pid].popnd := oldnop$ \tcp*{declare - trying to pop node $oldtop$}
+	\uIf (\tcp*[f]{stack is empty}) {$oldtop = \init$} {\KwRet \emptyst}
+	$newtop := oldtop.next$ \;
+	$oldtop.popby.\CAS(\init,\NULL)$ \tcp*{announce $oldtop$ is in the stack}
+	\uIf (\tcp*[f]{try to pop $oldtop$ by changing $Top$ to $newtop$}) {$Top.\CAS(oldtop, newtop)$}{
+		\uIf (\tcp*[f]{try to announce yourself as winner}) {$newtop.popby.\CAS(\NULL, pid)$} {\KwRet $oldtop.value$}
 	}
 	\uElse {\KwRet \init}
 \end{algorithm}
@@ -318,15 +328,15 @@ An exchanger object supports the \exchange\ procedure, which allows
 	\popInfo\ $data$ := new \popInfo\ ($Top$) \;
 	
 	\While{\True}{
-		$Announce[pid] := data$ \;
-		$result$ := \trypop $()$ \;
+		$Announce[pid] := data$ \tcp*{declare - trying to perform \pop}
+		$result$ := \trypop $()$ \tcp*{attempt to pop from central stack}
 		%\uIf {$result = \emptyst$} {\KwRet \emptyst}
-		\uIf {$result \neq \init$} {\KwRet $result$}
-		$range$ := CalculateRange()\;
+		\uIf (\tcp*[f]{if central stach \pop\ is successful}) {$result \neq \init$} {\KwRet $result$}
+		$range$ := CalculateRange() \tcp*{get parameters for collision array}
 		$duration$ := CalculateDuration()\;
-		$othervalue$ := \visit $(\NULL, range, duration)$ \;
-		\uIf{$othervalue = \timeout$}{RecordFailure ()}
-		\uElseIf {$othervalue \neq \NULL$} {
+		$othervalue$ := \visit $(\NULL, range, duration)$ \tcp*{try to collide}
+		\uIf (\tcp*[f]{failed to collide}) {$othervalue = \timeout$}{RecordFailure ()}
+		\uElseIf (\tcp*[f]{successfuly collide with \push\ operation}) {$othervalue \neq \NULL$} {
 			RecordSuccess ()\;
 			\KwRet $othervalue$
 		}
@@ -337,12 +347,12 @@ An exchanger object supports the \exchange\ procedure, which allows
 \begin{algorithm}[H]
 	\caption{T \recoverPop $()$}
 	
-	Node $*nd := Announce[pid].popNd$ \;
-	\uIf {$nd = \init$} {\KwRet \emptyst}
+	Node $*nd := Announce[pid].popnd$ \tcp*{crash while trying to pop node $nd$}
+	\uIf (\tcp*[f]{pop from an empty stack}) {$nd = \init$} {\KwRet \emptyst}
 	%\uIf {$nd.popby = pid$} {\KwRet $nd.value$}
-	\uIf{$\search(nd)$} {\KwRet \fail}
-	$nd.popby.\CAS(\NULL, pid)$ \;
-	\uIf {$nd.popby = pid$} {\KwRet $nd.value$}
+	\uIf (\tcp*[f]{$nd$ was not removed from the stack}) {$\search(nd)$} {\KwRet \fail}
+	$nd.popby.\CAS(\NULL, pid)$ \tcp*{$nd$ was removed. Try to complete the operation}
+	\uIf (\tcp*[f]{you are the process to win the pop of $nd$}) {$nd.popby = pid$} {\KwRet $nd.value$}
 	\KwRet \fail
 \end{algorithm}
 

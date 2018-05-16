@@ -13,7 +13,10 @@
 
 \newcommand{\Info}{\mbox{Info}}
 
-
+\newenvironment{routine}[1][htb] {
+	\renewcommand{\algorithmcfname}{Routine}% Update algorithm name
+	\begin{algorithm}[#1]%
+	}{\end{algorithm}}
 
 
 
@@ -62,7 +65,7 @@ For simplicity, process $p$ creates new such structure for each of its operation
 %	\textbf{Data: } Node *pred, *curr, *succ
 	
 	retry: \While{\True}{ \label{find-outer-loop}
-		$pred := Head$ \;
+		$pred := head$ \;
 		$curr := pred.next$ \;	
 		\While{\True}{
 			$\langle succ, mbit \rangle := curr.next.\getdata$ \;
@@ -88,7 +91,7 @@ For simplicity, process $p$ creates new such structure for each of its operation
 	
 	\footnotesize
 	
-	\textbf{Shared variables:} Node $*Head$ \\
+	\textbf{Shared variables:} Node $*head$ \\
 	
 	Type \Info\ \{ \\
 		\hspace*{6mm} \{\insertlst, \delete \} $optype$ \\
@@ -165,7 +168,7 @@ For simplicity, process $p$ creates new such structure for each of its operation
 		\caption{boolean \find\ (T $key$)}
 		
 		$ \begin{array}{rl}
-		\mbox{\textbf{Data: }}	&	\mbox{Node $*curr := Head$}
+		\mbox{\textbf{Data: }}	&	\mbox{Node $*curr := head$}
 		\end{array} $
 		
 		\While (\tcp*[f]{search for the first node with key greater or equal to $key$}) {$curr.key < key$}{
