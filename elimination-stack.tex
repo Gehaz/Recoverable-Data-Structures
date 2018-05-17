@@ -44,12 +44,12 @@ The given implementation ignores the log of failures and successes of the exchan
 
 \subsection{A Lock-Free Exchanger}
 An exchanger object supports the \exchange\ procedure, which allows exactly two processes to exchange values. 
-If process A calls the \exchange\ with argument $a$, and B calls the \exchange\ of the same object with argument $b$, then A’s call will return value $b$ and vice versa.
-On a high level, the exchanger works by having
-the first thread arrive to write its value, and spin until a second arrives. The second then detects that the first is waiting, reads its value, and signals the exchange.
-They each have now read the other’s value, and can return. The first thread’s call
-may timeout if the second does not show up, allowing it to proceed and leave the
-exchanger, if it is unable to exchange a value within a reasonable duration.
+If process A calls the \exchange\ with argument $a$, and B calls the \exchange\ of the same object with argument $b$, then A's call will return value $b$ and vice versa.
+
+On the original algorithm [cite the book?!], processes race to win the exchanger using a \CAS\ primitive. A process accessing the exchanger first read its content, and act according to the state of it. The first process observe an \emptyst\ state, and tries to atomically writes its value and change the state to \waiting. In such case, it spins and wait for the second process to arrive. The second, observing the state is now \waiting, tries to write its value and change the state to \busy. This way, it informs the first one a successful collision took place. Once the first process notice the collision, it reads the other process value and release the exchanger by setting it back to \emptyst.
+In order to avoid an unbounded waiting, if a second process does not show up, the call eventually timeout, and the process release the exchanger and return.
+
+Assume a process $p$ successfuly capture the exchanger by setting its status to \waiting, followed by a crash. Now, some other process $q$ complete the exchange by setting the exchanger to \busy. Upon recovery, $p$ can conclude some exchange was completed, but it can not tell whether it is part of the exchange, and thus it can not complete the operation. Moreover, $p$ and $q$ must agree, otherwise $q$ will return $p$'s value, and thus the operation of $p$ must be linearized together with $q$ operation.
 
 
 
