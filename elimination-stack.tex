@@ -46,11 +46,20 @@ The given implementation ignores the log of failures and successes of the exchan
 An exchanger object supports the \exchange\ procedure, which allows exactly two processes to exchange values. 
 If process A calls the \exchange\ with argument $a$, and B calls the \exchange\ of the same object with argument $b$, then A's call will return value $b$ and vice versa.
 
-On the original algorithm [cite the book?!], processes race to win the exchanger using a \CAS\ primitive. A process accessing the exchanger first read its content, and act according to the state of it. The first process observe an \emptyst\ state, and tries to atomically writes its value and change the state to \waiting. In such case, it spins and wait for the second process to arrive. The second, observing the state is now \waiting, tries to write its value and change the state to \busy. This way, it informs the first one a successful collision took place. Once the first process notice the collision, it reads the other process value and release the exchanger by setting it back to \emptyst.
+On the original algorithm [cite the book?!], processes race to win the exchanger using a \CAS\ primitive. A process accessing the exchanger first reads its content, and act according to the state of it. The first process observe an \emptyst\ state, and tries to atomically writes its value and change the state to \waiting. In such case, it spins and wait for the second process to arrive. The second, observing the state is now \waiting, tries to write its value and change the state to \busy. This way, it informs the first one a successful collision took place. Once the first process notice the collision, it reads the other process value and release the exchanger by setting it back to \emptyst.
 In order to avoid an unbounded waiting, if a second process does not show up, the call eventually timeout, and the process release the exchanger and return.
 
-Assume a process $p$ successfuly capture the exchanger by setting its status to \waiting, followed by a crash. Now, some other process $q$ complete the exchange by setting the exchanger to \busy. Upon recovery, $p$ can conclude some exchange was completed, but it can not tell whether it is part of the exchange, and thus it can not complete the operation. Moreover, $p$ and $q$ must agree, otherwise $q$ will return $p$'s value, and thus the operation of $p$ must be linearized together with $q$ operation.
+Assume a process $p$ successfuly capture the exchanger by setting its status to \waiting, followed by a crash. Now, some other process $q$ complete the exchange by setting the exchanger to \busy. Upon recovery, $p$ can conclude some exchange was completed, but it can not tell whether its value is part of the exchange, and thus it can not complete the operation. Moreover, $p$ and $q$ must agree, otherwise $q$ will return $p$'s value, and thus the operation of $p$ must be linearized together with $q$ operation.
 
+In order to avoid the above problem, we take an approach resembling the BST implementation. Instead of writing a value to the exchanger, processes will use an info record, containing the relevant information for the exchange. This way, processes use the exchanger in order to exchange info records (more precisely, pointers to such records), and not values. To overcome the problematic scenario described earlier, if a process $q$ observe the exchanger state is \waiting\ with some record $yourop$, it first update its own record $myop$ it is about to try and collide with $yourop$, and only then performs the \CAS. This way, if the collision is successful, the record $myop$ which now stored in the exchanger implies which two records collide. Also, the fact that different processes uses different records guarantee that at most one record can collide with $yourop$.
+
+Using records instead of values results some more positive implications. First, there is no need to store the exchanger's state in it (by using 2 bits of it to mark the state), but we can rather have this info in the record. Second, if there is a \busy\ record in the exchanger, it contains the info of the two colliding records. Therefore, a third process, trying to also use the exchanger, can help the processes to complete the collision, and then can try and set the exchanger back to \emptyst, so it can use it again. In the original implementation, a process observaing a \busy\ exchanger, have to wait for the first process to read the value and release the exchanger. Therefore, if the first process crash after the collision, the exchanger will be hold by it forever. The helping mechanism avoids this scenario, making the exchange routine non-blocking.
+
+Notice that no exchange record with \emptyst\ state is ever created, except for the $default$ record. Therefore, reading \emptyst\ state is equivalent to the exchanger storing a pointer to $default$. Every process creates new record when accessing the exchanger, with a unique pointer. As long as a process fails to perform a successful \CAS, and thus fails to store its pointer in $slot$, it is allowed to try again. However, once a process performs a successful \CAS\ and stores $myop$ in $slot$, the only other \CAS\ it is allowed to do are in order to try and store $defualt$ in $slot$. Thus, if no crash occurs, $myop$ can be written exactly once to $slot$. It follows that a collision can occur between two processes exactly - once a \waiting\ record stored in $slot$, only a single \CAS\ can replace it with a \busy\ record. As the two records can not be written again to $slot$, no other process can collide with it.
+
+Assume a process $p$ crash along the \exchange\ routine. Upon recovery, in the \recoverExchange\, it first read $myop = Announce[pid]$. There are two scenarios to consider.
+If process $p$ crash while $myop.state = \busy$, then $p$ crashed while or after an attempt to collide with $myop.partner$. Notice that there was a point in time where $partner$ was stored in $slot$ with state \waiting, as these are the only records that can be written to $myop.partner$. if $p$ did not succeed to collide with $partner$, then $myop$ is never written to $slot$. In particular, no other process can read $myop$, or write to any of its fields. Thus, the if in lines \ref{exchange-rec-busy-if} and \ref{exchange-rec-result-if} do not hold, and $p$ will return \fail.
+Otherwise, $p$ performed a successful \CAS, replacing $partner$ with $myop$. The only way to write a new value to $slot$ is by a \CAS\ with $myop$ as a parameter. This in turns, happens only after a process reads $myop$, and since its status is \busy, a \switchPair\ routine is invoked with $myop$ and $partner$. Thus, either $p$ will read $myop$ from $slot$, or that $myop$ was replaced, but a \switchPair\ routine completed the collision, and $myop.result$ is updated. In both cases, $p$ will return $myop.result$ as required.
 
 
 \begin{figure*}[b]
@@ -210,14 +219,14 @@ Assume a process $p$ successfuly capture the exchanger by setting its status to 
 	\uIf {$myop.state = \busy$} {
 		\tcc{crash while trying to collide with $myop.partner$}
 		$yourop := slot$ \;
-		\uIf (\tcp*[f]{collide was successful and in progress}) {$yourop = myop$} {
+		\uIf (\tcp*[f]{collide was successful and in progress}) {$yourop = myop$ \label{exchange-rec-busy-if}} {
 			\switchPair$(myop, myop.partner)$ \tcp*{complete the collision}
 			$slot.\CAS (myop, default)$ \tcp*{release $slot$}
 			\KwRet $myop.result$ \;
 			%\textbf{go to} \ref{ExRecover-successful} \;
 		}	
 	}
-	\uIf {$myop.result \neq \init$} {
+	\uIf {$myop.result \neq \init$ \label{exchange-rec-result-if}} {
 		\KwRet $myop.result$ \tcp*{collide was successfuly completed}
 	}
 	\uElse {\KwRet \fail}
