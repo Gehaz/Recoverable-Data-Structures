@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  23 MAY 2018 18:54
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  24 MAY 2018 17:31
 entering extended mode
 **recoverable-data-structures.tex
 
@@ -383,34 +383,34 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {C:/Users/ohadben/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-Overfull \hbox (19.03087pt too wide) in paragraph at lines 60--63
-[]\OT1/cmr/m/n/10.95 Assume a pro-cess $\OML/cmm/m/it/10.95 p$ \OT1/cmr/m/n/10.
-95 crash along the [] rou-tine. Upon re-cov-ery, in the []
+Overfull \hbox (11.12253pt too wide) in paragraph at lines 60--63
+[]\OT1/cmr/m/n/10.95 Assume pro-cess $\OML/cmm/m/it/10.95 p$ \OT1/cmr/m/n/10.95
+ crash along the [] rou-tine. Upon re-cov-ery, in the []
  []
 
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 68.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 70.
 ("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 68.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 70.
 
-Underfull \hbox (badness 10000) in paragraph at lines 68--73
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 75--78
+Underfull \hbox (badness 10000) in paragraph at lines 70--75
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 79--82
+Underfull \hbox (badness 10000) in paragraph at lines 77--80
 
  []
 
 
-LaTeX Warning: Float too large for page by 37.3699pt on input line 310.
+Underfull \hbox (badness 10000) in paragraph at lines 81--84
+
+ []
+
+
+LaTeX Warning: Float too large for page by 37.3699pt on input line 312.
 
 ) [2] [3] [4] [5] [6] [7]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\recoverable-data
@@ -418,11 +418,11 @@ LaTeX Warning: Float too large for page by 37.3699pt on input line 310.
 Here is how much of TeX's memory you used:
  6175 strings out of 493921
  87527 string characters out of 3147276
- 211665 words of memory out of 3000000
+ 212665 words of memory out of 3000000
  9383 multiletter control sequences out of 15000+200000
  16082 words of font info for 60 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
- 43i,33n,39p,1119b,800s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 43i,33n,39p,1135b,800s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
 mbx10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pf
 b><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx6.pfb><C:/Pro
@@ -433,7 +433,7 @@ nts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 /public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
 amsfonts/cm/cmti10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
 /cm/cmtt10.pfb>
-Output written on recoverable-data-structures.pdf (7 pages, 150570 bytes).
+Output written on recoverable-data-structures.pdf (7 pages, 150717 bytes).
 PDF statistics:
  66 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
