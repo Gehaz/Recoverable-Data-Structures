@@ -5,23 +5,23 @@
 \newcommand{\pop}{\mbox{\sc Pop}}
 \newcommand{\trypop}{\mbox{\sc TryPop}}
 \newcommand{\recoverPop}{\mbox{\sc Pop-Recover}}
-\newcommand{\recover}{\mbox{\sc Recover}}
 \newcommand{\exchange}{\mbox{\sc Exchange}}
 \newcommand{\recoverExchange}{\mbox{\sc Exchange-Recover}}
 \newcommand{\visit}{\mbox{\sc Visit}}
 \newcommand{\switchPair}{\mbox{\sc SwitchPair}}
-\newcommand{\search}{\mbox{\sc Search}}
+%\newcommand{\search}{\mbox{\sc Search}}
+%\newcommand{\recover}{\mbox{\sc Recover}}
 
 
-\newcommand{\init}{\mbox{$\bot$}}
-\newcommand{\NULL}{\mbox{\sc Null}}
-\newcommand{\fail}{\mbox{\sc Fail}}
+%\newcommand{\init}{\mbox{$\bot$}}
+%\newcommand{\NULL}{\mbox{\sc Null}}
+%\newcommand{\fail}{\mbox{\sc Fail}}
 \newcommand{\emptyst}{\mbox{\sc Empty}}
 \newcommand{\waiting}{\mbox{\sc Waiting}}
 \newcommand{\busy}{\mbox{\sc Busy}}
 \newcommand{\timeout}{\mbox{\sc Timeout}}
 
-\newcommand{\Info}{\mbox{Info}}
+%\newcommand{\Info}{\mbox{Info}}
 \newcommand{\opInfo}{\mbox{OpInfo}}
 \newcommand{\pushInfo}{\mbox{PushInfo}}
 \newcommand{\popInfo}{\mbox{PopInfo}}
@@ -65,8 +65,22 @@ If $p$ crash after a successful \CAS\ in line \ref{exchange-busy-cas}, then $op_
 If non of the above holds, then $op_p$ was not involved in any collision, because either no successful \CAS\ was done by $p$, or $p$ reached the time limit while no process show up, and was able to set $slot$ back to $defualt$. In any case, after the crash of $p$, $op_p$ will never be written again to $slot$, nor any other $op_q$ such that $op_q.partner = op_p$, as any such $op_q$ tries to perform \CAS$(op_p,op_q)$ that will fail. Also, as no process can collide with $op_p$, no \switchPair\ with $op_p$ as parameter is ever invoked, and in particular $op_p.result = \init$ for the rest of the execution. This in turn implies that upon recovery $p$ will return \fail, as required.
 
 
+\subsection{Lock-Free Stack}
 
+The stack implementation is due to [....]. The \trypush\ routine tries to atomically have a new node pointing to the old top, and then updating the top to be the new node. The \trypop\ routine tries to atomically read the top of the stack, and change the top to the next node of it. The two routines uses \CAS\ in order to gurantee no change for the top was made between the read and write.
+\push\ (resp. \pop) routine is alternating between a \trypush\ (\trypop) routine, which access the central stack, and the \exchange, trying to collide with an opposite operation.
 
+In order to make the implementation recoverable, we need a way to infer whether a \pop\ or \push\ already took affect, in case of a crash. Moreover, in case of a \pop, we also need to infer which process is the one to pop the node. For that, we use an approach similar to the Linked-List implementation. Each node contains a new field $popby$ which is used to identify a \push\ of the node completed, as well as a \pop\ of the node was completed, and who is the process to pop it.
+Consider the following scenario. Assume a process $p$ performs a \push\ operation with node $nd$, and using a \CAS\ succeed to update the stack top to point to $nd$, followed by a crash. Now, process $q$ performing a \pop\ operation performs a \CAS\ causing the removal of $nd$ from the stack (by changing top to the next node). In this case, once $p$ recovers, $nd$ is no longer part of the stack, and it is also not marked as deleted. This is indistinguishable from a configuration in which the \push\ of $nd$ was yet to take affect (a crash before \CAS), and thus $p$ can not know what the right response is.
+
+One way to solve this issue is by first marking a node for removal, and only then remove it. This way, if a node is no longer part of the stack it must be marked, and thus we can conclude it was in the stack, and the \push\ routine was successful. However, such an implementation, in addition for the need of to system to support a markable reference, also requires process to help each other. If a node is marked for delete, then a process trying to perform a different operation first needs to complete the deletion, before applying its own operation, otherwise the physical delete of the node may not take place, leaving the node forever in the stack. As the original algorithm avoids any marking, and simply tries to swing the $Top$ pointer, we would like to maintain this property.
+
+A field $popby$ is initialised to $\init$ when a node $nd$ is created. Once the node is successfully insert to the stack by a \push\ operation, the inserting process tries to mark it by changing $popby$ to \NULL\ using a \CAS. Before a process tries to remove the node from the stack during a \pop\ routine, it first mark it as part of the stack by doing the same thing, helping the inserting process conclude the node is in the stack. This replace the logic delete of the node, as we only need to know the node was part of the stack if it is removed. After a successful \CAS\ to remove $nd$ from the stack, another \CAS\ is used in order to try and set $popby$ to the identifier of the process who performed the \CAS. The use of \CAS\ to change $popby$ from \init to \NULL, and from \NULL\ to an identifier guarantee that only the first process to perform each of these \CAS\ will succeed. Note that before writing an identifier to $popby$ a process must try and set it to \NULL, and thus it can not store two different identifiers along in any execution. 
+
+The correctness proof follows the same guidelines as of the proof for the Linked-List. If a \push\ operation did not introduce a new node $nd$ into the stack, then no process but $p$ is aware of $nd$. Thus, upon recovery the \search\ routine will not find $nd$ in the stack, nor its $popby$ field has been changed, and the \recoverPush\ returns \fail. Otherwise, $nd$ was successfully inserted to the stack. As discessed above, the only way to delete $nd$ from the stack is by first changing its $popby$ field to \NULL. Thus, upon recovery $p$ will either find $nd$ in the stack, using the \search\ routine, or that $popby$ is different then $\init$ in case it was deleted, and in both cases it returns \True.
+For the \pop\ routine, if $p$ tries to remove a node $nd$ from the top of the stack and crash, then upon recovery it first check if $nd$ is still in the stack using the \search\ routine. If it is so, then clearly $nd$ was yet to delete, and it returns \fail. Otherwise, $nd$ was deleted, either by $p$ or by some other process. Only the first process of which to performs a \CAS, writing its identifier to $popby$ will return the value stored in $nd$, while the others return either \init\ (in the \trypop\ routine) or \fail\ (in the \recoverPop\ routine).
+
+Notice that both \recoverPush\ and \recoverPop\ are wait-free. Due to the structure of stack, no $next$ pointer of any node in the stack is ever changed. Therefore, once a process reads $Top$ at the beginning of its \recover\ routine, the chain of pointers from this $Top$ to the last node in the stack is fixed for the rest of the execution, and thus traversing it using the \search\ routine is wait-free.
 
 \begin{figure*}[b]
 	\small
