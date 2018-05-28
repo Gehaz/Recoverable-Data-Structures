@@ -1,0 +1,61 @@
+\section{Introduction (based on our PODC)}
+
+Shared-memory multiprocessors are asynchronous in nature.
+Asynchrony is related to reliability,
+since algorithms that provide nonblocking progress properties
+(e.g., lock-freedom and wait-freedom \cite{herlihy91waitfree})
+in an asynchronous environment with reliable processes
+continue to provide the same progress properties in the presence
+of \emph{crash failures}.
+This happens because a process that crashes
+permanently during the execution of the algorithm is indistinguishable
+to the other processes from one that is merely very slow.
+Owing to its simplicity and intimate relationship with asynchrony,
+the crash-failure model is almost ubiquitous in the treatment of
+concurrent algorithms.
+
+The attention to the crash-failure model has so far mostly neglected
+the \emph{crash-recovery} model, in which a failed process may be
+resurrected after it crashes.
+Recent developments foreshadow the emergence of new systems,
+in which byte-addressable \emph{non-volatile main memory} (\emph{NVRAM}),
+combining the performance benefits of conventional main memory
+with the durability of secondary storage,
+co-exists with (or eventually even replaces) traditional volatile memory.
+Consequently, there is increased interest in \emph{recoverable concurrent
+objects} (also called
+\emph{persistent}~\cite{CoburnCAGGJW-Asplos2011,ChenQ-VLDB2015}
+or \emph{durable}~\cite{VenkataramanTRC-FAST2011}):
+% YF: persistent is misleading
+% HA: But it's a term used in the literature; added citations.
+objects that are made robust to crash-failures by allowing their operations
+to recover from such failures.
+
+This paper consider an abstract individual-process crash-recovery model
+for non-volatile memory~\cite{AttiyaBH-PODC2018}.
+Processes communicate via non-volatile shared-memory variables.
+Each process also has local variables stored in volatile processor registers.
+[[YF: What about program counter? HA: in this paper, it can be volatile.]]
+At any point, a process may incur a crash-failure,
+causing all its local variables to be reset to arbitrary values.
+Operation response values are returned via volatile processor registers,
+which may become inaccessible to the calling process if it fails
+just before persisting the response value.
+A data structure has an associated \emph{recovery function} that is 
+responsible for restoring it upon the recovery from a crash-failure.
+The recovery function completes the current outstanding operation on 
+the data structure, if there was any, returning either its \emph{response}
+or a \emph{fail} indication, if it was unsuccessful. 
+Both responses are consistent with the resulting state of the data structure,
+to which the operation was applied (in the former case) 
+or not (in the latter case).
+
+We present a principled approach to deriving recoverable versions
+and describe in in detail in two widely-used concurrent data structures:
+a linked list~\cite{} and elimination stack~\cite{}.
+%%%%%%%%%%% NEED MORE %%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%% START OF RELATED WORK %%%%%%%%%%%%%%%%
+Several correctness conditions for the crash-recovery model were
+defined in recent years (see, e.g., \cite{Aguilera2003StrictLA,GolabR16,DBLP:conf/opodis/BerryhillGT15,DBLP:conf/icdcs/GuerraouiL04,DBLP:conf/wdag/IzraelevitzMS16}). The goal of these conditions is to maintain the state of concurrent objects
+consistent in the face of crash failures.

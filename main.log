@@ -1,0 +1,446 @@
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  28 MAY 2018 15:00
+entering extended mode
+**main.tex
+("C:\Users\ohadben\Desktop\New folder (2)\main.tex"
+LaTeX2e <2011/06/27>
+Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
+abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
+croatian, czech, danish, dutch, esperanto, estonian, farsi, finnish, french, ga
+lician, german, german-x-2013-05-26, greek, gujarati, hindi, hungarian, iceland
+ic, indonesian, interlingua, irish, italian, kannada, kurmanji, latin, latvian,
+ lithuanian, malayalam, marathi, mongolian, mongolianlmc, monogreek, ngerman, n
+german-x-2013-05-26, nynorsk, oriya, panjabi, pinyin, polish, portuguese, roman
+ian, russian, sanskrit, serbian, slovak, slovenian, spanish, swedish, swissgerm
+an, tamil, telugu, turkish, turkmen, ukenglish, ukrainian, uppersorbian, usengl
+ishmax, welsh, loaded.
+("C:\Program Files\MiKTeX 2.9\tex\latex\base\article.cls"
+Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+("C:\Program Files\MiKTeX 2.9\tex\latex\base\size11.clo"
+File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\eepic\epic.sty"
+Enhancements to Picture Environment. Version 1.2 - Released June 1, 1986
+\@@multicnt=\count87
+\d@lta=\count88
+\@delta=\dimen103
+\@@delta=\dimen104
+\@gridcnt=\count89
+\@joinkind=\count90
+\@dotgap=\dimen105
+\@ddotgap=\dimen106
+\@x@diff=\count91
+\@y@diff=\count92
+\x@diff=\dimen107
+\y@diff=\dimen108
+\@dotbox=\box26
+\num@segments=\count93
+\num@segmentsi=\count94
+\@datafile=\read1
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\eepic\eepic.sty"
+Extension to Epic and LaTeX. Version 1.1e - Released Dec 21, 1999
+\@gphlinewidth=\count95
+\@eepictcnt=\count96
+\@tempdimc=\dimen109
+\maxovaldiam=\dimen110
+\@filltype=\box27
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\cite\cite.sty"
+LaTeX Info: Redefining \cite on input line 302.
+LaTeX Info: Redefining \nocite on input line 373.
+Package: cite 2010/09/10  v 5.3
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\graphics\graphics.sty"
+Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\graphics\trig.sty"
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\00miktex\graphics.cfg"
+File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 91.
+
+(C:\Users\ohadben\AppData\Roaming\MiKTeX\2.9\tex\latex\graphics-def\pdftex.def
+File: pdftex.def 2017/01/12 v0.06k Graphics/color for pdfTeX
+
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\infwarerr.sty"
+Package: infwarerr 2010/04/08 v1.3 Providing info/warning/error messages (HO)
+)
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ltxcmds.sty"
+Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
+)
+\Gread@gobject=\count97
+))
+("C:\Program Files\MiKTeX 2.9\tex\latex\graphics\graphicx.sty"
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+\Gin@req@height=\dimen111
+\Gin@req@width=\dimen112
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\preprint\fullpage.sty"
+Package: fullpage 1999/02/23 1.1 (PWD)
+\FP@margin=\skip43
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\xcolor\xcolor.sty"
+Package: xcolor 2007/01/21 v2.11 LaTeX color extensions (UK)
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\00miktex\color.cfg"
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+)
+Package xcolor Info: Driver file: pdftex.def on input line 225.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1337.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1341.
+Package xcolor Info: Model `RGB' extended on input line 1353.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1355.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1356.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1357.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1358.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1359.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1360.
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\smartref\smartref.sty"
+Package: smartref 2002/02/28 v1.9 Increase reference capability (deep reference
+)
+\c@@smartlistlen=\count98
+\c@less@smartlist=\count99
+\c@@currsmartlistplace=\count100
+\sm@rtintern@ltok=\toks15
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\algorithm2e\algorithm2e.sty"
+Package: algorithm2e 2013/01/06 v5.00 algorithms environments
+\c@AlgoLine=\count101
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\base\ifthen.sty"
+Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\tools\xspace.sty"
+Package: xspace 2009/10/20 v1.13 Space after command names (DPC,MH)
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\ltxmisc\relsize.sty"
+Package: relsize 2003/07/04 ver 3.1
+)
+********************************************************
+Package `algorithm2e' Release 5.0 -- january 06 2013 --
+- algorithm2e-announce@lirmm.fr mailing list for announcement about releases
+- algorithm2e-discussion@lirmm.fr mailing list for discussion about package
+subscribe by emailing sympa@lirmm.fr with 'subscribe <list> <firstname name>'
+- Author: Christophe Fiorio (cfiorio@um2.fr)
+********************************************************
+\skiptotal=\skip44
+\skiplinenumber=\skip45
+\skiprule=\skip46
+\skiphlne=\skip47
+\skiptext=\skip48
+\skiplength=\skip49
+\algomargin=\skip50
+\skipalgocfslide=\skip51
+\algowidth=\dimen113
+\inoutsize=\dimen114
+\inoutindent=\dimen115
+\interspacetitleruled=\dimen116
+\interspacealgoruled=\dimen117
+\interspacetitleboxruled=\dimen118
+\algocf@inoutbox=\box28
+\algocf@inputbox=\box29
+\AlCapSkip=\skip52
+\AlCapHSkip=\skip53
+\algoskipindent=\skip54
+\algocf@nlbox=\box30
+\algocf@hangingbox=\box31
+\algocf@untilbox=\box32
+\algocf@skipuntil=\skip55
+\algocf@capbox=\box33
+\algoheightruledefault=\skip56
+\algoheightrule=\skip57
+\algotitleheightruledefault=\skip58
+\algotitleheightrule=\skip59
+\c@algocfline=\count102
+\c@algocfproc=\count103
+\c@algocf=\count104
+\algocf@algoframe=\box34
+\algocf@algobox=\box35
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\algorithmicx\algpseudocode.sty"
+Package: algpseudocode 
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\algorithmicx\algorithmicx.sty"
+Package: algorithmicx 2005/04/27 v1.2 Algorithmicx
+
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+\c@ALG@line=\count105
+\c@ALG@rem=\count106
+\c@ALG@nested=\count107
+\ALG@tlm=\skip60
+\ALG@thistlm=\skip61
+\c@ALG@Lnr=\count108
+\c@ALG@blocknr=\count109
+\c@ALG@storecount=\count110
+\c@ALG@tmpcounter=\count111
+\ALG@tmplength=\skip62
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+)
+\c@claim=\count112
+\c@definition=\count113
+\c@observation=\count114
+\c@linenum=\count115
+
+Defining \sgetlinenumval ...
+Defining \slinenumref ...
+Defining \sreflinenumref ...
+Defining \linenumref ...
+("C:\Users\ohadben\Desktop\New folder (2)\main.aux"
+
+LaTeX Warning: Label `mark-cas' multiply defined.
+
+
+LaTeX Warning: Label `mark-cas' multiply defined.
+
+
+LaTeX Warning: Label `checkmark' multiply defined.
+
+
+LaTeX Warning: Label `checkmark' multiply defined.
+
+)
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 49.
+LaTeX Font Info:    ... okay on input line 49.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 49.
+LaTeX Font Info:    ... okay on input line 49.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 49.
+LaTeX Font Info:    ... okay on input line 49.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 49.
+LaTeX Font Info:    ... okay on input line 49.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 49.
+LaTeX Font Info:    ... okay on input line 49.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 49.
+LaTeX Font Info:    ... okay on input line 49.
+ ("C:\Program Files\MiKTeX 2.9\tex\context\base\supp-pdf.mkii"
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count116
+\scratchdimen=\dimen119
+\scratchbox=\box36
+\nofMPsegments=\count117
+\nofMParguments=\count118
+\everyMPshowfont=\toks16
+\MPscratchCnt=\count119
+\MPscratchDim=\dimen120
+\MPnumerator=\count120
+\makeMPintoPDFobject=\count121
+\everyMPtoPDFconversion=\toks17
+) ("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\pdftexcmds.sty"
+Package: pdftexcmds 2011/11/29 v0.20 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ifluatex.sty"
+Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
+)
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ifpdf.sty"
+Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
+Package ifpdf Info: pdfTeX in PDF mode is detected.
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\epstopdf-base.sty"
+Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\grfext.sty"
+Package: grfext 2010/08/19 v1.1 Manage graphics extensions (HO)
+
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\kvdefinekeys.sty"
+Package: kvdefinekeys 2011/04/07 v1.3 Define keys (HO)
+))
+("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.sty"
+Package: kvoptions 2011/06/30 v3.11 Key value format for package options (HO)
+
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\kvsetkeys.sty"
+Package: kvsetkeys 2012/04/25 v1.16 Key value parser (HO)
+
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\etexcmds.sty"
+Package: etexcmds 2011/02/16 v1.5 Avoid name clashes with e-TeX commands (HO)
+Package etexcmds Info: Could not find \expanded.
+(etexcmds)             That can mean that you are not using pdfTeX 1.50 or
+(etexcmds)             that some package has redefined \expanded.
+(etexcmds)             In the latter case, load this package earlier.
+)))
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+34.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 452.
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 50.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 50.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 50.
+
+
+LaTeX Warning: No \author given.
+
+("C:\Users\ohadben\Desktop\New folder (2)\abstract.tex") [1
+
+{C:/Users/ohadben/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+("C:\Users\ohadben\Desktop\New folder (2)\introduction.tex")
+("C:\Users\ohadben\Desktop\New folder (2)\Definitions&Model.tex"
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 6.
+ [2]
+Overfull \hbox (30.9903pt too wide) in paragraph at lines 38--39
+\OT1/cmr/m/n/10.95 ex-e-cu-tion of $\OML/cmm/m/it/10.95 Op:[]$ \OT1/cmr/m/n/10.
+95 is com-pleted. In ei-ther case, a \OT1/cmr/m/it/10.95 re-sponse step $\OML/c
+mm/m/it/10.95 s$\OT1/cmr/m/n/10.95 , de-noted $(\OML/cmm/m/it/10.95 RES; p; O; 
+Op; ret\OT1/cmr/m/n/10.95 )$,
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 40.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 40.
+[3]) ("C:\Users\ohadben\Desktop\New folder (2)\linked-list.tex"
+
+LaTeX Warning: Citation `DBLP:conf/wdag/Harris01' on page 4 undefined on input 
+line 26.
+
+
+LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 4 undefined on input
+ line 26.
+
+
+LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 4 undefined on input
+ line 26.
+
+[4]
+Underfull \hbox (badness 10000) in paragraph at lines 93--94
+
+ []
+
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 95.
+("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 95.
+
+Underfull \hbox (badness 10000) in paragraph at lines 95--100
+
+ []
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[5] [6] [7] [8
+
+]) [9] ("C:\Users\ohadben\Desktop\New folder (2)\BST.tex"
+\c@ind=\count122
+
+[10
+
+] [11] [12]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <8> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 344.
+
+LaTeX Warning: Float too large for page by 6.34174pt on input line 426.
+
+
+LaTeX Warning: Float too large for page by 11.57384pt on input line 510.
+
+) [13] [14] [15] [16] [17]
+("C:\Users\ohadben\Desktop\New folder (2)\elimination-stack.tex" [18
+
+] [19]
+[20]
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 84.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 85.
+
+Underfull \hbox (badness 10000) in paragraph at lines 84--89
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 91--94
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 95--98
+
+ []
+
+
+LaTeX Warning: Float too large for page by 34.38156pt on input line 326.
+
+) [21] [22] [23] [24] [25] ("C:\Users\ohadben\Desktop\New folder (2)\main.bbl")
+[26
+
+] ("C:\Users\ohadben\Desktop\New folder (2)\main.aux")
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 4455 strings out of 493921
+ 61750 string characters out of 3147276
+ 182381 words of memory out of 3000000
+ 7680 multiletter control sequences out of 15000+200000
+ 14056 words of font info for 49 fonts, out of 3000000 for 9000
+ 841 hyphenation exceptions out of 8191
+ 43i,32n,39p,1712b,769s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Pr
+ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Fi
+les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx6.pfb><C:/Program Files/MiKTe
+X 2.9/fonts/type1/public/amsfonts/cm/cmbx8.pfb><C:/Program Files/MiKTeX 2.9/fon
+ts/type1/public/amsfonts/cm/cmbx9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/
+public/amsfonts/cm/cmcsc10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
+amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
+/cm/cmmi8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi9
+.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/
+Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program F
+iles/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKT
+eX 2.9/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Files/MiKTeX 2.9/fon
+ts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
+ublic/amsfonts/cm/cmr9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsf
+onts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/
+cmsy8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy9.pfb
+><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Pro
+gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti8.pfb><C:/Program File
+s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Program Files/MiKTeX 
+2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Program Files/MiKTeX 2.9/font
+s/type1/public/amsfonts/cm/cmtt9.pfb>
+Output written on main.pdf (26 pages, 414568 bytes).
+PDF statistics:
+ 178 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

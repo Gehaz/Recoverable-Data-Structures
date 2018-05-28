@@ -1,0 +1,67 @@
+%\documentclass[a4paper,UKenglish]{lipics-v2016}
+\documentclass[letterpaper, 11pt]{article}
+
+
+\usepackage{epic,eepic}
+\usepackage{cite}
+\usepackage{graphics}
+\usepackage{graphicx}
+%\usepackage{xspace}
+\usepackage{fullpage}
+\usepackage{xcolor}
+\usepackage{smartref} % for referencing the line numbers
+
+
+\usepackage[linesnumbered, ruled, noresetcount, lined]{algorithm2e}
+\usepackage[noend]{algpseudocode}
+
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{observation}{Observation}%[section]
+\newcommand{\qedsymb}{\hfill{\rule{2mm}{2mm}}}
+\newenvironment{proofsketch}{\begin{trivlist}
+\item[\hspace{\labelsep}{\bf\noindent Sketch of proof: }]
+}{\qedsymb\end{trivlist}}
+\newenvironment{proofof}[1]{\begin{trivlist}
+\item[\hspace{\labelsep}{\bf\noindent Proof of #1: }]
+}{\qedsymb\end{trivlist}}
+
+% this command enables to remove a whole part of the text from the printout
+% to use it just enter \remove{ before the text to be excluded and } after the text
+\newcommand{\remove}[1]{}
+
+\renewcommand{\topfraction}{.9}
+\renewcommand{\bottomfraction}{.9}
+\renewcommand{\textfraction}{.1}
+\renewcommand{\floatpagefraction}{.9}
+
+\newcounter{linenum}
+\addtoreflist{linenum}
+
+\DontPrintSemicolon
+\SetKw{CAS}{CAS}
+\SetKw{True}{true}
+\SetKw{False}{false}
+\SetKw{Int}{int}
+
+\title{Making Concurrent Data Structures Recoverable}
+
+\begin{document}
+	\maketitle
+	\input{abstract}
+	\newpage
+	\input{introduction}
+	\input{Definitions&Model}
+	
+	\input{linked-list}
+	\clearpage
+	\input{BST}
+	\clearpage
+	\input{elimination-stack}
+	\clearpage
+
+	\bibliographystyle{abbrv}
+	\bibliography{references}
+
+\end{document}
+

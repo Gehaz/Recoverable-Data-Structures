@@ -1,0 +1,70 @@
+\begin{thebibliography}{10}
+
+\bibitem{Aguilera2003StrictLA}
+M.~K. Aguilera and S.~Fr{\o}lund.
+\newblock Strict linearizability and the power of aborting.
+\newblock In {\em Tech. Rep. HPL-2003-241}, 2003.
+
+\bibitem{AttiyaBH-PODC2018}
+H.~Attiya, O.~Ben-Baruch, and D.~Hendler.
+\newblock Nesting-safe recoverable linearizability: Modular constructions for
+  non-volatile memory.
+\newblock In {\em Proceedings of the Symposium on Principles of Distributed
+  Computing}, PODC, 2018.
+
+\bibitem{DBLP:conf/opodis/BerryhillGT15}
+R.~Berryhill, W.~M. Golab, and M.~Tripunitara.
+\newblock Robust shared objects for non-volatile main memory.
+\newblock In {\em 19th International Conference on Principles of Distributed
+  Systems, {OPODIS}}, pages 20:1--20:17, 2015.
+
+\bibitem{ChenQ-VLDB2015}
+S.~Chen and Q.~Jin.
+\newblock Persistent b+-trees in non-volatile main memory.
+\newblock {\em Proceedings of the VLDB Endowment}, 8(7):786--797, 2015.
+
+\bibitem{CoburnCAGGJW-Asplos2011}
+J.~Coburn, A.~M. Caulfield, A.~Akel, L.~M. Grupp, R.~K. Gupta, R.~Jhala, and
+  S.~Swanson.
+\newblock {NV-Heaps}: Making persistent objects fast and safe with
+  next-generation, non-volatile memories.
+\newblock In {\em Proceedings of the Sixteenth International Conference on
+  Architectural Support for Programming Languages and Operating Systems},
+  ASPLOS, pages 105--118, 2011.
+
+\bibitem{GolabR16}
+W.~M. Golab and A.~Ramaraju.
+\newblock Recoverable mutual exclusion: [extended abstract].
+\newblock In {\em Proceedings of the 2016 {ACM} Symposium on Principles of
+  Distributed Computing, {PODC}}, pages 65--74, 2016.
+
+\bibitem{DBLP:conf/icdcs/GuerraouiL04}
+R.~Guerraoui and R.~R. Levy.
+\newblock Robust emulations of shared memory in a crash-recovery model.
+\newblock In {\em 24th International Conference on Distributed Computing
+  Systems {(ICDCS})}, pages 400--407, 2004.
+
+\bibitem{herlihy91waitfree}
+M.~Herlihy.
+\newblock Wait-free synchronization.
+\newblock {\em {ACM} Trans. Program. Lang. Syst.}, 13(1):124--149, 1991.
+
+\bibitem{herlihyWingLinearizability}
+M.~Herlihy and J.~M. Wing.
+\newblock Linearizability: {A} correctness condition for concurrent objects.
+\newblock {\em {ACM} Trans. Program. Lang. Syst.}, 12(3):463--492, 1990.
+
+\bibitem{DBLP:conf/wdag/IzraelevitzMS16}
+J.~Izraelevitz, H.~Mendes, and M.~L. Scott.
+\newblock Linearizability of persistent memory objects under a
+  full-system-crash failure model.
+\newblock In {\em Distributed Computing - 30th International Symposium,
+  {DISC}}, pages 313--327, 2016.
+
+\bibitem{VenkataramanTRC-FAST2011}
+S.~Venkataraman, N.~Tolia, P.~Ranganathan, and R.~H. Campbell.
+\newblock Consistent and durable data structures for non-volatile
+  byte-addressable memory.
+\newblock In {\em FAST}, volume~11, pages 61--75, 2011.
+
+\end{thebibliography}

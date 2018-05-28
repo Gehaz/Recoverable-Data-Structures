@@ -1,0 +1,190 @@
+\relax 
+\citation{herlihy91waitfree}
+\citation{CoburnCAGGJW-Asplos2011,ChenQ-VLDB2015}
+\citation{VenkataramanTRC-FAST2011}
+\citation{AttiyaBH-PODC2018}
+\citation{}
+\citation{}
+\citation{Aguilera2003StrictLA,GolabR16,DBLP:conf/opodis/BerryhillGT15,DBLP:conf/icdcs/GuerraouiL04,DBLP:conf/wdag/IzraelevitzMS16}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction (based on our PODC)}{2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Model and Definitions (based on our PODC)}{2}}
+\newlabel{section: Model}{{2}{2}}
+\newsmartlabel{section: Model}{{2}{0}}
+\citation{herlihyWingLinearizability}
+\newlabel{Definition: Linearizability}{{1}{3}}
+\newsmartlabel{Definition: Linearizability}{{1}{0}}
+\citation{DBLP:conf/wdag/Harris01}
+\citation{Herlihy:2008:AMP:1734069}
+\citation{Herlihy:2008:AMP:1734069}
+\newlabel{def:recoverable-well-formedness}{{2}{4}}
+\newsmartlabel{def:recoverable-well-formedness}{{2}{0}}
+\newlabel{Definition:NRL}{{3}{4}}
+\newsmartlabel{Definition:NRL}{{3}{0}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Linked-List}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.0.1}Linked-List Recoverable Version}{5}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {5}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Recover}\ $()$}}{6}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces $\delimiter "426830A $Node, Node$\delimiter "526930B $ \unhbox \voidb@x \hbox {\sc  Search}\ (T $key$)}}{6}}
+\newlabel{find-outer-loop}{{2}{6}}
+\newsmartlabel{find-outer-loop}{{2}{0}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Insert}\ (T $key$)}}{7}}
+\newlabel{recover-insert}{{20}{7}}
+\newsmartlabel{recover-insert}{{20}{0}}
+\newlabel{insert-CAS}{{27}{7}}
+\newsmartlabel{insert-CAS}{{27}{0}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Delete}\ (T $key$)}}{7}}
+\newlabel{insert-key-in-list}{{34}{7}}
+\newsmartlabel{insert-key-in-list}{{34}{0}}
+\newlabel{delete-write-false}{{35}{7}}
+\newsmartlabel{delete-write-false}{{35}{0}}
+\newlabel{delete-while-loop}{{39}{7}}
+\newsmartlabel{delete-while-loop}{{39}{0}}
+\newlabel{delete-read-succ-after-CAS}{{43}{7}}
+\newsmartlabel{delete-read-succ-after-CAS}{{43}{0}}
+\newlabel{delete-physical-delete}{{44}{7}}
+\newsmartlabel{delete-physical-delete}{{44}{0}}
+\newlabel{delete-CAS-deleter}{{45}{7}}
+\newsmartlabel{delete-CAS-deleter}{{45}{0}}
+\newlabel{delete-write-after-CAS}{{46}{7}}
+\newsmartlabel{delete-write-after-CAS}{{46}{0}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Find}\ (T $key$)}}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Recoverable Non-Blocking Linked-List}}{7}}
+\newlabel{linked-list}{{1}{7}}
+\newsmartlabel{linked-list}{{1}{0}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Robust BST}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.0.2}Correctness}{11}}
+\@writefile{toc}{\contentsline {paragraph}{Proof Sketch}{12}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Solution 1: R-linearizable \unhbox \voidb@x \hbox {\sc  Find} routine}}{14}}
+\newlabel{robust find - solution 1}{{2}{14}}
+\newsmartlabel{robust find - solution 1}{{2}{13}}
+\newlabel{mark-cas}{{4.0.2}{14}}
+\newsmartlabel{mark-cas}{{4.0.2}{26}}
+\newlabel{checkmark}{{4.0.2}{14}}
+\newsmartlabel{checkmark}{{4.0.2}{27}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Solution 2: R-linearizable \unhbox \voidb@x \hbox {\sc  Find} routine}}{14}}
+\newlabel{robust find - solution 2}{{3}{14}}
+\newsmartlabel{robust find - solution 2}{{3}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Type definitions and initialization.}}{15}}
+\newlabel{code1}{{4}{15}}
+\newsmartlabel{code1}{{4}{54}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \unhbox \voidb@x \hbox {\sc  Recover} routine}}{15}}
+\newlabel{restart-search}{{4.0.2}{16}}
+\newsmartlabel{restart-search}{{4.0.2}{69}}
+\newlabel{store-pupdate}{{4.0.2}{16}}
+\newsmartlabel{store-pupdate}{{4.0.2}{75}}
+\newlabel{read-child}{{4.0.2}{16}}
+\newsmartlabel{read-child}{{4.0.2}{76}}
+\newlabel{ins-search}{{4.0.2}{16}}
+\newsmartlabel{ins-search}{{4.0.2}{93}}
+\newlabel{insert-false}{{4.0.2}{16}}
+\newsmartlabel{insert-false}{{4.0.2}{94}}
+\newlabel{ins-help-unclean}{{4.0.2}{16}}
+\newsmartlabel{ins-help-unclean}{{4.0.2}{95}}
+\newlabel{create-internal}{{4.0.2}{16}}
+\newsmartlabel{create-internal}{{4.0.2}{98}}
+\newlabel{new-IFlag}{{4.0.2}{16}}
+\newsmartlabel{new-IFlag}{{4.0.2}{99}}
+\newlabel{insert-write-announce}{{4.0.2}{16}}
+\newsmartlabel{insert-write-announce}{{4.0.2}{100}}
+\newlabel{iflag-cas}{{4.0.2}{16}}
+\newsmartlabel{iflag-cas}{{4.0.2}{101}}
+\newlabel{finish-insert}{{4.0.2}{16}}
+\newsmartlabel{finish-insert}{{4.0.2}{103}}
+\newlabel{insert-true}{{4.0.2}{16}}
+\newsmartlabel{insert-true}{{4.0.2}{104}}
+\newlabel{ins-help-after-failure}{{4.0.2}{16}}
+\newsmartlabel{ins-help-after-failure}{{4.0.2}{106}}
+\newlabel{ichild-cas}{{4.0.2}{16}}
+\newsmartlabel{ichild-cas}{{4.0.2}{111}}
+\newlabel{iunflag-cas}{{4.0.2}{16}}
+\newsmartlabel{iunflag-cas}{{4.0.2}{113}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Pseudocode for \unhbox \voidb@x \hbox {\sc  Search}, \unhbox \voidb@x \hbox {\sc  Find} and \unhbox \voidb@x \hbox {\sc  Insert}.}}{16}}
+\newlabel{code2}{{6}{16}}
+\newsmartlabel{code2}{{6}{114}}
+\newlabel{del-search}{{4.0.2}{17}}
+\newsmartlabel{del-search}{{4.0.2}{121}}
+\newlabel{delete-false}{{4.0.2}{17}}
+\newsmartlabel{delete-false}{{4.0.2}{122}}
+\newlabel{del-help-unclean-1}{{4.0.2}{17}}
+\newsmartlabel{del-help-unclean-1}{{4.0.2}{123}}
+\newlabel{del-help-unclean-2}{{4.0.2}{17}}
+\newsmartlabel{del-help-unclean-2}{{4.0.2}{124}}
+\newlabel{new-DFlag}{{4.0.2}{17}}
+\newsmartlabel{new-DFlag}{{4.0.2}{126}}
+\newlabel{dflag-cas}{{4.0.2}{17}}
+\newsmartlabel{dflag-cas}{{4.0.2}{128}}
+\newlabel{delete-true}{{4.0.2}{17}}
+\newsmartlabel{delete-true}{{4.0.2}{130}}
+\newlabel{del-help-after-failure}{{4.0.2}{17}}
+\newsmartlabel{del-help-after-failure}{{4.0.2}{132}}
+\newlabel{mark-cas}{{4.0.2}{17}}
+\newsmartlabel{mark-cas}{{4.0.2}{138}}
+\newlabel{checkmark}{{4.0.2}{17}}
+\newsmartlabel{checkmark}{{4.0.2}{139}}
+\newlabel{call-hm1}{{4.0.2}{17}}
+\newsmartlabel{call-hm1}{{4.0.2}{140}}
+\newlabel{help-after-failed-mark}{{4.0.2}{17}}
+\newsmartlabel{help-after-failed-mark}{{4.0.2}{144}}
+\newlabel{backtrack-cas}{{4.0.2}{17}}
+\newsmartlabel{backtrack-cas}{{4.0.2}{145}}
+\newlabel{read-other}{{4.0.2}{17}}
+\newsmartlabel{read-other}{{4.0.2}{151}}
+\newlabel{dchild-cas}{{4.0.2}{17}}
+\newsmartlabel{dchild-cas}{{4.0.2}{152}}
+\newlabel{dunflag-cas}{{4.0.2}{17}}
+\newsmartlabel{dunflag-cas}{{4.0.2}{154}}
+\newlabel{call-HelpInsert}{{4.0.2}{17}}
+\newsmartlabel{call-HelpInsert}{{4.0.2}{157}}
+\newlabel{call-hm2}{{4.0.2}{17}}
+\newsmartlabel{call-hm2}{{4.0.2}{158}}
+\newlabel{call-HelpDelete}{{4.0.2}{17}}
+\newsmartlabel{call-HelpDelete}{{4.0.2}{159}}
+\newlabel{CAS-Child}{{4.0.2}{17}}
+\newsmartlabel{CAS-Child}{{4.0.2}{161}}
+\newlabel{which-child}{{4.0.2}{17}}
+\newsmartlabel{which-child}{{4.0.2}{162}}
+\newlabel{child-cas-1}{{4.0.2}{17}}
+\newsmartlabel{child-cas-1}{{4.0.2}{163}}
+\newlabel{child-cas-2}{{4.0.2}{17}}
+\newsmartlabel{child-cas-2}{{4.0.2}{165}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Pseudocode for \unhbox \voidb@x \hbox {\sc  Delete} and some auxiliary routines.}}{17}}
+\newlabel{code3}{{7}{17}}
+\newsmartlabel{code3}{{7}{166}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Elimination Stack}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}A Lock-Free Exchanger}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Lock-Free Stack}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Type definition}}{21}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {6}{\ignorespaces T \unhbox \voidb@x \hbox {\sc  Exchange}\ (\unhbox \voidb@x \hbox {ExInfo}\ $*slot$, T $myitem$, long $timeout$)}}{22}}
+\newlabel{exchage-waiting-cas}{{81}{22}}
+\newsmartlabel{exchage-waiting-cas}{{81}{166}}
+\newlabel{exchange-busy-cas}{{104}{22}}
+\newsmartlabel{exchange-busy-cas}{{104}{166}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {7}{\ignorespaces void \unhbox \voidb@x \hbox {\sc  SwitchPair}(\unhbox \voidb@x \hbox {ExInfo}\ $first$, \unhbox \voidb@x \hbox {ExInfo}\ $second$)}}{23}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {8}{\ignorespaces T \unhbox \voidb@x \hbox {\sc  Visit}\ (T $value$, int $range$, long $duration$)}}{23}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {9}{\ignorespaces T \unhbox \voidb@x \hbox {\sc  Exchange-Recover}\ $()$}}{23}}
+\newlabel{exchange-rec-busy-if}{{138}{23}}
+\newsmartlabel{exchange-rec-busy-if}{{138}{166}}
+\newlabel{exchange-rec-result-if}{{142}{23}}
+\newsmartlabel{exchange-rec-result-if}{{142}{166}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Elimination Array routines}}{23}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {10}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  TryPush}\ (Node $*nd$)}}{24}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {11}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Push}\ (T $myitem$)}}{24}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {12}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Push-Roceover}\ $()$}}{24}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {13}{\ignorespaces boolean \unhbox \voidb@x \hbox {\sc  Search}\ (Node $*nd$)}}{24}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces \unhbox \voidb@x \hbox {\sc  Push}\ routine}}{24}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {14}{\ignorespaces T \unhbox \voidb@x \hbox {\sc  TryPop}$()$}}{25}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {15}{\ignorespaces T \unhbox \voidb@x \hbox {\sc  Pop}\ $()$}}{25}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {16}{\ignorespaces T \unhbox \voidb@x \hbox {\sc  Pop-Recover}$()$}}{25}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces \unhbox \voidb@x \hbox {\sc  Pop}\ routine}}{25}}
+\bibstyle{abbrv}
+\bibdata{references}
+\bibcite{Aguilera2003StrictLA}{1}
+\bibcite{AttiyaBH-PODC2018}{2}
+\bibcite{DBLP:conf/opodis/BerryhillGT15}{3}
+\bibcite{ChenQ-VLDB2015}{4}
+\bibcite{CoburnCAGGJW-Asplos2011}{5}
+\bibcite{GolabR16}{6}
+\bibcite{DBLP:conf/icdcs/GuerraouiL04}{7}
+\bibcite{herlihy91waitfree}{8}
+\bibcite{herlihyWingLinearizability}{9}
+\bibcite{DBLP:conf/wdag/IzraelevitzMS16}{10}
+\bibcite{VenkataramanTRC-FAST2011}{11}

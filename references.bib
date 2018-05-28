@@ -1,0 +1,838 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@string{ftcs85 = "Proceedings of the 15th IEEE Symposium on Fault Tolerant
+                  Computing Systems (FTCS-15)"}
+
+@string{ftcs93 = "Proceedings of the 23rd IEEE Symposium on Fault Tolerant
+                  Computing Systems (FTCS-23)"}
+
+@string{ftcs96 = "Proceedings of the 26th IEEE Symposium on Fault Tolerant
+                  Computing Systems (FTCS-26)"}
+
+@string{ftcs97 = "Proceedings of the 27th IEEE Symposium on Fault Tolerant
+                  Computing Systems (FTCS-27)"}
+
+@string{ftcs98 = "Proceedings of the 28th IEEE Symposium on Fault Tolerant
+                  Computing Systems (FTCS-28)"}
+
+@string{ftcs98-fastabs = "Digest of FastAbstracts of the 28th IEEE
+                  Symposium on Fault Tolerant Computing Systems
+                  (FTCS-28)"}
+
+@string{wdag89 = "Proceedings of the
+         3rd International Workshop on Distributed Algorithms (WDAG'89)"}
+
+@string{wdag90 = "Proceedings of the
+         4th International Workshop on Distributed Algorithms (WDAG'90)"}
+
+@string{wdag91 = "Proceedings of the
+         5th International Workshop on Distributed Algorithms (WDAG'91)"}
+
+@string{wdag92 = "Proceedings of the
+         6th International Workshop on Distributed Algorithms (WDAG'92)"}
+
+@string{wdag93 = "Proceedings of the
+         7th International Workshop on Distributed Algorithms (WDAG'93)"}
+
+@string{wdag94 = "Proceedings of the
+         8th International Workshop on Distributed Algorithms (WDAG'94)"}
+
+@string{wdag95 = "Proceedings of the
+         9th International Workshop on Distributed Algorithms (WDAG'95)"}
+
+@string{wdag96 = "Proceedings of the
+         10th International Workshop on Distributed Algorithms (WDAG'96)"}
+
+@string{wdag97 = "Proceedings of the
+         11th International Workshop on Distributed Algorithms (WDAG'97)"}
+
+@string{disc98 = "Proceedings of the
+         12th International Symposium on Distributed Computing (DISC'98)"}
+
+@string{disc99 = "Proceedings of the
+          13th International Symposium on Distributed Computing (DISC'99)"}
+
+@string{disc00 = "Proceedings of the
+         14th International Symposium on Distributed Computing (DISC'00)"}
+
+@string{disc01 = "Proceedings of the
+         International Symposium on Distributed Computing (DISC'01)"}
+
+@string{disc02 = "Proceedings of the
+         16th International Symposium on Distributed Computing (DISC'02)"}
+
+@string{disc03 = "Proceedings of the
+         17th International Symposium on Distributed Computing (DISC'03)"}
+
+@string{disc04 = "Proceedings of the
+         18th International Symposium on Distributed Computing (DISC'04)"}
+
+@string{disc05 = "Proceedings of the
+         19th International Symposium on Distributed Computing (DISC'05)"}
+
+@string{disc06 = "Proceedings of the
+         20th International Symposium on Distributed Computing (DISC'06)"}
+
+
+@string{podc83 = "Proceedings of the 2nd
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc84 = "Proceedings of the 3rd
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc85 = "Proceedings of the 4th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc86 = "Proceedings of the 5th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc87 = "Proceedings of the 6th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc88 = "Proceedings of the 7th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc89 = "Proceedings of the 8th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc90 = "Proceedings of the 9th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc91 = "Proceedings of the 10th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc92 = "Proceedings of the 11th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc93 = "Proceedings of the 12th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc94 = "Proceedings of the 13th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc95 = "Proceedings of the 14th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc96 = "Proceedings of the 15th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc97 = "Proceedings of the 16th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc98 = "Proceedings of the 17th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc99 = "Proceedings of the 18th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc00 = "Proceedings of the 19th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc01 = "Proceedings of the 20th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc02 = "Proceedings of the 21st
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc03 = "Proceedings of the 22nd
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc04 = "Proceedings of the 23rd
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc05 = "Proceedings of the 24th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc06 = "Proceedings of the 25th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc07 = "Proceedings of the 27th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{podc11 = "Proceedings of the 30th
+         Annual ACM Symposium on Principles of Distributed
+         Computing (PODC)"}
+
+@string{srds91 = "Proceedings of the 10th IEEE
+         Symposium on Reliable Distributed Systems (SRDS)"}
+
+@string{srds92 = "Proceedings of the 11th IEEE
+         Symposium on  Reliable Distributed Systems (SRDS)"}
+
+@string{srds94 = "Proceedings of the 13th IEEE
+         Symposium on  Reliable Distributed Systems (SRDS)"}
+
+@string{srds95 = "Proceedings of the 14th IEEE
+         Symposium on  Reliable Distributed Systems (SRDS)"}
+
+@string{srds2000 = "Proceedings of the 19th IEEE
+         Symposium on  Reliable Distributed Systems (SRDS)"}
+
+
+@string{wss95 = "Proceedings of the 2nd Workshop
+         on Self-Stabilizing Systems"}
+
+@string{wss97 = "Proceedings of the 3rd Workshop
+         on Self-Stabilizing Systems"}
+
+@string{wss99 = "Proceedings of the 19th IEEE International Conference
+                  on Distributed Computing Systems Workshop on
+                  Self-Stabilizing Systems"}
+
+@string{icdcs93 = "Proceedings of the 14th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'93)"}
+@string{icdcs94 = "Proceedings of the 14th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'94)"}
+
+@string{icdcs96 = "Proceedings of the 16th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'96)"}
+
+@string{icdcs98 = "Proceedings of the 18th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'98)"}
+
+@string{icdcs99 = "Proceedings of the 19th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'99)"}
+
+@string{icdcs01 = "Proceedings of the 21st IEEE International
+         Conference on Distributed Computing Systems (ICDCS'01)"}
+
+
+@string{icdcs03 = "Proceedings of the 23rd IEEE International
+         Conference on Distributed Computing Systems (ICDCS'03)"}
+
+@string{icdcs04 = "Proceedings of the 24th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'04)"}
+
+@string{icdcs05 = "Proceedings of the 25th IEEE International
+         Conference on Distributed Computing Systems (ICDCS'05)"}
+
+@string{asa = " International Symposium on Agent Systems and Applications"}
+@string{ma = " International Symposium on Mobile Agents"}
+@string{asama2000 = "Proceedings of the " # "Second" # asa # " and Fourth" # ma #
+ " (ASA/MA2000)"}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% References
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+@inproceedings{VenkataramanTRC-FAST2011,
+	title={Consistent and Durable Data Structures for Non-Volatile Byte-Addressable Memory.},
+	author={Venkataraman, Shivaram and Tolia, Niraj and Ranganathan, Parthasarathy and Campbell, Roy H},
+	booktitle={FAST},
+	volume={11},
+	pages={61--75},
+	year={2011}
+}
+
+@inproceedings{CoburnCAGGJW-Asplos2011,
+	author = {Coburn, Joel and Caulfield, Adrian M. and Akel, Ameen and Grupp, Laura M. and Gupta, Rajesh K. and Jhala, Ranjit and Swanson, Steven},
+	title = {{NV-Heaps}: Making Persistent Objects Fast and Safe with Next-generation, Non-volatile Memories},
+	booktitle = {Proceedings of the Sixteenth International Conference on Architectural Support for Programming Languages and Operating Systems},
+	series = {ASPLOS},
+	year = {2011},
+	pages = {105--118},
+}
+
+@inproceedings{VolosTS-Asplos2011,
+	author = {Volos, Haris and Tack, Andres Jaan and Swift, Michael M.},
+	title = {Mnemosyne: Lightweight Persistent Memory},
+	booktitle = {Proceedings of the Sixteenth International Conference on Architectural Support for Programming Languages and Operating Systems},
+	series = {ASPLOS},
+	year = {2011},
+	pages = {91--104},
+}
+
+@inproceedings{KolliPSCW-Asplos2016,
+	author = {Kolli, Aasheesh and Pelley, Steven and Saidi, Ali and Chen, Peter M. and Wenisch, Thomas F.},
+	title = {High-Performance Transactions for Persistent Memories},
+	booktitle = {Proceedings of the Twenty-First International Conference on Architectural Support for Programming Languages and Operating Systems},
+	series = {ASPLOS},
+	year = {2016},
+	pages = {399--411},
+}
+
+@inproceedings{JoshiNCV-Micro2015,
+	author = {Joshi, Arpit and Nagarajan, Vijay and Cintra, Marcelo and Viglas, Stratis},
+	title = {Efficient Persist Barriers for Multicores},
+	booktitle = {Proceedings of the 48th International Symposium on Microarchitecture},
+	series = {MICRO},
+	year = {2015},
+	pages = {660--671},
+}
+
+@inproceedings{SchwalbDUP-IMDM2015,
+	author = {Schwalb, David and Dreseler, Markus and Uflacker, Matthias and Plattner, Hasso},
+	title = {NVC-Hashmap: A Persistent and Concurrent Hashmap For Non-Volatile Memories},
+	booktitle = {Proceedings of the 3rd VLDB Workshop on In-Memory Data Mangement and Analytics},
+	series = {IMDM},
+	year = {2015},
+	pages = {4:1--4:8},
+}
+
+@inproceedings{BoehmC-ISMM2016,
+	author = {Boehm, Hans-J. and Chakrabarti, Dhruva R.},
+	title = {Persistence Programming Models for Non-volatile Memory},
+	booktitle = {Proceedings of the 2016 ACM SIGPLAN International Symposium on Memory Management},
+	series = {ISMM},
+	year = {2016},
+	pages = {55--67},
+}
+
+@inproceedings{MoscibrodaO-PODC2011,
+	author = {Moscibroda, Thomas and Oshman, Rotem},
+	title = {Resilience of Mutual Exclusion Algorithms to Transient Memory Faults},
+	booktitle = {Proceedings of the 30th Annual ACM SIGACT-SIGOPS Symposium on Principles of Distributed Computing},
+	series = {PODC},
+	year = {2011},
+	pages = {69--78},
+}
+
+@inproceedings{ChenZBSW-Micro2017,
+	author = {Chen, Guoyang and Zhang, Lei and Budhiraja, Richa and Shen, Xipeng and Wu, Youfeng},
+	title = {Efficient Support of Position Independence on Non-volatile Memory},
+	booktitle = {Proceedings of the 50th Annual IEEE/ACM International Symposium on Microarchitecture},
+	series = {MICRO},
+	year = {2017},
+	pages = {191--203},
+}
+
+@article{DBLP:journals/toplas/HerlihyW90,
+	author    = {Maurice Herlihy and
+	Jeannette M. Wing},
+	title     = {Linearizability: {A} Correctness Condition for Concurrent Objects},
+	journal   = {{ACM} Trans. Program. Lang. Syst.},
+	volume    = {12},
+	number    = {3},
+	pages     = {463--492},
+	year      = {1990},
+}
+
+
+@inproceedings{Aguilera2003StrictLA,
+	title={Strict Linearizability and the Power of Aborting},
+	author={Marcos Kawazoe Aguilera and Svend Fr{\o}lund},
+	booktitle={Tech. Rep. HPL-2003-241},
+	year={2003}
+}
+
+
+@inproceedings{DBLP:conf/icdcs/GuerraouiL04,
+	author    = {Rachid Guerraoui and
+	Ron R. Levy},
+	title     = {Robust Emulations of Shared Memory in a Crash-Recovery Model},
+	booktitle = {24th International Conference on Distributed Computing Systems {(ICDCS})},
+	pages     = {400--407},
+	year      = {2004},
+}
+
+
+@inproceedings{DBLP:conf/opodis/BerryhillGT15,
+	author    = {Ryan Berryhill and
+	Wojciech M. Golab and
+	Mahesh Tripunitara},
+	title     = {Robust Shared Objects for Non-Volatile Main Memory},
+	booktitle = {19th International Conference on Principles of Distributed Systems,
+	{OPODIS}},
+	pages     = {20:1--20:17},
+	year      = {2015},
+}
+
+
+@inproceedings{DBLP:conf/wdag/IzraelevitzMS16,
+	author    = {Joseph Izraelevitz and
+	Hammurabi Mendes and
+	Michael L. Scott},
+	title     = {Linearizability of Persistent Memory Objects Under a Full-System-Crash
+	Failure Model},
+	booktitle = {Distributed Computing - 30th International Symposium, {DISC}},
+	pages     = {313--327},
+	year      = {2016},
+}
+
+
+@inproceedings{GolabR16,
+	author    = {Wojciech M. Golab and
+	Aditya Ramaraju},
+	title     = {Recoverable Mutual Exclusion: [Extended Abstract]},
+	booktitle = {Proceedings of the 2016 {ACM} Symposium on Principles of Distributed
+	Computing, {PODC}},
+	pages     = {65--74},
+	year      = {2016},
+}
+
+@inproceedings{DBLP:conf/podc/GolabH17,
+	author    = {Wojciech M. Golab and 	Danny Hendler},
+	title     = {Recoverable Mutual Exclusion in Sub-logarithmic Time},
+	booktitle = {Proceedings of the {ACM} Symposium on Principles of Distributed Computing {PODC}},
+	pages     = {211--220},
+	year      = {2017},
+}
+
+@inproceedings{DBLP:conf/popl/GuerraouiK09,
+	author    = {Rachid Guerraoui and
+	Michal Kapalka},
+	title     = {The semantics of progress in lock-based transactional memory},
+	booktitle = {Proceedings of the 36th {ACM} {SIGPLAN-SIGACT} Symposium on Principles
+	of Programming Languages, {POPL}},
+	pages     = {404--415},
+	year      = {2009},
+}
+
+@article{herlihy91waitfree,
+	author    = {Maurice Herlihy},
+	title     = {Wait-Free Synchronization},
+	journal   = {{ACM} Trans. Program. Lang. Syst.},
+	volume    = {13},
+	number    = {1},
+	pages     = {124--149},
+	year      = {1991},
+}
+
+@article{AttiyaGHK09,
+	author    = {Hagit Attiya and
+	Rachid Guerraoui and
+	Danny Hendler and
+	Petr Kuznetsov},
+	title     = {The complexity of obstruction-free implementations},
+	journal   = {J. {ACM}},
+	volume    = {56},
+	number    = {4},
+	pages     = {24:1--24:33},
+	year      = {2009},
+}
+
+@inproceedings{HerlihyLMS03,
+	author    = {Maurice Herlihy and
+	Victor Luchangco and
+	Mark Moir and
+	William N. Scherer III},
+	title     = {Software transactional memory for dynamic-sized data structures},
+	booktitle = {Proceedings of the Twenty-Second {ACM} Symposium on Principles of
+	Distributed Computing, {PODC}},
+	pages     = {92--101},
+	year      = {2003},
+}
+
+@inproceedings{DBLP:conf/icdcs/HerlihyLM03,
+	author    = {Maurice Herlihy and
+	Victor Luchangco and
+	Mark Moir},
+	title     = {Obstruction-Free Synchronization: Double-Ended Queues as an Example},
+	booktitle = {23rd International Conference on Distributed Computing Systems ({ICDCS}))},
+	pages     = {522--529},
+	year      = {2003},
+}
+
+@article{LamportSC,
+	author    = {Leslie Lamport},
+	title     = {How to Make a Correct Multiprocess Program Execute Correctly on a
+	Multiprocessor},
+	journal   = {{IEEE} Trans. Computers},
+	volume    = {46},
+	number    = {7},
+	pages     = {779--782},
+	year      = {1997},
+}
+
+@article{herlihyWingLinearizability,
+	author    = {Maurice Herlihy and
+	Jeannette M. Wing},
+	title     = {Linearizability: {A} Correctness Condition for Concurrent Objects},
+	journal   = {{ACM} Trans. Program. Lang. Syst.},
+	volume    = {12},
+	number    = {3},
+	pages     = {463--492},
+	year      = {1990},
+}
+
+@inproceedings{Alur-Taubenfeld-mutex-results,
+	author    = {Rajeev Alur and
+	Gadi Taubenfeld},
+	title     = {Results about Fast Mutual Exclusion},
+	booktitle = {Proceedings of the Real-Time Systems Symposium ({RTSS})},
+	pages     = {12--21},
+	year      = {1992},
+}
+
+@inproceedings{gr:rme,
+	author    = {Wojciech M. Golab and
+	Aditya Ramaraju},
+	title     = {Recoverable Mutual Exclusion: [Extended Abstract]},
+	booktitle = {Proceedings of the 2016 {ACM} Symposium on Principles of Distributed
+	Computing, {PODC}},
+	pages     = {65--74},
+	year      = {2016},
+}
+
+@inproceedings{DBLP:conf/stoc/AttiyaHW08,
+	author    = {Hagit Attiya and
+	Danny Hendler and
+	Philipp Woelfel},
+	title     = {Tight {RMR} lower bounds for mutual exclusion and other problems},
+	booktitle = {Proceedings of the 40th Annual {ACM} Symposium on Theory of Computing ({STOC})},
+	pages     = {217--226},
+	year      = {2008},
+}
+
+@inproceedings{Jayanti-DISC-17,
+	author    = {Prasad Jayanti and
+	Anup Joshi},
+	title     = {Recoverable {FCFS} Mutual Exclusion with Wait-Free Recovery},
+	booktitle = {Distributed Computing - 31st International Symposium ({DISC})},
+	year = 2017,
+}
+
+@proceedings{DBLP:conf/asplos/2011,
+	editor    = {Rajiv Gupta and
+	Todd C. Mowry},
+	title     = {Proceedings of the 16th International Conference on Architectural
+	Support for Programming Languages and Operating Systems, {ASPLOS}
+	2011, Newport Beach, CA, USA, March 5-11, 2011},
+	publisher = {{ACM}},
+	year      = {2011},
+	isbn      = {978-1-4503-0266-1},
+	timestamp = {Thu, 10 Mar 2011 21:13:04 +0100},
+	biburl    = {http://dblp.org/rec/bib/conf/asplos/2011},
+	bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+
+@article{DBLP:journals/corr/abs-1204-6082,
+	author    = {Peter Bailis and
+	Shivaram Venkataraman and
+	Michael J. Franklin and
+	Joseph M. Hellerstein and
+	Ion Stoica},
+	title     = {Probabilistically Bounded Staleness for Practical Partial Quorums},
+	journal   = {CoRR},
+	volume    = {abs/1204.6082},
+	year      = {2012},
+	url       = {http://arxiv.org/abs/1204.6082},
+	timestamp = {Wed, 07 Jun 2017 14:40:32 +0200},
+	biburl    = {http://dblp.org/rec/bib/journals/corr/abs-1204-6082},
+	bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+
+@article{BailisVFHS-VLDB2012,
+	author = {Bailis, Peter and Venkataraman, Shivaram and Franklin, Michael J. and Hellerstein, Joseph M. and Stoica, Ion},
+	title = {Probabilistically Bounded Staleness for Practical Partial Quorums},
+	journal = {Proc. VLDB Endow.},
+	volume = {5},
+	number = {8},
+	month = apr,
+	year = {2012},
+	pages = {776--787},
+	publisher = {VLDB Endowment},
+}
+
+
+@inproceedings{MaratheSBH-HotStorage2017,
+	title={Persistent Memcached: Bringing Legacy Code to Byte-Addressable Persistent Memory},
+	author={Marathe, Virendra J and Seltzer, Margo and Byan, Steve and Harris, Tim},
+	booktitle={9th USENIX Workshop on Hot Topics in Storage and File Systems (HotStorage)},
+	year={2017},
+}
+
+@inproceedings{Erez-et-al-DISC-17,
+	author    = {Michal Friedman and Maurice Herlihy and Virendra Marathe and Erez Petrank},
+	title     = {Brief Announcement: A Persistent Lock-Free Queue for Non-Volatile Memory},
+	booktitle = {Distributed Computing - 31st International Symposium ({DISC})},
+	year = 2017,
+}
+
+@inproceedings{MichaelS-PODC1996,
+	title={Simple, fast, and practical non-blocking and blocking concurrent queue algorithms},
+	author={Michael, Maged M and Scott, Michael L},
+	booktitle={Proceedings of the fifteenth annual ACM symposium on Principles of distributed computing},
+	pages={267--275},
+	year={1996},
+}
+
+@article{DBLP:journals/tocs/Mellor-CrummeyS91,
+	author    = {John M. Mellor{-}Crummey and
+	Michael L. Scott},
+	title     = {Algorithms for Scalable Synchronization on Shared-Memory Multiprocessors},
+	journal   = {{ACM} Trans. Comput. Syst.},
+	volume    = {9},
+	number    = {1},
+	pages     = {21--65},
+	year      = {1991}
+}
+
+@inproceedings{DBLP:conf/podc/Censor-HillelPT15,
+	author    = {Keren Censor{-}Hillel and
+	Erez Petrank and
+	Shahar Timnat},
+	title     = {Help!},
+	booktitle = {Proceedings of the 2015 {ACM} Symposium on Principles of Distributed
+	Computing, {PODC} 2015, Donostia-San Sebasti{\'{a}}n, Spain,
+	July 21 - 23, 2015},
+	pages     = {241--250},
+	year      = {2015},
+	crossref  = {DBLP:conf/podc/2015},
+	url       = {http://doi.acm.org/10.1145/2767386.2767415},
+	doi       = {10.1145/2767386.2767415},
+	timestamp = {Sat, 18 Jul 2015 13:42:22 +0200},
+	biburl    = {http://dblp.org/rec/bib/conf/podc/Censor-HillelPT15},
+	bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+
+
+@inproceedings{DBLP:conf/wdag/FriedmanHMP17,
+	author    = {Michal Friedman and
+	Maurice Herlihy and
+	Virendra J. Marathe and
+	Erez Petrank},
+	title     = {Brief Announcement: {A} Persistent Lock-Free Queue for Non-Volatile
+	Memory},
+	booktitle = {31st International Symposium on Distributed Computing, {DISC} 2017,
+	October 16-20, 2017, Vienna, Austria},
+	pages     = {50:1--50:4},
+	year      = {2017},
+	crossref  = {DBLP:conf/wdag/2017},
+	url       = {https://doi.org/10.4230/LIPIcs.DISC.2017.50},
+	doi       = {10.4230/LIPIcs.DISC.2017.50},
+	timestamp = {Sat, 11 Nov 2017 15:51:51 +0100},
+	biburl    = {http://dblp.org/rec/bib/conf/wdag/FriedmanHMP17},
+	bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+
+@inproceedings{DBLP:conf/podc/GolabR16,
+  author    = {Wojciech M. Golab and
+               Aditya Ramaraju},
+  title     = {Recoverable Mutual Exclusion: [Extended Abstract]},
+  booktitle = {Proceedings of the 2016 {ACM} Symposium on Principles of Distributed
+               Computing, {PODC} 2016, Chicago, IL, USA, July 25-28, 2016},
+  pages     = {65--74},
+  year      = {2016}
+}
+
+@inproceedings{DBLP:conf/wdag/JayantiJ17,
+  author    = {Prasad Jayanti and
+               Anup Joshi},
+  title     = {Recoverable {FCFS} Mutual Exclusion with Wait-Free Recovery},
+  booktitle = {31st International Symposium on Distributed Computing, {DISC} 2017,
+               October 16-20, 2017, Vienna, Austria},
+  pages     = {30:1--30:15},
+  year      = {2017}
+}
+
+@article{DBLP:journals/jacm/FischerLP85,
+  author    = {Michael J. Fischer and
+               Nancy A. Lynch and
+               Mike Paterson},
+  title     = {Impossibility of Distributed Consensus with One Faulty Process},
+  journal   = {J. {ACM}},
+  volume    = {32},
+  number    = {2},
+  pages     = {374--382},
+  year      = {1985}
+}
+
+@inproceedings{DBLP:conf/spdp/BohannonLS96,
+	author    = {Philip Bohannon and
+		Daniel F. Lieuwen and
+		Abraham Silberschatz},
+	title     = {Recovering scalable spin locks},
+	booktitle = {Proceedings of the Eighth {IEEE} Symposium on Parallel and Distributed
+		Processing, {SPDP} 1996, New Orleans, Louisiana, USA, October 23-26,
+		1996.},
+	pages     = {314--322},
+	year      = {1996}
+}
+
+@inproceedings{DBLP:conf/spdp/BohannonLS0G95,
+	author    = {Philip Bohannon and
+		Daniel F. Lieuwen and
+		Abraham Silberschatz and
+		S. Sudarshan and
+		J. Gava},
+	title     = {Recoverable user-level mutual exclusion},
+	booktitle = {Proceedings of the Seventh {IEEE} Symposium on Parallel and Distributed
+		Processing, {SPDP} 1995, San Antonio, Texas , USA, October 25-28,
+		1995},
+	pages     = {293--301},
+	year      = {1995}
+}
+
+@inproceedings{DBLP:conf/oopsla/ChakrabartiBB14,
+	author    = {Dhruva R. Chakrabarti and
+		Hans{-}Juergen Boehm and
+		Kumud Bhandari},
+	title     = {Atlas: leveraging locks for non-volatile memory consistency},
+	booktitle = {Proceedings of the 2014 {ACM} International Conference on Object Oriented
+		Programming Systems Languages {\&} Applications, {OOPSLA} 2014,
+		part of {SPLASH} 2014, Portland, OR, USA, October 20-24, 2014},
+	pages     = {433--452},
+	year      = {2014}
+}
+
+@article{DBLP:journals/tcs/AbrahamDHK01,
+	author    = {Uri Abraham and
+		Shlomi Dolev and
+		Ted Herman and
+		Irit Koll},
+	title     = {Self-stabilizing l-exclusion},
+	journal   = {Theor. Comput. Sci.},
+	volume    = {266},
+	number    = {1-2},
+	pages     = {653--692},
+	year      = {2001}
+}
+
+@inproceedings{KolliPSCW-Asplos2016,
+ author = {Kolli, Aasheesh and Pelley, Steven and Saidi, Ali and Chen, Peter M. and Wenisch, Thomas F.},
+ title = {High-Performance Transactions for Persistent Memories},
+ booktitle = {Proceedings of the Twenty-First International Conference on Architectural Support for Programming Languages and Operating Systems},
+ series = {ASPLOS},
+ year = {2016},
+ pages = {399--411},
+}
+
+@inproceedings{CoburnCAGGJW-Asplos2011,
+ author = {Coburn, Joel and Caulfield, Adrian M. and Akel, Ameen and Grupp, Laura M. and Gupta, Rajesh K. and Jhala, Ranjit and Swanson, Steven},
+ title = {{NV-Heaps}: Making Persistent Objects Fast and Safe with Next-generation, Non-volatile Memories},
+ booktitle = {Proceedings of the Sixteenth International Conference on Architectural Support for Programming Languages and Operating Systems},
+ series = {ASPLOS},
+ year = {2011},
+ pages = {105--118},
+}
+
+@inproceedings{VolosTS-Asplos2011,
+ author = {Volos, Haris and Tack, Andres Jaan and Swift, Michael M.},
+ title = {Mnemosyne: Lightweight Persistent Memory},
+ booktitle = {Proceedings of the Sixteenth International Conference on Architectural Support for Programming Languages and Operating Systems},
+ series = {ASPLOS},
+ year = {2011},
+ pages = {91--104},
+}
+
+@inproceedings{BoehmC-ISMM2016,
+ author = {Boehm, Hans-J. and Chakrabarti, Dhruva R.},
+ title = {Persistence Programming Models for Non-volatile Memory},
+ booktitle = {Proceedings of the 2016 ACM SIGPLAN International Symposium on Memory Management},
+ series = {ISMM},
+ year = {2016},
+ pages = {55--67},
+}
+
+@inproceedings{DBLP:conf/wdag/FriedmanHMP17,
+	author    = {Michal Friedman and
+		Maurice Herlihy and
+		Virendra J. Marathe and
+		Erez Petrank},
+	title     = {Brief Announcement: {A} Persistent Lock-Free Queue for Non-Volatile
+		Memory},
+	booktitle = {31st International Symposium on Distributed Computing, {DISC} 2017,
+		October 16-20, 2017, Vienna, Austria},
+	pages     = {50:1--50:4},
+	year      = {2017}
+}
+
+@article{DBLP:journals/pacmpl/CohenFL17,
+	author    = {Nachshon Cohen and
+		Michal Friedman and
+		James R. Larus},
+	title     = {Efficient logging in non-volatile memory by exploiting coherency protocols},
+	journal   = {{PACMPL}},
+	volume    = {1},
+	number    = {{OOPSLA}},
+	pages     = {67:1--67:24},
+	year      = {2017}
+}
+
+@inproceedings{Erez-et-al-DISC-17,
+  author    = {Michal Friedman and Maurice Herlihy and Virendra Marathe and Erez Petrank},
+  title     = {Brief Announcement: A Persistent Lock-Free Queue for Non-Volatile Memory},
+  booktitle = {Distributed Computing - 31st International Symposium ({DISC})},
+  year = 2017,
+}
+
+@inproceedings{DBLP:conf/asplos/NarayananH12,
+	author    = {Dushyanth Narayanan and
+		Orion Hodson},
+	title     = {Whole-system persistence},
+	booktitle = {Proceedings of the 17th International Conference on Architectural
+		Support for Programming Languages and Operating Systems, {ASPLOS}
+		2012, London, UK, March 3-7, 2012},
+	pages     = {401--410},
+	year      = {2012}
+}
+
+@inproceedings{DBLP:conf/vldb/SchwalbDUP15,
+	author    = {David Schwalb and
+		Markus Dreseler and
+		Matthias Uflacker and
+		Hasso Plattner},
+	title     = {NVC-Hashmap: {A} Persistent and Concurrent Hashmap For Non-Volatile
+		Memories},
+	booktitle = {Proceedings of the 3rd {VLDB} Workshop on In-Memory Data Mangement
+		and Analytics, IMDM@VLDB 2015, Kohala Coast, HI, USA, August 31, 2015},
+	pages     = {4:1--4:8},
+	year      = {2015}
+}
+
+@book{Taubenfeld:2006:SAC:1211700,
+	author = {Taubenfeld, Gadi},
+	title = {Synchronization Algorithms and Concurrent Programming},
+	year = {2006},
+	isbn = {0131972596},
+	publisher = {Prentice-Hall, Inc.},
+	address = {Upper Saddle River, NJ, USA},
+}
+
+@inproceedings{MaratheSBH-HotStorage2017,
+  title={Persistent Memcached: Bringing Legacy Code to Byte-Addressable Persistent Memory},
+  author={Marathe, Virendra J and Seltzer, Margo and Byan, Steve and Harris, Tim},
+  booktitle={9th USENIX Workshop on Hot Topics in Storage and File Systems (HotStorage)},
+  year={2017},
+}
+
+@article{ChenQ-VLDB2015,
+  title={Persistent b+-trees in non-volatile main memory},
+  author={Chen, Shimin and Jin, Qin},
+  journal={Proceedings of the VLDB Endowment},
+  volume={8},
+  number={7},
+  pages={786--797},
+  year={2015},
+}
+
+@INPROCEEDINGS{AttiyaBH-PODC2018,
+  author =       {Hagit Attiya and Ohad Ben-Baruch and Danny Hendler},
+  title =        {Nesting-Safe Recoverable Linearizability: Modular Constructions for Non-Volatile Memory},
+  booktitle =    {Proceedings of the Symposium on Principles of Distributed Computing},
+  series =       {PODC},
+  year =         2018,
+  keywords =     {to appear},
+}

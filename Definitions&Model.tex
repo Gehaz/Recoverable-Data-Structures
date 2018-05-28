@@ -1,0 +1,96 @@
+\section{Model and Definitions (based on our PODC)}
+\label{section: Model}
+
+%\subsection{Standard Shared-Memory Model}
+
+We consider a system where $N$ asynchronous \textit{processes}
+$p_1, \ldots, p_{N}$ communicate by accessing \emph{concurrent objects}.
+The system provides \textit{base objects} that support
+atomic read, write, and compare\&swap (CAS).
+Base objects can be used for implementing more complex concurrent
+objects (e.g. lists, trees and stacks), by defining access procedures
+that simulate each operation on the implemented object using operations
+on base objects.
+
+The state of each process consists of non-volatile \emph{shared-memory variables},
+as well as \emph{local variables stored in volatile processor registers}.
+Each process can incur at any point during the execution a \emph{crash-failure}
+(or simply a \emph{crash}) that resets all its local variables to arbitrary values,
+but preserves the values of all its non-volatile variables.
+A process $p$ \emph{invokes an operation} $Op$ on an object by performing
+an \emph{invocation step}; 
+upon \emph{Op}'s completion, a \emph{response step} is executed.
+
+Operation $Op$ is \emph{pending} if it was invoked but was not yet completed.
+For simplicity, we assume that, at all times,
+each process has at most a single pending operation on any one object.
+
+[[HA: Define data structure $D$.]
+Each data structure has an associated \emph{recovery function},
+denoted $D.\texttt{Recover}$,
+which is responsible for restoring the data structure to a consistent 
+state, upon recovery from a crash.
+
+More formally, a \textit{history} $H$ is a sequence of \emph{steps}.
+There are four types of steps:
+\begin{enumerate}
+	\item an \emph{invocation step}, denoted $(INV, p, O, Op)$, represents the invocation by process $p$ of operation $Op$ on object $O$;
+	\item an operation $Op$ can be completed either normally or when, following one or more crashes, the execution of $Op.\texttt{Recover}$ is completed. In either case, a \emph{response step} $s$, denoted $(RES, p, O, Op, ret)$, represents the completion by process $p$ of operation $Op$ invoked on object $O$ by some step $s'$ of $p$, with response $ret$ being written to a local variable of $p$. We say that \emph{s is the response step that matches s'};
+	\item a \emph{crash step} $s$, denoted $(CRASH, p)$, represents the crash of process $p$. We call the inner-most recoverable operation $Op$ of $p$ that was pending when the crash occurred the \emph{crashed operation of s}. $(CRASH, p)$ may also occur while $p$ is executing some recovery function $Op.\texttt{Recover}$ and we say that $Op$ is the crashed operation of $s$ also in this case;
+	\item a \emph{recovery step $s$ for process p}, denoted $(REC, p)$, is the only step by $p$ that is allowed to follow a $(CRASH, p)$ step $s'$. It represents the resurrection of $p$ by the system, in which it invokes $Op.\texttt{Recover}$,\footnote{A history does not contain invocation/response steps for recovery functions.} where $Op$ is the crashed operation of $s'$.
+We say that \emph{s is the recovery step that matches} $s'$.
+\end{enumerate}
+
+For a history $H$, we let $H | p$ denote the subhistory of $H$ consisting of all the steps by process $p$ in $H$. 
+$H$ is \emph{crash-free} if it contains no crash steps (hence also no recover steps). 
+We let $H|{<}p,O{>}$ denote the subhistory consisting of all the steps on $O$ by $p$.
+
+Given two operations $op_1$ and $op_2$ in a history $H$,
+we say that $op_1$ \textit{happens before} $op_2$,
+denoted $op_1 <_H op_2$,
+if $op_1$'s response step precedes the invocation step of $op_2$ in $H$.
+$H | O$ is a \emph{sequential object history},
+if it is an alternating series of invocations and the matching responses
+starting with an invocation (the history may end by a pending invocation).
+The \textit{sequential specification} of an object $O$ is the set of all
+possible (legal) sequential histories over $O$.
+A history $H$ is \emph{sequential} if $H | O$ is a sequential object
+history for all objects $O$.
+
+Two histories $H$ and $H'$ are \emph{equivalent},
+if $H|{<}p,O{>}=H'|{<}p,O{>}$ for all processes $p$ and objects $O$.
+Given a history $H$, a \textit{completion} of $H$ is a history $H'$
+constructed from $H$ by selecting separately,
+for each object $O$ that appears in $H$,
+a subset of the operations pending on $O$ in $H$ and appending matching
+responses to all these operations, and then
+removing all remaining pending operations on $O$ (if any).
+
+\begin{definition} [Linearizability \cite{herlihyWingLinearizability}, rephrased]
+	\label{Definition: Linearizability}
+A finite crash-free history $H$ is \emph{linearizable} if it has a completion $H'$ and a legal sequential history $S$ such that:
+	\begin{enumerate}
+		\item [L1.] $H'$ is equivalent to $S$; and
+		\item [L2.] $<_H \subseteq <_S$ (i.e., if $op_1 <_H op_2$ and both ops appear in $S$ then $op_1 <_S op_2$).
+	\end{enumerate}
+\end{definition}
+
+Thus, a finite history is linearizable, if we can linearize the subhistory of each object that appears in it.
+Next, we define a more general notion of well-formedness that applies also to histories that contain crash/recovery steps. For a history $H$, we let $N(H)$ denote the history obtained from $H$ by removing all crash and recovery steps.
+
+\begin{definition} [Recoverable Well-Formedness]
+\label{def:recoverable-well-formedness}
+A history $H$ is \textit{recoverable well-formed} if the following holds.
+\begin{enumerate}
+\item Every crash step in $H | p$ is either $p$'s last step in $H$ or is followed in $H | p$ by a matching recover step of $p$.
+\item $N(H)$ is well-formed.
+\end{enumerate}
+\end{definition}
+
+We can now define the notion of nesting-safe recoverable linearizability.
+
+\begin{definition} [Nesting-safe Recoverable Linearizability (NRL)]
+\label{Definition:NRL}
+A finite history $H$ satisfies \emph{nesting-safe recoverable linearizability} (NRL) if it is recoverable well-formed and $N(H)$ is a linearizable history.
+An object implementation satisfies NRL if all of its finite histories satisfy NRL.
+\end{definition}
