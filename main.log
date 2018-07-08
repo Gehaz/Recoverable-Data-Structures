@@ -1,7 +1,7 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  28 MAY 2018 15:00
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  8 JUL 2018 18:14
 entering extended mode
 **main.tex
-("C:\Users\ohadben\Desktop\New folder (2)\main.tex"
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
 abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
@@ -203,7 +203,7 @@ Defining \sgetlinenumval ...
 Defining \slinenumref ...
 Defining \sreflinenumref ...
 Defining \linenumref ...
-("C:\Users\ohadben\Desktop\New folder (2)\main.aux"
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.aux
 
 LaTeX Warning: Label `mark-cas' multiply defined.
 
@@ -298,11 +298,14 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 
 LaTeX Warning: No \author given.
 
-("C:\Users\ohadben\Desktop\New folder (2)\abstract.tex") [1
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\abstract.tex)
+[1
 
 {C:/Users/ohadben/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-("C:\Users\ohadben\Desktop\New folder (2)\introduction.tex")
-("C:\Users\ohadben\Desktop\New folder (2)\Definitions&Model.tex"
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\introduction.tex
+)
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\Definitions&Mode
+l.tex
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <10.95> on input line 6.
  [2]
@@ -317,7 +320,14 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <9> on input line 40.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 40.
-[3]) ("C:\Users\ohadben\Desktop\New folder (2)\linked-list.tex"
+[3]
+Overfull \hbox (3.9738pt too wide) in paragraph at lines 101--103
+\OT1/cmr/m/n/10.95 Harris' Linked-List al-go-rithm is pre-sented in Sec-tion...
+ The im-ple-men-ta-tion uses CAS and read/write
+ []
+
+)
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\linked-list.tex
 
 LaTeX Warning: Citation `DBLP:conf/wdag/Harris01' on page 4 undefined on input 
 line 26.
@@ -330,7 +340,7 @@ LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 4 undefined on input
 LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 4 undefined on input
  line 26.
 
-[4]
+[4] [5]
 Underfull \hbox (badness 10000) in paragraph at lines 93--94
 
  []
@@ -349,14 +359,15 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--100
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[5] [6] [7] [8
+[6] [7] [8] [9
 
-]) [9] ("C:\Users\ohadben\Desktop\New folder (2)\BST.tex"
+]) [10]
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\BST.tex
 \c@ind=\count122
+ [11
 
-[10
-
-] [11] [12]
+]
+[12] [13]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -371,11 +382,11 @@ LaTeX Warning: Float too large for page by 6.34174pt on input line 426.
 
 LaTeX Warning: Float too large for page by 11.57384pt on input line 510.
 
-) [13] [14] [15] [16] [17]
-("C:\Users\ohadben\Desktop\New folder (2)\elimination-stack.tex" [18
+) [14] [15] [16] [17] [18]
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\elimination-stac
+k.tex [19
 
-] [19]
-[20]
+] [20] [21]
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 84.
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -398,10 +409,11 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--98
 
 LaTeX Warning: Float too large for page by 34.38156pt on input line 326.
 
-) [21] [22] [23] [24] [25] ("C:\Users\ohadben\Desktop\New folder (2)\main.bbl")
-[26
+) [22] [23] [24] [25] [26]
+(C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.bbl)
+[27
 
-] ("C:\Users\ohadben\Desktop\New folder (2)\main.aux")
+] (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -411,7 +423,7 @@ LaTeX Warning: There were multiply-defined labels.
  ) 
 Here is how much of TeX's memory you used:
  4455 strings out of 493921
- 61750 string characters out of 3147276
+ 62212 string characters out of 3147276
  182381 words of memory out of 3000000
  7680 multiletter control sequences out of 15000+200000
  14056 words of font info for 49 fonts, out of 3000000 for 9000
@@ -438,9 +450,9 @@ gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti8.pfb><C:/Program File
 s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Program Files/MiKTeX 
 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Program Files/MiKTeX 2.9/font
 s/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on main.pdf (26 pages, 414568 bytes).
+Output written on main.pdf (27 pages, 417587 bytes).
 PDF statistics:
- 178 PDF objects out of 1000 (max. 8388607)
+ 181 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
