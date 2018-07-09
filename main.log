@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  8 JUL 2018 18:14
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  9 JUL 2018 20:49
 entering extended mode
 **main.tex
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.tex
@@ -326,21 +326,21 @@ Overfull \hbox (3.9738pt too wide) in paragraph at lines 101--103
  The im-ple-men-ta-tion uses CAS and read/write
  []
 
-)
+[4])
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\linked-list.tex
 
-LaTeX Warning: Citation `DBLP:conf/wdag/Harris01' on page 4 undefined on input 
+LaTeX Warning: Citation `DBLP:conf/wdag/Harris01' on page 5 undefined on input 
 line 26.
 
 
-LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 4 undefined on input
+LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 5 undefined on input
  line 26.
 
 
-LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 4 undefined on input
+LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 5 undefined on input
  line 26.
 
-[4] [5]
+[5]
 Underfull \hbox (badness 10000) in paragraph at lines 93--94
 
  []
@@ -450,7 +450,7 @@ gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti8.pfb><C:/Program File
 s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Program Files/MiKTeX 
 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Program Files/MiKTeX 2.9/font
 s/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on main.pdf (27 pages, 417587 bytes).
+Output written on main.pdf (27 pages, 419307 bytes).
 PDF statistics:
  181 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
