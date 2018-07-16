@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  9 JUL 2018 20:49
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2017.2.23)  16 JUL 2018 19:43
 entering extended mode
 **main.tex
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.tex
@@ -320,27 +320,27 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <9> on input line 40.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 40.
-[3]
-Overfull \hbox (3.9738pt too wide) in paragraph at lines 101--103
-\OT1/cmr/m/n/10.95 Harris' Linked-List al-go-rithm is pre-sented in Sec-tion...
- The im-ple-men-ta-tion uses CAS and read/write
+[3] [4]
+Overfull \hbox (6.55025pt too wide) in paragraph at lines 110--112
+\OT1/cmr/m/n/10.95 read/write prim-i-tives only. At-tiya et al [ref...] pre-sen
+ted a re-cov-er-able im-ple-men-ta-tions for read/write
  []
 
-[4])
+) [5]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\linked-list.tex
 
-LaTeX Warning: Citation `DBLP:conf/wdag/Harris01' on page 5 undefined on input 
+LaTeX Warning: Citation `DBLP:conf/wdag/Harris01' on page 6 undefined on input 
 line 26.
 
 
-LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 5 undefined on input
+LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 6 undefined on input
  line 26.
 
 
-LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 5 undefined on input
+LaTeX Warning: Citation `Herlihy:2008:AMP:1734069' on page 6 undefined on input
  line 26.
 
-[5]
+[6]
 Underfull \hbox (badness 10000) in paragraph at lines 93--94
 
  []
@@ -359,15 +359,15 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--100
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[6] [7] [8] [9
+[7] [8] [9] [10
 
-]) [10]
+]) [11]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\BST.tex
 \c@ind=\count122
- [11
+ [12
 
 ]
-[12] [13]
+[13] [14]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -382,11 +382,11 @@ LaTeX Warning: Float too large for page by 6.34174pt on input line 426.
 
 LaTeX Warning: Float too large for page by 11.57384pt on input line 510.
 
-) [14] [15] [16] [17] [18]
+) [15] [16] [17] [18] [19]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\elimination-stac
-k.tex [19
+k.tex [20
 
-] [20] [21]
+] [21] [22]
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 84.
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -409,9 +409,9 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--98
 
 LaTeX Warning: Float too large for page by 34.38156pt on input line 326.
 
-) [22] [23] [24] [25] [26]
+) [23] [24] [25] [26] [27]
 (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.bbl)
-[27
+[28
 
 ] (C:\Users\ohadben\Documents\GitHub\Recoverable-Data-Structures\main.aux)
 
@@ -450,9 +450,9 @@ gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti8.pfb><C:/Program File
 s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Program Files/MiKTeX 
 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Program Files/MiKTeX 2.9/font
 s/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on main.pdf (27 pages, 419307 bytes).
+Output written on main.pdf (28 pages, 422211 bytes).
 PDF statistics:
- 181 PDF objects out of 1000 (max. 8388607)
+ 184 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
