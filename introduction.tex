@@ -1,61 +1,136 @@
-\section{Introduction (based on our PODC)}
+\section{Introduction}
 
-Shared-memory multiprocessors are asynchronous in nature.
-Asynchrony is related to reliability,
-since algorithms that provide nonblocking progress properties
-(e.g., lock-freedom and wait-freedom \cite{herlihy91waitfree})
-in an asynchronous environment with reliable processes
-continue to provide the same progress properties in the presence
-of \emph{crash failures}.
-This happens because a process that crashes
-permanently during the execution of the algorithm is indistinguishable
-to the other processes from one that is merely very slow.
-Owing to its simplicity and intimate relationship with asynchrony,
-the crash-failure model is almost ubiquitous in the treatment of
-concurrent algorithms.
-
-The attention to the crash-failure model has so far mostly neglected
-the \emph{crash-recovery} model, in which a failed process may be
-resurrected after it crashes.
-Recent developments foreshadow the emergence of new systems,
-in which byte-addressable \emph{non-volatile main memory} (\emph{NVRAM}),
+Recent years has seen the emergence of systems in which
+byte-addressable \emph{non-volatile main memory} (\emph{NVRAM}),
 combining the performance benefits of conventional main memory
 with the durability of secondary storage,
 co-exists with (or eventually even replaces) traditional volatile memory.
-Consequently, there is increased interest in \emph{recoverable concurrent
+This has lead to increased interest in the \emph{crash-recovery} model,
+in which a failed process may be resurrected after it crashes.
+Of particular interest is the design of \emph{recoverable concurrent
 objects} (also called
 \emph{persistent}~\cite{CoburnCAGGJW-Asplos2011,ChenQ-VLDB2015}
 or \emph{durable}~\cite{VenkataramanTRC-FAST2011}):
 % YF: persistent is misleading
 % HA: But it's a term used in the literature; added citations.
 objects that are made robust to crash-failures by allowing their operations
-to recover from such failures.
+to recover after such failures.
 
-This paper consider an abstract individual-process crash-recovery model
-for non-volatile memory~\cite{AttiyaBH-PODC2018}.
-Processes communicate via non-volatile shared-memory variables.
-Each process also has local variables stored in volatile processor registers.
-[[YF: What about program counter? HA: in this paper, it can be volatile.]]
+It is challenging to design data structures that persist in the presence of
+crashes and recoveries, and several concurrent implementations were proposed. %%% list them here
+While many of these exploit specific aspects of an object to
+optimize the implementation, it is important to develop generic
+approaches for deriving recoverable implementations from their
+non-recoverable counterparts.
+Such an approach should preserve the structure and efficiency of
+the implementation, as much as possible,
+while avoiding the need to design new algorithms.
+
+This paper presents a principled approach to deriving recoverable
+objects and describe it in detail through three widely-used
+concurrent data structures:
+a linked list~\cite{DBLP:conf/wdag/Harris01},
+binary search tree~\cite{}
+and elimination stack~\cite{DBLP:journals/jpdc/HendlerSY10}.
+
+Our results are presented in the context of an abstract individual-process
+crash-recovery model for non-volatile memory~\cite{AttiyaBH-PODC2018},
+in which processes communicate via non-volatile shared-memory variables.
+%%% I have taken out the issue of volatile / non-volatile local variables
+%%% and the exclusion of the program counter.
+%%% It should be mentioned later in the introduction.
+%Each process also has local variables stored in volatile processor registers
+%[[YF: What about program counter? HA: in this paper, it can be volatile.]]
 At any point, a process may incur a crash-failure,
-causing all its local variables to be reset to arbitrary values.
+causing all its local variables, [[[except for its program counter,???]]]
+to be reset to arbitrary values.
 Operation response values are returned via volatile processor registers,
 which may become inaccessible to the calling process if it fails
 just before persisting the response value.
-A data structure has an associated \emph{recovery function} that is 
+[[[Each data structure operation???]]] has an associated \emph{recovery
+function} that is
 responsible for restoring it upon the recovery from a crash-failure.
-The recovery function completes the current outstanding operation on 
+The recovery function completes the current outstanding operation on
 the data structure, if there was any, returning either its \emph{response}
-or a \emph{fail} indication, if it was unsuccessful. 
+or a \emph{fail} indication, if it was unsuccessful.
 Both responses are consistent with the resulting state of the data structure,
-to which the operation was applied (in the former case) 
+to which the operation was applied (in the former case)
 or not (in the latter case).
 
-We present a principled approach to deriving recoverable versions
-and describe in in detail in two widely-used concurrent data structures:
-a linked list~\cite{} and elimination stack~\cite{}.
-%%%%%%%%%%% NEED MORE %%%%%%%%%%%%%%%%%%
+\subsection*{Related Work}
 
-%%%%%%%%%%% START OF RELATED WORK %%%%%%%%%%%%%%%%
-Several correctness conditions for the crash-recovery model were
-defined in recent years (see, e.g., \cite{Aguilera2003StrictLA,GolabR16,DBLP:conf/opodis/BerryhillGT15,DBLP:conf/icdcs/GuerraouiL04,DBLP:conf/wdag/IzraelevitzMS16}). The goal of these conditions is to maintain the state of concurrent objects
-consistent in the face of crash failures.
+Several different correctness conditions and implementations have been
+proposed for recoverable data
+structures~\cite{CoburnCAGGJW-Asplos2011,ChenQ-VLDB2015,VenkataramanTRC-FAST2011,%
+Aguilera2003StrictLA,GolabR16,DBLP:conf/opodis/BerryhillGT15,DBLP:conf/icdcs/GuerraouiL04,DBLP:conf/wdag/IzraelevitzMS16}.
+However, this work concentrates on maintaining the consistency of
+the concurrent object in the face of crash failures,
+and does not consider \emph{detectability}, that is, the ability to
+conclude upon recovery whether the crashed operation took effect.
+
+There is a universal implementation~\cite{DBLP:journals/pacmpl/CohenFL17}
+which is both durable [[undefined?]] and lock-free,
+it uses only read, write and CAS.
+This implementation applies at most one \emph{persistence[[?]] fence}
+(flushing the contents of the memory) per operation, which is optimal,
+but it keeps the entire history of the object in a designated shared queue;
+it also keeps a per-process persistent log, such that these logs together
+keep the entire history, and different logs may have a big overlap.
+Furthermore, to determine the response of an operation,
+it is necessary to read the entire history up to its linearization point.
+This construction can easily be made detectable since an operation was
+linearized if and only if it appears in the shared queue
+(representing the object's history).
+Specifically, after the system completes its recovery routine,
+in the recovery from an $Update(op)$, 
+the process can determine the response value from the shared queue;
+this assumes that each $op$ is uniquely identified.
+This work considers a \emph{system-wide} crash model, in which
+all processes crash together and a single recovery function is
+executed upon recovery,
+in order to consistently reconstruct the queue data structure.
+It ensures \emph{durable linearizability}~\cite{VenkataramanTRC-FAST2011}:
+after a full system crash, the state of the object must reﬂect a consistent operation
+sub-history that includes all operations completed by the time of the crash,
+i.e., crashed operations may get lost.
+
+\emph{Nesting-safe recoverable linearizability} (\emph{NRL})~\cite{AttiyaBH-PODC2018}
+is a novel crash-recovery model together with a correctness condition.
+It associates each recoverable operation with a recovery function, invoked 
+after a crash in the operation to help a process to complete the operation, 
+as well as restore the response value if needed.
+They give recoverable implementations for read, write and CAS.
+As suggested by its name, NRL support \emph{nesting},
+so taking an algorithm that uses only read, write and CAS,
+and replacing each primitive with its recoverable version yields an NRL implementation.
+Some minor changes are still needed in order to use this transformation,
+but they hold for all the implementations presented in that paper.
+However, this transformation is quite costly, in terms of both time and space.
+
+Indeed, implementations using only read, write and CAS can be made
+recoverable and detectable~\cite{DBLP:journals/corr/abs-1806-04780},
+by partitioning the code into \emph{capsules},
+each containing a single CAS followed by some number of reads,
+and replacing each CAS with its recoverable version.
+This allows to recover from a crash inside the capsule.
+\emph{Normalized} implementations~\cite{TimnatP-PPoPP2014} can be
+further optimized so that an operation contains only two capsules.
+However, not all implementation are given in a normalized form, and
+converting an implementation into a normalized form may be costly by itself.
+This general transformation has several drawbacks:
+For example, replacing a CAS with its recoverable variant requires each
+CAS to have distinct arguments, ensured by adding unique sequence numbers,
+which are stored in the CAS location.
+This means that CAS is applied to words with unbounded length,
+even if the original implementation applied CAS over a finite domain.
+Furthermore, although two capsules are used for each normalized operation,
+these two capsules are repeatedly executed in attempt to complete the operation.
+Thus, the implementation is lock-free.
+
+In many cases we can avoid it,
+without the extra capsule complexity for a failed attempt.
+Moreover, we would like the transformation to change as little
+as necessary from the original code,
+even at the price of having a costly recover function.
+Assuming crashes are rare,
+this may yield a more efficient implementation in practice. 

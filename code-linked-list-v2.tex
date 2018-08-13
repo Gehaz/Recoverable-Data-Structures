@@ -1,0 +1,156 @@
+
+
+\begin{figure}[!t]
+	\removelatexerror
+
+\begin{algorithm}[H]
+
+	\footnotesize
+	
+	\begin{flushleft}	
+		\textbf{Type} Node \{MarkableNodeRef $*next$, int \emph{key}, \textcolor{blue} {int \emph{deleter}}\} \\
+		\textcolor{blue} {\textbf{Type} \Info\ \{Node $*nd$, boolean $result$\}}\\
+	
+		\textbf{Shared variables:} Node $*head$, \textcolor{blue} {$\Info *$ RD[N]} \\	
+	\end{flushleft}
+
+
+%%%%%%%%%%%%%% Recoverable Linked List - Insert %%%%%%%%%%%%%%%%%%%%%%%%%
+
+	\begin{procedure}[H]
+		\caption{() boolean \insertlst\ (T $key$)}
+		
+			Node $*pred, *curr$ \label{insert-entry}\;
+			Node $newnd$ := \textbf{new} Node ($key$)\;
+			\textcolor{blue}{newnd.deleter := \init} \;
+			\textcolor{blue} {$RD[pid]$ := \textbf{new} \Info\ ($newnd$, \init) \tcp*{Install Info structure for this operation} \label{insert-install-IS}}
+	        \textcolor{blue} {$\text{CP}_p$ := curPC() \tcp*{Set a check-point indicating \Info\ structure was installed}\label{insert-set-checkpoint}}
+			\While{\True}{ \label{insert-while}
+				\tcp{Search for right location to insert}
+				$\langle pred, curr \rangle := \search(key)$ \label{insert-search} \;
+				\uIf (\tcp*[f]{$key$ in the list}) {$curr.key = key$ \label{insert-if-in-list}} {
+					\textcolor{blue} {$RD[pid].result := \False$ \tcp*{Persist response} \label{insert-persist-false-response}}
+					\KwRet \False \label{insert-return-false}
+				} \uElse {
+					$newnd.next$ := $<0,curr>$\;
+					\tcp{Try to add $newnd$}
+					\uIf {$pred.next.\CAS$ ($<0,curr>$, $<0,newnd>$) \label{insert-CAS}} {
+						\textcolor{blue} {$RD[pid].result := \True$ \tcp*{Persist response} \label{insert-persist-true-response}}
+						\KwRet \True
+					}
+				}		
+			}
+	\end{procedure}
+
+
+%%%%%%%%%%%%% Recoverable Linked List - Insert Recover %%%%%%%%%%%%%%%%%%%%%
+
+	\textcolor{blue}{
+	\begin{procedure}[H]
+		\caption{() boolean \insertrecover\ (T $key$)}
+		%
+		Node $*nd := RD[pid].nd$\;
+		\tcp{Failed before installing info structure}
+		\uIf {$\text{CP}_p$ $<$ \ref{insert-set-checkpoint} \label{insert-recover-read-CP}}
+		{Proceed from line \ref{insert-entry} \tcp*{re-execute}}
+		\tcp{If operation response was persisted}
+		\uElseIf {$RD[pid].result \neq \init$ \label{insert-recover-response-persisted}}
+		{\KwRet $RD[pid].result$ \tcp*[f]{Return response \label{insert-recover-return-persisted-response}}}
+		$\langle pred, curr \rangle := \search (key)$ \tcp*{Search for $nd$ in the list} \label{insert-recover-search}
+		\tcp{If $nd$ in list or is marked (hence was)}
+		\uIf {$curr = nd \mid \mid marked(nd.next)$ \label{insert-if-was-linearized}} {
+			$RD[pid].result := \True$ \tcp*{Persist response} \label{insert-linearized-persist-true}
+			\KwRet \True \label{insert-linearized-return-true}\;
+		}
+		\uElse
+		{
+			Proceed from line \ref{insert-entry} \tcp*[f]{Re-attempt insertion}
+		}
+	\end{procedure}
+	}
+
+\caption{Recoverable linked list: \insertlst} \label{alg:linked-list-part1}
+\end{algorithm}
+
+\end{figure}
+
+
+
+
+%%%%%%%%%%%%%%Recoverable Linked List - Delete%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[!t]
+	\removelatexerror
+
+\begin{algorithm}[H]
+
+\footnotesize
+
+\begin{flushleft}	
+\end{flushleft}
+
+
+%%%%%%%%%%%%% Recoverable Linked List - Delete %%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{procedure}[H]
+	\caption{() boolean \delete\ (T $key$)}
+
+		 Node $*pred, *curr, *succ$ $\quad$ boolean $res$ := \False \label{delete-entry}\;
+		\textcolor{blue} {$RD[pid]$ := \textbf{new} \Info\ (\init, \init) \tcp*{Install info structure for this operation}}
+        \textcolor{blue} {$\text{CP}_p$ := curPC() \tcp*{Set a check-point indicating \Info\ structure was installed}\label{delete-set-checkpoint}}
+		%\While{\True}{ \label{recover-delete}
+			\tcp{Search for $key$ in the list}
+			$\langle pred, curr \rangle := \search (key)$ \label{search-in-delete} \;
+			\uIf (\tcp*[f]{$key$ not in the list}) {$curr.key \neq key$ \label{delete-key-in-list}} {
+				\textcolor{blue} {$RD[pid].result := \False$ \tcp*{Persist response}} \label{delete-write-false}
+				\KwRet \False \label{delete-return-false}
+			}
+			\uElse {
+				\textcolor{blue}{$RD[pid].nd := curr$ \tcp*{Persist reference to node containing key}} \label{delete-update-nd}
+				\While (\tcp*[f]{Repeatedly attempt logical delete}) {$\lnot marked(curr.next)$  \label{delete-while-loop}}{
+					$succ := curr.next$ \label{delete:set-succ-to-next}\;
+					$res := curr.next.\CAS$ ($<0,succ>$, $<1,succ>$) \label{delete:logical-delete}\;
+				}
+				\tcp{Physical deletion attempt}
+				$succ := curr.next$ \label{delete-read-succ-after-CAS}\;
+				$pred.next.\CAS$ ($<0,curr>$, $<0,succ>$) \label{delete-physical-delete} \;
+				\textcolor{blue}{\tcp{Try establishing yourself as deleter}}
+				\textcolor{blue}{$res := curr.deleter.\CAS (\init, pid)$}  \label{delete-CAS-deleter}
+				\textcolor{blue}{$RD[pid].result := res$ \tcp*{Persist response}} \label{delete-write-after-CAS}
+				\KwRet $res$ \label{delete:return-res}
+				}
+
+\end{procedure}
+
+
+%%%%%%%%%%%%% Recoverable Linked List - Delete Recover %%%%%%%%%%%%%%%%%%%%%
+
+\textcolor{blue}{
+\begin{procedure}[H]
+	\caption{() boolean \deleterecover\ (T $key$)}
+	%
+	Node $*nd := RD[pid].nd$ , $\quad$ boolean $res$:=\False\;
+	\tcp{Failed before installing info structure}
+    \uIf {$\text{CP}_p$ $<$ \ref{delete-set-checkpoint} \label{delete-recover-read-CP}}
+        {Proceed from line \ref{delete-entry} \tcp*{re-execute}}
+    \tcp{If operation response was persisted}
+ 	\uElseIf {$RD[pid].result \neq \init$ \label{delete-recover-response-persisted}}
+		{\KwRet $RD[pid].result$ \tcp*[f]{Return response \label{delete-recover-return-persisted-response}}}
+		\tcp{If $nd$ was logically deleted}
+		\uIf {$nd \neq \init$ \&\& $marked(nd.next)$ \label{delete-recover-if-should-perform-deleter-CAS}} {
+			\tcp{Try establishing yourself as deleter}
+			$nd.deleter.\CAS\ (\init, pid)$ \label{delete-recover-deleter-CAS} \;
+			$res := (nd.deleter == pid)$ \label{delete-recover-read-deleter} \;
+			$RD[pid].result := res$ \tcp*{Persist response}
+			\KwRet res \label{delete-recover-return-res}\;
+		}
+        \uElse {
+		Proceed from line \ref{delete-entry} \label{delete-recover-reattempt-deletion} \tcp*[f]{Re-attempt deletion}
+        }
+\end{procedure}
+}
+
+\caption{Recoverable linked list: \delete} \label{alg:linked-list-part2}
+\end{algorithm}
+
+\end{figure}

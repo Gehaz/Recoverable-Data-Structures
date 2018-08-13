@@ -1,0 +1,433 @@
+%% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
+\documentclass[sigplan,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For double-blind review submission, w/ CCS and ACM Reference
+%\documentclass[sigplan,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[sigplan,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For single-blind review submission, w/ CCS and ACM Reference
+%\documentclass[sigplan,review]{acmart}\settopmatter{printfolios=true}
+%% For final camera-ready submission, w/ required CCS and ACM Reference
+%\documentclass[sigplan]{acmart}\settopmatter{}
+
+
+%% Conference information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+%\acmConference[PL'18]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2018}{New York, NY, USA}
+%\acmYear{2018}
+%\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+%\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+%\startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%\citestyle{acmauthoryear}  %% For author/year citations
+%\citestyle{acmnumeric}     %% For numeric citations
+%\setcitestyle{nosort}      %% With 'acmnumeric', to disable automatic
+                            %% sorting of references within a single citation;
+                            %% e.g., \cite{Smith99,Carpenter05,Baker12}
+                            %% rendered as [14,5,2] rather than [2,5,14].
+%\setcitesyle{nocompress}   %% With 'acmnumeric', to disable automatic
+                            %% compression of sequential references within a
+                            %% single citation;
+                            %% e.g., \cite{Baker12,Baker14,Baker16}
+                            %% rendered as [2,3,4] rather than [2-4].
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Note: Authors migrating a paper from traditional SIGPLAN
+%% proceedings format to PACMPL format must update the
+%% '\documentclass' and topmatter commands above; see
+%% 'acmart-pacmpl-template.tex'.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+                        %% http://ctan.org/pkg/booktabs
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+
+%\usepackage{cite}
+\usepackage{epic,eepic}
+\usepackage{graphics}
+\usepackage{graphicx}
+%\usepackage{xspace}
+\usepackage{fullpage}
+\usepackage{xcolor}
+\usepackage{smartref} % for referencing the line numbers
+\usepackage{amsmath}
+\usepackage[vlined,ruled,linesnumbered,noresetcount]{algorithm2e}
+%\usepackage[noend]{algpseudocode}
+
+
+% this command enables to remove a whole part of the text from the printout
+% to use it just enter \remove{ before the text to be excluded and } after the text
+\newcommand{\remove}[1]{}
+
+\newcommand{\y}[1]{{\color{blue} #1}\normalcolor}
+\newcommand{\yy}[1]{{\color{green} #1}\normalcolor}
+\newcommand{\danny}[1]{{\color{orange} #1}\normalcolor}
+\newcommand{\ohad}[1]{{\color{purple} #1}\normalcolor}
+
+\newcommand{\here}[1]{{\bf [[[ #1 ]]]}}
+
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{observation}{Observation}%[section]
+\newcommand{\qedsymb}{\hfill{\rule{2mm}{2mm}}}
+\newenvironment{proofsketch}{\begin{trivlist}
+		\item[\hspace{\labelsep}{\bf\noindent Sketch of proof: }]
+	}{\qedsymb\end{trivlist}}
+\newenvironment{proofof}[1]{\begin{trivlist}
+		\item[\hspace{\labelsep}{\bf\noindent Proof of #1: }]
+	}{\qedsymb\end{trivlist}}
+
+%\renewcommand{\topfraction}{.9}
+%\renewcommand{\bottomfraction}{.9}
+%\renewcommand{\textfraction}{.1}
+%\renewcommand{\floatpagefraction}{.9}
+
+\DontPrintSemicolon
+
+%%%%%%%%%%%%%%%Linked-List commands%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\search}{\mbox{\sc Search}}
+\newcommand{\recover}{\mbox{\sc Recover}}
+\newcommand{\insertrecover}{\mbox{\sc Insert.Recover}}
+\newcommand{\deleterecover}{\mbox{\sc Delete.Recover}}
+\newcommand{\findrecover}{\mbox{\sc Find.Recover}}
+\newcommand{\insertlst}{\mbox{\sc Insert}}
+\newcommand{\delete}{\mbox{\sc Delete}}
+\newcommand{\find}{\mbox{\sc Find}}
+\newcommand{\getdata}{\mbox{get\_data}}
+
+
+\newcommand{\init}{\mbox{$\bot$}}
+\newcommand{\NULL}{\mbox{\sc Null}}
+\newcommand{\fail}{\mbox{\sc Fail}}
+
+\newcommand{\CAS}{\mbox{\textit{CAS}}}
+\newcommand{\True}{\mbox{\textbf{true}}}
+\newcommand{\False}{\mbox{\textbf{false}}}
+\newcommand{\Int}{\mbox{int}}
+
+\newcommand{\Info}{\mbox{Info}}
+
+
+%%%%%%%%%%%%%%%Elimination-Stack commands%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\push}{\mbox{\sc Push}}
+\newcommand{\trypush}{\mbox{\sc TryPush}}
+\newcommand{\recoverPush}{\mbox{\sc Push-Roceover}}
+\newcommand{\pop}{\mbox{\sc Pop}}
+\newcommand{\trypop}{\mbox{\sc TryPop}}
+\newcommand{\recoverPop}{\mbox{\sc Pop-Recover}}
+\newcommand{\exchange}{\mbox{\sc Exchange}}
+\newcommand{\recoverExchange}{\mbox{\sc Exchange-Recover}}
+\newcommand{\visit}{\mbox{\sc Visit}}
+\newcommand{\switchPair}{\mbox{\sc SwitchPair}}
+%\newcommand{\search}{\mbox{\sc Search}}
+%\newcommand{\recover}{\mbox{\sc Recover}}
+
+
+%\newcommand{\init}{\mbox{$\bot$}}
+%\newcommand{\NULL}{\mbox{\sc Null}}
+%\newcommand{\fail}{\mbox{\sc Fail}}
+\newcommand{\emptyst}{\mbox{\sc Empty}}
+\newcommand{\waiting}{\mbox{\sc Waiting}}
+\newcommand{\busy}{\mbox{\sc Busy}}
+\newcommand{\timeout}{\mbox{\sc Timeout}}
+
+%\newcommand{\Info}{\mbox{Info}}
+\newcommand{\opInfo}{\mbox{OpInfo}}
+\newcommand{\pushInfo}{\mbox{PushInfo}}
+\newcommand{\popInfo}{\mbox{PopInfo}}
+\newcommand{\csInfo}{\mbox{CSInfo}}
+\newcommand{\exInfo}{\mbox{ExInfo}}
+
+
+%%%%%%%%%%%%%%%BST commands%%%%%%%%%%%%%%%%%%%%%
+
+\newenvironment{routine}[1][htb] {
+	\renewcommand{\algorithmcfname}{Routine}% Update algorithm name
+	\begin{algorithm}[#1]%
+	}{\end{algorithm}}
+
+\def\codeTabSpace{\hspace*{6mm}}
+\newenvironment{code}%
+{\begin{tabbing}%
+		\codeTabSpace \= \hspace*{70mm} \= \hspace*{42mm} \= \kill%
+	}%
+	{\end{tabbing}%
+}
+
+\newcounter{linenum}
+\addtoreflist{linenum}
+\newcounter{ind}
+
+\newcommand{\n}{\addtocounter{ind}{7}\hspace*{7mm}}
+\newcommand{\p}{\addtocounter{ind}{-7}\hspace*{-7mm}}
+\newcommand{\nlc}{\\\stepcounter{linenum}{\scriptsize \arabic{linenum}}\>\hspace*{\value{ind}mm}}
+\newcommand{\ul}{\\\>\hspace*{\value{ind}mm}}
+\newcommand{\bl}{\\[-1.5mm]\>\hspace*{\value{ind}mm}}
+\newcommand{\firstline}{\stepcounter{linenum}{\scriptsize \arabic{linenum}}\>}
+%\newcommand{\lref}[1]{\linenumref{#1}} % use this to refer to a line number
+\newcommand{\lref}[1]{\ref{#1}} % use this to refer to a line number
+% End of stuff for entering source code=====================================
+
+
+\newcommand{\postnotnull}{(1)}
+\newcommand{\postl}{(2)}
+\newcommand{\postpup}{(3)}
+\newcommand{\postnonempty}{(4)}
+\newcommand{\postgpnotnull}{(4a)}
+\newcommand{\postp}{(4b)}
+\newcommand{\postgpup}{(4c)}
+
+\newcommand{\tabtabcom}{\>\>\com}
+\newcommand{\tabcom}{\>\com}
+
+
+\newcommand{\Key}{Key}
+\newcommand{\R}{{\bf R}}
+%\newcommand{\NULL}{\mbox{$\bot$}}
+\newcommand{\clean}{\mbox{\sc Clean}}
+\newcommand{\mk}{\mbox{\sc Mark}}
+\newcommand{\insertflag}{\mbox{I\Flag}}
+\newcommand{\deleteflag}{\mbox{D\Flag}}
+\newcommand{\record}{\mbox{record}}
+\newcommand{\info}{\mbox{info}}
+\newcommand{\FAIL}{\mbox{\sc Fail}}
+
+\newcommand{\Flag}{Flag}
+\newcommand{\DFlag}{DInfo}
+\newcommand{\IFlag}{IInfo}
+
+\newcommand{\ie}{{\it i.e.}}
+\newcommand{\TRUE}{\mbox{\sc True}}
+\newcommand{\FALSE}{\mbox{\sc False}}
+
+\newcommand{\func}[1]{\mbox{\sc #1}}
+
+\newcommand{\CASB}{\func{CAS}}
+
+\newcommand{\comnospace}{\mbox{$\triangleright$}}
+\newcommand{\com}{\mbox{\comnospace\ }}
+
+\newcommand{\doublespace}{\addtolength{\baselineskip}{.8\baselineskip}}
+\newcommand{\ds}{\addtolength{\baselineskip}{.9\baselineskip}}
+
+%%%%%%%%%%%%%%%%%%%%% COMMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%% New state-of-the-art method for comment insertion
+%%%% by multiple distributed authors.
+%%%% These comments are present in the LATEX file and
+%%%% do not appear in print.
+%
+%% define debug: use first def for debug, second def for final version
+\newcommand{\debug}[1]{#1}
+%\newcommand{\debug}[1]{}
+%
+
+%% \newcommand{\comment}[1]{\debug{\marginpar {\sloppy\tiny #1}}}
+\newcommand{\lcomment}[1]{\debug{\comment{$\rightarrow$ #1}}}
+\newcommand{\incomment}[1]{\debug{[[[#1]]]}}
+%
+\newcommand{\fM}[1]{\comment{#1 5-14 M.}}
+\newcommand{\fD}[1]{\comment{#1 5-21 D.}}
+\newcommand{\upcom}[1]{#1}
+%
+%%%%%%%%%%%%%%%% end of comments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\newenvironment{remark}{\begin{trivlist}
+		\item[\hspace{\labelsep}{\bf\noindent Remark. }]}{\end{trivlist}}
+%
+%
+
+\newenvironment{centre}{\begin{center}}{\end{center}}
+% sets up centre as alternate name for center.
+
+
+
+% marginal comment
+%\newcommand{\comment}[1]{\marginpar{\tiny #1}}
+%\mnote{Example: only one algorithm is typed in so far.}
+\newcommand{\mnote}[1]
+{\marginpar%
+	[{\tiny\begin{minipage}[t]{\marginparwidth}\raggedright#1%
+	\end{minipage}}]%
+	{\tiny\begin{minipage}[t]{\marginparwidth}\raggedright#1%
+	\end{minipage}}%
+}
+
+
+
+%\newcommand{\here}[1]{[[[#1]]]\marginpar{***}}
+\newcommand{\ignore}[1]{}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+
+\newcommand{\lft}{\mbox{\it left}}
+
+
+%floating environment in two-column mode
+\makeatletter
+\newcommand{\removelatexerror}{\let\@latex@error\@gobble}
+\makeatother
+
+
+
+
+
+
+\begin{document}
+
+%% Title information
+\title{Recoverable Concurrent Data Structures: A Methodology Approach}         %% [Short Title] is optional;
+                                        %% when present, will be used in
+                                        %% header instead of Full Title.
+%\titlenote{with title note}             %% \titlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+%\subtitle{Subtitle}                     %% \subtitle is optional
+%\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+
+
+%% Author information
+%% Contents and number of authors suppressed with 'anonymous'.
+%% Each author should be introduced by \author, followed by
+%% \authornote (optional), \orcid (optional), \affiliation, and
+%% \email.
+%% An author may have multiple affiliations and/or emails; repeat the
+%% appropriate command.
+%% Many elements are not rendered, but should be provided for metadata
+%% extraction tools.
+
+%% Author with single affiliation.
+\author{First1 Last1}
+\authornote{with author1 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  \position{Position1}
+  \department{Department1}              %% \department is recommended
+  \institution{Institution1}            %% \institution is required
+  \streetaddress{Street1 Address1}
+  \city{City1}
+  \state{State1}
+  \postcode{Post-Code1}
+  \country{Country1}                    %% \country is recommended
+}
+\email{first1.last1@inst1.edu}          %% \email is recommended
+
+%% Author with two affiliations and emails.
+\author{First2 Last2}
+\authornote{with author2 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  \position{Position2a}
+  \department{Department2a}             %% \department is recommended
+  \institution{Institution2a}           %% \institution is required
+  \streetaddress{Street2a Address2a}
+  \city{City2a}
+  \state{State2a}
+  \postcode{Post-Code2a}
+  \country{Country2a}                   %% \country is recommended
+}
+\email{first2.last2@inst2a.com}         %% \email is recommended
+\affiliation{
+  \position{Position2b}
+  \department{Department2b}             %% \department is recommended
+  \institution{Institution2b}           %% \institution is required
+  \streetaddress{Street3b Address2b}
+  \city{City2b}
+  \state{State2b}
+  \postcode{Post-Code2b}
+  \country{Country2b}                   %% \country is recommended
+}
+\email{first2.last2@inst2b.org}         %% \email is recommended
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+\input{abstract}
+
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003456.10003457.10003521.10003525</concept_id>
+<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~General programming languages}
+\ccsdesc[300]{Social and professional topics~History of programming languages}
+%% End of generated code
+
+
+%% Keywords
+%% comma separated list
+\keywords{keyword1, keyword2, keyword3}  %% \keywords are mandatory in final camera-ready submission
+
+
+%% \maketitle
+%% Note: \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+
+\input{introduction}
+
+\input{overview-v2}
+
+%\input{Definitions&Model-PODC18-relaxed}
+\input{definitions}
+
+\input{linked-list-v2}
+\input{code-linked-list-v2}
+
+\input{BST}
+\input{elimination-stack}
+
+%% Bibliography
+\bibliography{references}
+
+
+%% Appendix
+%\clearpage
+%\appendix
+%\section{Appendix}
+\onecolumn
+\input{code-BST-v2}
+\clearpage
+\input{code-elimination-stack-v2}
+
+
+\end{document}

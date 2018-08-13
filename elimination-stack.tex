@@ -1,36 +1,8 @@
 
-\newcommand{\push}{\mbox{\sc Push}}
-\newcommand{\trypush}{\mbox{\sc TryPush}}
-\newcommand{\recoverPush}{\mbox{\sc Push-Roceover}}
-\newcommand{\pop}{\mbox{\sc Pop}}
-\newcommand{\trypop}{\mbox{\sc TryPop}}
-\newcommand{\recoverPop}{\mbox{\sc Pop-Recover}}
-\newcommand{\exchange}{\mbox{\sc Exchange}}
-\newcommand{\recoverExchange}{\mbox{\sc Exchange-Recover}}
-\newcommand{\visit}{\mbox{\sc Visit}}
-\newcommand{\switchPair}{\mbox{\sc SwitchPair}}
-%\newcommand{\search}{\mbox{\sc Search}}
-%\newcommand{\recover}{\mbox{\sc Recover}}
-
-
-%\newcommand{\init}{\mbox{$\bot$}}
-%\newcommand{\NULL}{\mbox{\sc Null}}
-%\newcommand{\fail}{\mbox{\sc Fail}}
-\newcommand{\emptyst}{\mbox{\sc Empty}}
-\newcommand{\waiting}{\mbox{\sc Waiting}}
-\newcommand{\busy}{\mbox{\sc Busy}}
-\newcommand{\timeout}{\mbox{\sc Timeout}}
-
-%\newcommand{\Info}{\mbox{Info}}
-\newcommand{\opInfo}{\mbox{OpInfo}}
-\newcommand{\pushInfo}{\mbox{PushInfo}}
-\newcommand{\popInfo}{\mbox{PopInfo}}
-\newcommand{\exInfo}{\mbox{ExInfo}}
-
-
 
 
 \section{Elimination Stack}
+\label{section:elimination-stack}
 
 For simplicity, we assume a value \init, which is different from \NULL\ and any other value the stack can store. Since \NULL\ is used as a legit return value, representing the value of \pop\ operation (when exchanging values using the elimination array), \NULL\ can not be used to represent an initialization value, different then any stack value. The same holds for a Node, since a \NULL\ node represent an empty stack, the value \init\ is used to distinguish between initialization value and empty stack.
 
@@ -39,7 +11,7 @@ For simplicity, we split the \recover\ routine into sub-routines, based on which
 The given implementation ignores the log of failures and successes of the exchange routine when recovering. That is, in case of a crash during an \exchange, a process is able to recover the \exchange\ routine, however, the log of successes and failures is not update, since it might be the process already updated it. In addition, in case of a \fail\ response, we do not know whether the time limit (timeout) was reached, or that the process simply crashed earlier in the routine without completing it. The given implementation can be expanded to also consider the log. Nonetheless, for ease of presentation we do not handle the log in case of a crash. Assuming crash events are rare, the log still gives a roughly good approximation to the number of failures and successes, thus our approach might be useful in practice.
 
 \subsection{A Lock-Free Exchanger}
-An exchanger object supports the \exchange\ procedure, which allows exactly two processes to exchange values. 
+An exchanger object supports the \exchange\ procedure, which allows exactly two processes to exchange values.
 If process A calls the \exchange\ with argument $a$, and B calls the \exchange\ of the same object with argument $b$, then A's call will return value $b$ and vice versa.
 
 On the original algorithm [cite the book?!], processes race to win the exchanger using a \CAS\ primitive. A process accessing the exchanger first reads its content, and act according to the state of it. The first process observe an \emptyst\ state, and tries to atomically writes its value and change the state to \waiting. In such case, it spins and wait for the second process to arrive. The second, observing the state is now \waiting, tries to write its value and change the state to \busy. This way, it informs the first one a successful collision took place. Once the first process notice the collision, it reads the other process value and release the exchanger by setting it back to \emptyst.
@@ -53,11 +25,11 @@ Using records instead of values, when using wisely, allows us to farther improve
 
 Notice that no exchange record with \emptyst\ state is ever created, except for the $default$ record. Therefore, reading \emptyst\ state is equivalent to the exchanger storing a pointer to $default$. A process $p$ creates a new record $myop$ when accessing the exchanger, with a unique address. As long as $p$ fails to perform a successful \CAS, and thus fails to store $myop$ in $slot$, it is allowed to try again. However, once a process performs a successful \CAS\ and stores $myop$ in $slot$, the only other \CAS\ it is allowed to do are in order to try and store $defualt$ in $slot$. Thus, $myop$ can be written exactly once to $slot$. It follows that a collision can occur between two processes exactly - once a \waiting\ record stored in $slot$, only a single \CAS\ can replace it with a \busy\ record. As the two records can not be written again to $slot$, no other process can collide with any of the records.
 
-The \recoverExchange\ routine relies on the following argument. If a process $p$ successfully wrote $op_p$ to $slot$ using the \CAS\ in line \ref{exchage-waiting-cas}, the only way to overwrite it by a different process $q$, is by a \CAS\ in line \ref{exchange-busy-cas} with a record $op_q$ such that its state is \busy, and $op_q.partner = op_p$. In addition, the only way to overwrite $op_q$ is by a \CAS\ replacing it with $default$, and this is done only after \switchPair$(op_p, op_q)$ is completed, and thus both $result$ fields are updated.
+The \recoverExchange\ routine relies on the following argument. If a process $p$ successfully wrote $op_p$ to $slot$ using the \CAS\ in line~\ref{exchage-waiting-cas}, the only way to overwrite it by a different process $q$, is by a \CAS\ in line~\ref{exchange-busy-cas} with a record $op_q$ such that its state is \busy, and $op_q.partner = op_p$. In addition, the only way to overwrite $op_q$ is by a \CAS\ replacing it with $default$, and this is done only after \switchPair$(op_p, op_q)$ is completed, and thus both $result$ fields are updated.
 
 The correctness of the \recoverExchange\ routine is based on the above argument. There are few scenarios to consider.
-If $p$ crash after a successful \CAS\ in line \ref{exchage-waiting-cas}, then $op_p$ state is \waiting. Therefore, when reading $slot$ in the \recoverExchange\ one of the following must hold. If $slot$ contains $op_p$, then no process collide with $p$, and $p$ continue to run as if the time limit has been reached. Otherwise, there was a collision. From the above argument, it must be that either $op_q$ that collide with $op_p$ is stored in $slot$, in this case $op_q.partner = op_p$, and $p$ will try to complete the collision and release $slot$, or that $op_q$ has been overwritten, and in this case the $result$ field of $op_p$ is updated. In both cases, $p$ returns $op_p.result$.
-If $p$ crash after a successful \CAS\ in line \ref{exchange-busy-cas}, then $op_p$ state is \busy. It follows from the argument that the only way to overwrite $op_p$ is only after completing the collision by \switchPair. Thus, either upon recovery $p$ reads $op_p$ from $slot$, and in this case it tries to complete the the operation, or that $op_p.result$ was already updated. In both cases, $p$ returns it.
+If $p$ crash after a successful \CAS\ in line~\ref{exchage-waiting-cas}, then $op_p$ state is \waiting. Therefore, when reading $slot$ in the \recoverExchange\ one of the following must hold. If $slot$ contains $op_p$, then no process collide with $p$, and $p$ continue to run as if the time limit has been reached. Otherwise, there was a collision. From the above argument, it must be that either $op_q$ that collide with $op_p$ is stored in $slot$, in this case $op_q.partner = op_p$, and $p$ will try to complete the collision and release $slot$, or that $op_q$ has been overwritten, and in this case the $result$ field of $op_p$ is updated. In both cases, $p$ returns $op_p.result$.
+If $p$ crash after a successful \CAS\ in line~\ref{exchange-busy-cas}, then $op_p$ state is \busy. It follows from the argument that the only way to overwrite $op_p$ is only after completing the collision by \switchPair. Thus, either upon recovery $p$ reads $op_p$ from $slot$, and in this case it tries to complete the the operation, or that $op_p.result$ was already updated. In both cases, $p$ returns it.
 If non of the above holds, then $op_p$ was not involved in any collision, because either no successful \CAS\ was done by $p$, or $p$ reached the time limit while no process show up, and was able to set $slot$ back to $defualt$. In any case, after the crash of $p$, $op_p$ will never be written again to $slot$, nor any other $op_q$ such that $op_q.partner = op_p$, as any such $op_q$ tries to perform \CAS$(op_p,op_q)$ that will fail. Also, as no process can collide with $op_p$, no \switchPair\ with $op_p$ as parameter is ever invoked, and in particular $op_p.result = \init$ for the rest of the execution. This in turn implies that upon recovery $p$ will return \fail, as required.
 
 
@@ -71,318 +43,12 @@ Consider the following scenario. Assume a process $p$ performs a \push\ operatio
 
 One way to solve this issue is by first marking a node for removal, and only then remove it. This way, if a node is no longer part of the stack it must be marked, and thus we can conclude it was in the stack, and the \push\ routine was successful. However, such an implementation, in addition for the need of to system to support a markable reference, also requires process to help each other. If a node is marked for delete, then a process trying to perform a different operation first needs to complete the deletion, before applying its own operation, otherwise the physical delete of the node may not take place, leaving the node forever in the stack. As the original algorithm avoids any marking, and simply tries to swing the $Top$ pointer, we would like to maintain this property.
 
-A field $popby$ is initialised to $\init$ when a node $nd$ is created. Once the node is successfully insert to the stack by a \push\ operation, the inserting process tries to mark it by changing $popby$ to \NULL\ using a \CAS. Before a process tries to remove the node from the stack during a \pop\ routine, it first mark it as part of the stack by doing the same thing, helping the inserting process conclude the node is in the stack. This replace the logic delete of the node, as we only need to know the node was part of the stack if it is removed. After a successful \CAS\ to remove $nd$ from the stack, another \CAS\ is used in order to try and set $popby$ to the identifier of the process who performed the \CAS. The use of \CAS\ to change $popby$ from \init to \NULL, and from \NULL\ to an identifier guarantee that only the first process to perform each of these \CAS\ will succeed. Note that before writing an identifier to $popby$ a process must try and set it to \NULL, and thus it can not store two different identifiers along in any execution. 
+A field $popby$ is initialised to $\init$ when a node $nd$ is created. Once the node is successfully insert to the stack by a \push\ operation, the inserting process tries to mark it by changing $popby$ to \NULL\ using a \CAS. Before a process tries to remove the node from the stack during a \pop\ routine, it first mark it as part of the stack by doing the same thing, helping the inserting process conclude the node is in the stack. This replace the logic delete of the node, as we only need to know the node was part of the stack if it is removed. After a successful \CAS\ to remove $nd$ from the stack, another \CAS\ is used in order to try and set $popby$ to the identifier of the process who performed the \CAS. The use of \CAS\ to change $popby$ from \init to \NULL, and from \NULL\ to an identifier guarantee that only the first process to perform each of these \CAS\ will succeed. Note that before writing an identifier to $popby$ a process must try and set it to \NULL, and thus it can not store two different identifiers along in any execution.
 
 The correctness proof follows the same guidelines as of the proof for the Linked-List. If a \push\ operation did not introduce a new node $nd$ into the stack, then no process but $p$ is aware of $nd$. Thus, upon recovery the \search\ routine will not find $nd$ in the stack, nor its $popby$ field has been changed, and the \recoverPush\ returns \fail. Otherwise, $nd$ was successfully inserted to the stack. As discessed above, the only way to delete $nd$ from the stack is by first changing its $popby$ field to \NULL. Thus, upon recovery $p$ will either find $nd$ in the stack, using the \search\ routine, or that $popby$ is different then $\init$ in case it was deleted, and in both cases it returns \True.
 For the \pop\ routine, if $p$ tries to remove a node $nd$ from the top of the stack and crash, then upon recovery it first check if $nd$ is still in the stack using the \search\ routine. If it is so, then clearly $nd$ was yet to delete, and it returns \fail. Otherwise, $nd$ was deleted, either by $p$ or by some other process. Only the first process of which to performs a \CAS, writing its identifier to $popby$ will return the value stored in $nd$, while the others return either \init\ (in the \trypop\ routine) or \fail\ (in the \recoverPop\ routine).
 
 Notice that both \recoverPush\ and \recoverPop\ are wait-free. Due to the structure of stack, no $next$ pointer of any node in the stack is ever changed. Therefore, once a process reads $Top$ at the beginning of its \recover\ routine, the chain of pointers from this $Top$ to the last node in the stack is fixed for the rest of the execution, and thus traversing it using the \search\ routine is wait-free.
 
-\begin{figure*}[b]
-	\small
-	
-	Type Node \{ \\
-		\hspace*{6mm} T $value$ \\
-		\hspace*{6mm} int $popby$ \\
-		\hspace*{6mm} Node $*next$ \\
-	\} \\
-	
-	
-	Type \pushInfo\ \{ \hspace*{20.0mm} $\triangleright$ subtype of \Info \\
-		\hspace*{6mm} Node $*pushnd$ \\
-	\} \\
-	
-	Type \popInfo\ \{ \hspace*{22.0mm} $\triangleright$ subtype of \Info \\
-		\hspace*{6mm} Node $*popnd$ \\
-	\} \\
-	
-	
-	Type \exInfo\ \{ \hspace*{24.0mm} $\triangleright$ subtype of \Info \\
-	\hspace*{6mm} \{\emptyst, \waiting, \busy\} $state$ \\
-	\hspace*{6mm} T $value, result$ \\
-	\hspace*{6mm} \exInfo\ $*partner, *slot$ \\
-	\}
-	
-	\caption{Type definition}
-\end{figure*}
 
 
-
-%%%%%%%%%%%%%%%%%%Elimination array%%%%%%%%%%%%%%%%%
-\begin{figure*}
-	\small
-	
-	\exInfo\ $default$ - global static \exInfo\ object with state = \emptyst
-	
-\begin{algorithm}[H]
-	\caption{T \exchange\ (\exInfo\ $*slot$, T $myitem$, long $timeout$)}
-	
-	long $timeBound$ := getNanos() + $timeout$ \;
-	\exInfo\ $myop$ := new \exInfo (\waiting, $myitem$, \init, \init, $slot$)\;
-	$Announce[pid]$ := $myop$ \;
-	
-	\While{\True} {
-		\uIf{getNanos() $> timeBound$} {
-			$myop.result := \timeout$ \tcp*{time limit reached}
-			\KwRet \timeout 
-		}
-		%$myop.state$ := \waiting \tcp*{set to default state}
-		$yourop := slot$ \;
-%		$\langle$youritem,state$\rangle$ := slot\;
-		\Switch{$yourop.state$} {
-			\uCase{\emptyst} {
-				$myop.state$ := \waiting \tcp*{attempt to replace $default$}
-				$myop.partner := \init$ \;
-				\If (\tcp*[f]{try to collide}) {$slot.\CAS (yourop, myop)$ \label{exchage-waiting-cas}} {
-					\While{getNanos() $< timeBound$}{
-						$yourop := slot$ \;
-						\uIf(\tcp*[f]{a collision was done}) {$yourop \neq myop$} {
-							\uIf (\tcp*[f]{$yourop$ collide with $myop$}) {$youop.parnter = myop$} {
-								\switchPair $(myop, yourop)$ \;
-								$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
-							}
-							\KwRet $myop.result$ \;
-						}
-					}
-					\tcp{time limit reached and no process collide with me}
-					\uIf (\tcp*[f]{try to release $slot$}) {$slot.\CAS(myop, default)$}{
-						$myop.result := \timeout$ \;
-						\KwRet \timeout\;
-					} \uElse (\tcp*[f]{some process show up}) {
-						$yourop := slot$ \;
-						\uIf{$yourop.partner = myop$} {
-							\switchPair $(myop, yourop)$ \tcp*{complete the collision}
-							$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
-						}
-						\KwRet $myop.result$ \;
-					}
-				}
-				break \;
-			}
-			\uCase (\tcp*[f]{some process is waiting in $slot$}){\waiting} {
-				$myop.partner := yourop$ \tcp*{attempt to replace $yourop$}
-				$myop.state := \busy$ \;
-				\uIf (\tcp*[f]{try to collide}){$slot.\CAS (yourop, myop)$ \label{exchange-busy-cas}} {
-					\switchPair $(myop, yourop)$ \tcp*{complete the collision}
-					$slot.\CAS (myop, default)$ \tcp*{release $slot$}
-					\KwRet $myop.result$ \;
-				}
-				break \;
-			}
-			\uCase (\tcp*[f]{a collision in progress}) {\busy} {
-				\switchPair $(yourop, yourop.parnter)$ \tcp*{help to complete the collision}
-				$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
-				break \;
-			}
-		}	
-	} 
-\end{algorithm}
-
-\end{figure*}
-
-
-
-
-\begin{figure*}
-	\small
-	
-\begin{algorithm}[H]
-	\caption{void \switchPair (\exInfo\ $first$, \exInfo\ $second$)}
-	
-	\tcc{exchange the valus of the two operations}
-	$first.result := second.value$ \;
-	$second.result := first.value$ \;
-	
-\end{algorithm}
-
-\begin{algorithm}[H]
-	\caption{T \visit\ (T $value$, int $range$, long $duration$)}
-	
-	\tcc{invoke \exchange\ on a random entery in the collision array}
-	int $cell$ := randomNumber$(range)$ \;
-	\KwRet \exchange$(exchanger[cell], value, duration)$
-\end{algorithm}
-
-\begin{algorithm}[H]
-	\caption{T \recoverExchange\ $()$}
-	
-	\exInfo\ $*myop := Announce[pid]$ \tcp*{read your last operation record}
-	\exInfo\ $*slot := myop.slot$ \tcp*{and the slot on which it acts}
-	
-	\uIf {$myop.state = \waiting$} {
-		\tcc{crash while trying to exchange $defualt$, or waiting for a collision}
-		$yourop := slot$ \;
-		\uIf (\tcp*[f]{still waiting for a collision}) {$yourop = myop$} {
-			\uIf (\tcp*[f]{try to release $slot$}){$slot.\CAS(myop, default)$}{\KwRet \fail}
-			\uElse (\tcp*[f]{some process show up}) {
-				$yourop := slot$ \;
-				\uIf{$yourop.partner = myop$} {
-					\switchPair$(myop, yourop)$ \tcp*{complete the collision}
-					$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
-				}
-				\KwRet $myop.result$ \;
-				%\textbf{go to} \ref{ExRecover-successful} \;
-			}	
-		}
-		\uElseIf (\tcp*[f]{$yourop$ collide with $myop$}) {$yourop.partner = myop$} {
-			\switchPair$(myop, yourop)$ \tcp*{complete the collision}
-			$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
-			\KwRet $myop.result$ \;
-		}
-		%\uIf {$myop.result \neq \init$} {\KwRet $myop.result$ \;}
-		%\KwRet \fail	
-	}
-	\uIf {$myop.state = \busy$} {
-		\tcc{crash while trying to collide with $myop.partner$}
-		$yourop := slot$ \;
-		\uIf (\tcp*[f]{collide was successful and in progress}) {$yourop = myop$ \label{exchange-rec-busy-if}} {
-			\switchPair$(myop, myop.partner)$ \tcp*{complete the collision}
-			$slot.\CAS (myop, default)$ \tcp*{release $slot$}
-			\KwRet $myop.result$ \;
-			%\textbf{go to} \ref{ExRecover-successful} \;
-		}	
-	}
-	\uIf {$myop.result \neq \init$ \label{exchange-rec-result-if}} {
-		\KwRet $myop.result$ \tcp*{collide was successfuly completed}
-	}
-	\uElse {\KwRet \fail}
-
-	\remove{
-	returnCode: \tcp*{successful exchange} \label{ExRecover-successful}
-	\uIf {exactly one of \{myop.value, myop.result\} is \NULL}
-		{KwRet myop.result \tcp*[f]{Exchange of \push and \pop}}
-	\uElse {\KwRet \fail \tcp*[f]{Exchange of two operations of the same type}}
-	}
-\end{algorithm}
-
-\caption{Elimination Array routines}
-\end{figure*}
-
-
-
-%%%%%%%%%%%%%%%%%%PUSH%%%%%%%%%%%%%%%%%%%%%
-\begin{figure*}
-	
-\begin{algorithm}[H]
-	\caption{boolean \trypush\ (Node $*nd$)}
-	
-	\tcc{attempt to perform \push\ to the central stack}
-	Node $*oldtop := Top$\;
-	$nd.next := oldtop$\;
-	\uIf (\tcp*[f]{try to declare $nd$ as the new $Head$}) {$Top.\CAS(oldtop, nd)$} {
-		$nd.popby.\CAS(\init, \NULL)$ \tcp*{announce $nd$ is in the stack}
-		\KwRet \True
-	} 
-	\KwRet \False
-\end{algorithm}
-
-\begin{algorithm}[H]
-	\caption{boolean \push\ (T $myitem$)}
-	
-	Node $*nd$ = new Node $(myitem)$ \;
-	$nd.popby := \init$ \;
-	
-	\pushInfo\ $data$ := new \pushInfo\ ($nd$) \;
-	\While{\True}{
-		$Announce[pid] := data$ \tcp*{declare - trying to push node $nd$}
-		\uIf (\tcp*[f]{if central stack \push\ is successful}){\trypush$(nd)$} {\KwRet \True}
-		$range$ := CalculateRange() \tcp*{get parameters for collision array}
-		$duration$ := CalculateDuration()\;
-		$othervalue$ := \visit$(myitem, range, duration)$ \tcp*{try to collide}
-		\uIf (\tcp*[f]{successfuly collide with \pop\ operation}) {$othervalue = \NULL$}{
-			RecordSuccess ()\;
-			\KwRet \True\;
-		} \uElseIf (\tcp*[f]{failed to collide}) {$othervalue = \timeout$} {RecordFailure ()}
-	}
-\end{algorithm}
-
-
-\begin{algorithm}[H]
-	\caption{boolean \recoverPush\ $()$}
-	
-	Node $*nd := Announce[pid].pushnd$ \;
-	\uIf (\tcp*[f]{$nd$ was announced to be in the stack}) {$nd.popby \neq \init$} {\KwRet \True}
-	\uIf (\tcp*[f]{$nd$ in the stack, or was announced as such}) {$\search(nd) \mid \mid  nd.popby \neq \init$} {
-		$nd.popby.\CAS(\init, \NULL)$ \tcp*{announce $nd$ is in the stack}
-		\KwRet \True \;
-	}
-	\KwRet \fail \;
-\end{algorithm}
-
-\begin{algorithm}[H]
-	\caption{boolean \search\ (Node $*nd$)}
-	
-	\tcc{search for node $nd$ in the stack}
-	
-	Node $*iter := Top$ \;
-	\While{$iter \neq \init$}{
-		\uIf {$iter = nd$} {\KwRet \True}
-		$iter := iter.next$	
-	}
-	\KwRet \False
-\end{algorithm}
-
-\caption{\push\ routine}
-\end{figure*}
-
-
-
-
-%%%%%%%%%%%%%%%%%%POP%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure*}
-
-\begin{algorithm}[H]
-	\caption{T \trypop $()$}
-	
-	Node $*oldtop := Top$ \;
-	Node $*newtop$ \;
-	$Announce[pid].popnd := oldnop$ \tcp*{declare - trying to pop node $oldtop$}
-	\uIf (\tcp*[f]{stack is empty}) {$oldtop = \init$} {\KwRet \emptyst}
-	$newtop := oldtop.next$ \;
-	$oldtop.popby.\CAS(\init,\NULL)$ \tcp*{announce $oldtop$ is in the stack}
-	\uIf (\tcp*[f]{try to pop $oldtop$ by changing $Top$ to $newtop$}) {$Top.\CAS(oldtop, newtop)$}{
-		\uIf (\tcp*[f]{try to announce yourself as winner}) {$newtop.popby.\CAS(\NULL, pid)$} {\KwRet $oldtop.value$}
-	}
-	\uElse {\KwRet \init}
-\end{algorithm}
-
-\begin{algorithm}[H]
-	\caption{T \pop\ $()$}
-	
-	Node $*result$ \;
-	\popInfo\ $data$ := new \popInfo\ ($Top$) \;
-	
-	\While{\True}{
-		$Announce[pid] := data$ \tcp*{declare - trying to perform \pop}
-		$result$ := \trypop $()$ \tcp*{attempt to pop from central stack}
-		%\uIf {$result = \emptyst$} {\KwRet \emptyst}
-		\uIf (\tcp*[f]{if central stach \pop\ is successful}) {$result \neq \init$} {\KwRet $result$}
-		$range$ := CalculateRange() \tcp*{get parameters for collision array}
-		$duration$ := CalculateDuration()\;
-		$othervalue$ := \visit $(\NULL, range, duration)$ \tcp*{try to collide}
-		\uIf (\tcp*[f]{failed to collide}) {$othervalue = \timeout$}{RecordFailure ()}
-		\uElseIf (\tcp*[f]{successfuly collide with \push\ operation}) {$othervalue \neq \NULL$} {
-			RecordSuccess ()\;
-			\KwRet $othervalue$
-		}
-	}
-	
-\end{algorithm}
-
-\begin{algorithm}[H]
-	\caption{T \recoverPop $()$}
-	
-	Node $*nd := Announce[pid].popnd$ \tcp*{crash while trying to pop node $nd$}
-	\uIf (\tcp*[f]{pop from an empty stack}) {$nd = \init$} {\KwRet \emptyst}
-	%\uIf {$nd.popby = pid$} {\KwRet $nd.value$}
-	\uIf (\tcp*[f]{$nd$ was not removed from the stack}) {$\search(nd)$} {\KwRet \fail}
-	$nd.popby.\CAS(\NULL, pid)$ \tcp*{$nd$ was removed. Try to complete the operation}
-	\uIf (\tcp*[f]{you are the process to win the pop of $nd$}) {$nd.popby = pid$} {\KwRet $nd.value$}
-	\KwRet \fail
-\end{algorithm}
-
-\caption{\pop\ routine}
-\end{figure*}
-
-
- 

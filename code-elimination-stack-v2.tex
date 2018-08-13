@@ -1,0 +1,403 @@
+
+
+\begin{figure*}[]
+	\small
+\begin{flushleft}
+	Type Node \{ \\
+	\hspace*{6mm} T $value$ \\
+	\hspace*{6mm} int $popby$ \\
+	\hspace*{6mm} Node $*next$ \\
+	\} \\
+	
+	\remove{
+	Type \pushInfo\ \{ \hspace*{20.0mm} $\triangleright$ subtype of \Info \\
+	\hspace*{6mm} Node $*pushnd$ \\
+	\} \\
+	
+	Type \popInfo\ \{ \hspace*{22.0mm} $\triangleright$ subtype of \Info \\
+	\hspace*{6mm} Node $*popnd$ \\
+	\} \\
+	}
+
+	Type \csInfo\ \{ \hspace*{22.0mm} $\triangleright$ subtype of \Info \\
+	\hspace*{6mm} Node $*nd$ \\
+	\hspace*{6mm} T $result$ \\
+	\} \\
+	
+	Type \exInfo\ \{ \hspace*{24.0mm} $\triangleright$ subtype of \Info \\
+	\hspace*{6mm} \{\emptyst, \waiting, \busy\} $state$ \\
+	\hspace*{6mm} T $value, result$ \\
+	\hspace*{6mm} \exInfo\ $*partner, *slot$ \\
+	\}
+	
+\end{flushleft}	
+	\caption{Elimination-Stack type definition}
+\end{figure*}
+
+
+
+%%%%%%%%%%%%%%%%%%Elimination array%%%%%%%%%%%%%%%%%
+\begin{figure*}[!t]
+	\removelatexerror
+	
+	\begin{algorithm}[H]
+		
+	\small
+	\begin{flushleft}	
+	\end{flushleft}
+	
+	\exInfo\ $default$ - global static \exInfo\ object with state = \emptyst
+	
+	\begin{procedure}[H]
+		\caption{() T \exchange\ (\exInfo\ $*slot$, T $myitem$, long $timeout$)}
+		
+		long $timeBound$ := getNanos() + $timeout$ \;
+		\exInfo\ $myop$ := \textbf{new} \exInfo (\waiting, $myitem$, \init, \init, $slot$)\;
+		$RD[pid]$ := $myop$ \tcp*{update Info structure}
+		
+		\While{\True} {
+			\uIf{getNanos() $> timeBound$} {
+				%$myop.result := \timeout$ \tcp*{time limit reached}
+				\KwRet \timeout 
+			}
+			%$myop.state$ := \waiting \tcp*{set to default state}
+			$yourop := slot$ \;
+			%		$\langle$youritem,state$\rangle$ := slot\;
+			\Switch{$yourop.state$} {
+				\uCase{\emptyst} {
+					$myop.state$ := \waiting \tcp*{attempt to replace $default$}
+					$myop.partner := \init$ \;
+					\If (\tcp*[f]{try to collide}) {$slot.\CAS (yourop, myop)$ \label{exchage-waiting-cas}} {
+						\While{getNanos() $< timeBound$}{
+							$yourop := slot$ \;
+							\uIf(\tcp*[f]{a collision was done}) {$yourop \neq myop$} {
+								\uIf (\tcp*[f]{$yourop$ collide with $myop$}) {$youop.parnter = myop$} {
+									\switchPair $(myop, yourop)$ \;
+									$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+								}
+								\KwRet $myop.result$ \;
+							}
+						}
+						\tcp{time limit reached and no process collide with me}
+						\uIf (\tcp*[f]{try to release $slot$}) {$slot.\CAS(myop, default)$}{
+							%$myop.result := \timeout$ \;
+							\KwRet \timeout\;
+						} \uElse (\tcp*[f]{some process show up}) {
+							$yourop := slot$ \;
+							\uIf{$yourop.partner = myop$} {
+								\switchPair $(myop, yourop)$ \tcp*{complete the collision}
+								$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+							}
+							\KwRet $myop.result$ \;
+						}
+					}
+					break \;
+				}
+				\uCase (\tcp*[f]{some process is waiting in $slot$}){\waiting} {
+					$myop.partner := yourop$ \tcp*{attempt to replace $yourop$}
+					$myop.state := \busy$ \;
+					\uIf (\tcp*[f]{try to collide}){$slot.\CAS (yourop, myop)$ \label{exchange-busy-cas}} {
+						\switchPair $(myop, yourop)$ \tcp*{complete the collision}
+						$slot.\CAS (myop, default)$ \tcp*{release $slot$}
+						\KwRet $myop.result$ \;
+					}
+					break \;
+				}
+				\uCase (\tcp*[f]{a collision in progress}) {\busy} {
+					\switchPair $(yourop, yourop.parnter)$ \tcp*{help to complete the collision}
+					$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+					break \;
+				}
+			}	
+		} 
+	\end{procedure}
+
+	\caption{Recoverable Elimination-Stack: \exchange\ routine.}
+	\label{alg:eliminition-stack-exchange}
+	\end{algorithm}
+
+\end{figure*}
+
+
+
+
+\begin{figure*}[!t]
+	\removelatexerror
+	
+	\begin{algorithm}[H]
+		
+	\small
+	\begin{flushleft}	
+	\end{flushleft}
+	
+	\begin{procedure}[H]
+		\caption{() void \switchPair (\exInfo\ $first$, \exInfo\ $second$)}
+		
+		\tcc{exchange the valus of the two operations}
+		$first.result := second.value$ \;
+		$second.result := first.value$ \;
+		
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\caption{() T \visit\ (T $value$, int $range$, long $duration$)}
+		
+		\tcc{invoke \exchange\ on a random entery in the collision array}
+		int $cell$ := randomNumber$(range)$ \;
+		\KwRet \exchange$(exchanger[cell], value, duration)$
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\caption{() T \recoverExchange\ (\exInfo\ $*myop$)}
+		
+		%\exInfo\ $*myop := RD[pid]$ \tcp*{read your last operation record}
+		\exInfo\ $*slot := myop.slot$ \tcp*{slot to recover}
+		
+		\uIf (\tcp*[f]{If operation response was persisted}) {$myop.result \neq \init$}
+		{\KwRet $myop.result$}
+		
+		\uIf {$myop.state = \waiting$} {
+			\tcc{crash while trying to exchange $defualt$, or waiting for a collision}
+			$yourop := slot$ \;
+			\uIf (\tcp*[f]{still waiting for a collision}) {$yourop = myop$} {
+				\uIf (\tcp*[f]{try to release $slot$}){$\neg slot.\CAS(myop, default)$} {
+					$yourop := slot$ \tcp*{some process show up; complete collision}
+					\uIf{$yourop.partner = myop$} {
+						\switchPair$(myop, yourop)$ \tcp*{complete the collision}
+						$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+					}
+					%\KwRet $myop.result$ \;
+					%\textbf{go to} \ref{ExRecover-successful} \;
+				}	
+			}
+			\uElseIf (\tcp*[f]{$yourop$ collide with $myop$}) {$yourop.partner = myop$} {
+				\switchPair$(myop, yourop)$ \tcp*{complete the collision}
+				$slot.\CAS (yourop, default)$ \tcp*{release $slot$}
+				%\KwRet $myop.result$ \;
+			}
+			%\uIf {$myop.result \neq \init$} {\KwRet $myop.result$ \;}
+			%\KwRet \fail	
+		}
+		\uIf {$myop.state = \busy$} {
+			\tcc{crash while trying to collide with $myop.partner$}
+			$yourop := slot$ \;
+			\uIf (\tcp*[f]{collide was successful and in progress}) {$yourop = myop$ \label{exchange-rec-busy-if}} {
+				\switchPair$(myop, myop.partner)$ \tcp*{complete the collision}
+				$slot.\CAS (myop, default)$ \tcp*{release $slot$}
+				%\KwRet $myop.result$ \;
+				%\textbf{go to} \ref{ExRecover-successful} \;
+			}	
+		}
+		\KwRet $myop.result$
+		
+		\remove{
+			returnCode: \tcp*{successful exchange} \label{ExRecover-successful}
+			\uIf {exactly one of \{myop.value, myop.result\} is \NULL}
+			{KwRet myop.result \tcp*[f]{Exchange of \push and \pop}}
+			\uElse {\KwRet \fail \tcp*[f]{Exchange of two operations of the same type}}
+		}
+	\end{procedure}
+	
+	\caption{Recoverable Elimination-Stack: Elimination Array routines.}
+	\label{alg:eliminition-stack-exchanger}
+	\end{algorithm}
+
+\end{figure*}
+
+
+
+%%%%%%%%%%%%%%%%%%PUSH%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[!t]
+	\removelatexerror
+	
+	\begin{algorithm}[H]
+		
+	\small
+	\begin{flushleft}	
+	\end{flushleft}
+	
+	\begin{procedure}[H]
+		\caption{() boolean \trypush\ (Node $*nd$)}
+		
+		\tcc{attempt to perform \push\ to the central stack}
+		Node $*oldtop := Top$\;
+		$nd.next := oldtop$\;
+		$RD[pid] := data$ \tcp*{update Info structure for this operation}
+		\uIf (\tcp*[f]{try to declare $nd$ as the new $Head$}) {$Top.\CAS(oldtop, nd)$} {
+			$nd.popby.\CAS(\init, \NULL)$ \tcp*{announce $nd$ is in the stack}
+			$data.result$ := \True \tcp*{Persist response}
+			\KwRet \True
+		} 
+		\KwRet \False
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\caption{() boolean \push\ (T $myitem$)}
+		
+		Node $*nd$ = \textbf{new} Node $(myitem, \init, \init)$ \label{push-entry} \;
+		%$nd.popby := \init$ \;
+		\csInfo\ $*data$ := \textbf{new} \csInfo\ ($nd, \init$) \;
+		%\pushInfo\ $data$ := new \pushInfo\ ($nd$) \;
+		$RD[pid]$ := $data$ \tcp*{Install Info structure for this operation}
+		$\text{CP}_p$ := curPC() \tcp*{Set a check-point indicating \Info\ structure was installed} \label{push-set-checkpoint}
+		\While{\True}{
+			%$RD[pid] := data$ \tcp*{declare - trying to push node $nd$}
+			\uIf (\tcp*[f]{if central stack \push\ is successful}){\trypush$(nd)$} {\KwRet \True}
+			$range$ := CalculateRange() \tcp*{get parameters for collision array}
+			$duration$ := CalculateDuration()\;
+			$othervalue$ := \visit$(myitem, range, duration)$ \tcp*{try to collide}
+			\uIf (\tcp*[f]{successfuly collide with \pop\ operation}) {$othervalue = \NULL$}{
+				RecordSuccess ()\;
+				\KwRet \True\;
+			} \uElseIf (\tcp*[f]{failed to collide}) {$othervalue = \timeout$} {RecordFailure ()}
+		}
+	\end{procedure}
+	
+	
+	\begin{procedure}[H]
+		\caption{() boolean \recoverPush\ $()$}
+		
+		\info\ $data := RD[pid]$ \tcp*{read recovery data}
+		T $result$ := \init \;
+		
+		\uIf {$\text{CP}_p$ $<$ \ref{push-set-checkpoint} \label{push-recover-read-CP}}
+		{Proceed from line \ref{push-entry} \tcp*{Failed before installing info structure, re-execute}}
+		
+		\uIf (\tcp*[f]{crash while accessing collision array}) {$data$ of type \exInfo} {
+			\uIf (\tcp*[f]{successful collision}) {\recoverExchange(data) = \NULL}
+				{$result := \True$}
+		}
+		\uElse (\tcp*[f]{crash while accessing central stack}) {
+			Node $*nd$ := $RD[pid].nd$ \;
+			\uIf (\tcp*[f]{If operation response was persisted}) {$RD[pid].result \neq \init$}
+			{$result := RD[pid].result$}
+			\uElseIf (\tcp*[f]{$nd$ in the stack, or was announced as such}) {$\search(nd) \mid \mid  nd.popby \neq \init$} {
+				$nd.popby.\CAS(\init, \NULL)$ \tcp*{announce $nd$ is in the stack}
+				$result := \True$
+			}
+		}
+		\uIf (\tcp*[f]{operation was completed}) {$result \neq \init$} {
+			$RD[pid].result := result$ \tcc*{persist response and return}
+			\KwRet $result$
+		}
+		\uElse (\tcp*[f]{operation was not completed})
+		{Proceed from line \ref{push-entry} \tcp*[f]{re-execute}}
+
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\caption{() boolean \search\ (Node $*nd$)}
+		
+		\tcc{search for node $nd$ in the stack}
+		
+		Node $*iter := Top$ \;
+		\While{$iter \neq \init$}{
+			\uIf {$iter = nd$} {\KwRet \True}
+			$iter := iter.next$	
+		}
+		\KwRet \False
+	\end{procedure}
+	
+	\caption{Recoverable Elimination-Stack: \push\ routines.}
+	\label{alg:eliminition-stack-push}
+	\end{algorithm}
+
+\end{figure*}
+
+
+
+
+%%%%%%%%%%%%%%%%%%POP%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[!t]
+	\removelatexerror
+	
+	\begin{algorithm}[H]
+		
+	\small
+	\begin{flushleft}	
+	\end{flushleft}
+		
+	\begin{procedure}[H]
+		\caption{() T \trypop $()$}
+		
+		Node $*oldtop := Top$ \;
+		Node $*newtop$ \;
+		$data.nd$ := $oldtop$\;
+		$RD[pid]$ := $data$ \tcp*{update Info structure for this operation}
+		\uIf (\tcp*[f]{stack is empty}) {$oldtop = \init$} {
+			$data.result$ := \emptyst \tcp*{Persist response}
+			\KwRet \emptyst}
+		$newtop := oldtop.next$ \;
+		$oldtop.popby.\CAS(\init,\NULL)$ \tcp*{announce $oldtop$ is in the stack}
+		\uIf (\tcp*[f]{try to pop $oldtop$ by changing $Top$ to $newtop$}) {$Top.\CAS(oldtop, newtop)$}{
+			\uIf (\tcp*[f]{try to announce yourself as winner}) {$newtop.popby.\CAS(\NULL, pid)$} {
+				$data.result$ := $oldtop.value$ \tcp*{Persist response}
+				\KwRet $oldtop.value$}
+		}
+		\uElse {\KwRet \init}
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\caption{() T \pop\ $()$}
+		
+		Node $*result$ \label{pop-entry} \;
+		\csInfo\ $*data$ := \textbf{new} \csInfo\ ($Top, \init$) \;
+		$RD[pid]$ := $data$ \tcp*{Install Info structure for this operation}
+		$\text{CP}_p$ := curPC() \tcp*{Set a check-point indicating \Info\ structure was installed} \label{pop-set-checkpoint}
+%		\popInfo\ $data$ := \textbf{new} \popInfo\ ($Top$) \;
+		
+		\While{\True}{
+		%	$RD[pid] := data$ \tcp*{declare - trying to perform \pop}
+			$result$ := \trypop $()$ \tcp*{attempt to pop from central stack}
+			%\uIf {$result = \emptyst$} {\KwRet \emptyst}
+			\uIf (\tcp*[f]{if central stach \pop\ is successful}) {$result \neq \init$} {\KwRet $result$}
+			$range$ := CalculateRange() \tcp*{get parameters for collision array}
+			$duration$ := CalculateDuration()\;
+			$othervalue$ := \visit $(\NULL, range, duration)$ \tcp*{try to collide}
+			\uIf (\tcp*[f]{failed to collide}) {$othervalue = \timeout$}{RecordFailure ()}
+			\uElseIf (\tcp*[f]{successfuly collide with \push\ operation}) {$othervalue \neq \NULL$} {
+				RecordSuccess ()\;
+				\KwRet $othervalue$
+			}
+		}
+		
+	\end{procedure}
+	
+	\begin{procedure}[H]
+		\caption{() T \recoverPop $()$}
+		
+		\info\ $data := RD[pid]$ \tcp*{read recovery data}
+		T $result$ := \init \;
+		
+		\uIf {$\text{CP}_p$ $<$ \ref{pop-set-checkpoint} \label{pop-recover-read-CP}}
+		{Proceed from line \ref{pop-entry} \tcp*{Failed before installing info structure, re-execute}}
+		
+		\uIf (\tcp*[f]{crash while accessing collision array}) {$data$ of type \exInfo} {
+			$temp$ := \recoverExchange(data) \;
+			\uIf (\tcp*[f]{successful collision}) {$temp \neq \NULL\ \&\&\ temp \neq \init$}
+				{$result := temp$}
+		}
+		\uElse (\tcp*[f]{crash while accessing central stack}) {
+			Node $*nd$ := $RD[pid].nd$ \;
+			\uIf (\tcp*[f]{If operation response was persisted}) {$RD[pid].result \neq \init$}
+				{$result := RD[pid].result$}
+			\uElseIf (\tcp*[f]{pop from an empty stack}) {$nd = \init$} {$result$ := \emptyst}
+			%\uIf {$nd.popby = pid$} {\KwRet $nd.value$}
+			\uElseIf (\tcp*[f]{$nd$ was removed from the stack}) {$\neg \search(nd)$} {
+				$nd.popby.\CAS(\NULL, pid)$ \tcp*{try to announce yourself as the winner}
+				\uIf (\tcp*[f]{if you are the winner}) {$nd.popby = pid$} {$result$ := $nd.value$}
+			}
+		}
+		\uIf (\tcp*[f]{operation was completed}) {$result \neq \init$} {
+			$RD[pid].result := result$ \tcc*{persist response and return}
+			\KwRet $result$
+		}
+		\uElse (\tcp*[f]{operation was not completed})
+			{Proceed from line \ref{pop-entry} \tcp*[f]{re-execute}}
+	\end{procedure}
+
+	\caption{Recoverable Elimination-Stack: \pop\ routines.}
+	\label{alg:eliminition-stack-pop}
+	\end{algorithm}
+	
+\end{figure*}

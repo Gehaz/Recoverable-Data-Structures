@@ -1,0 +1,21 @@
+\section{Discussion}
+
+Our approach relies on key properties of the the implementation,
+regardless of the memory primitives it applies.
+In particular, our approach avoids the ABA problem by relying on the
+fact that each operation attempt uses a unique info record,
+and therefore, a CAS can be replaced with LL/SC (with minor modifications).
+In such case, the recoverable version is still correct,
+as the new implementation delivers the same guarantees as the original.
+
+The simple but efficient approach we demonstrate for BST can be used
+for other implementation in which a process first declare its operation
+by marking a node and adding an info record.
+Moreover, in some cases it is very natural to transform the implementation
+to such a form, that is, to perform operations by writing info records
+that contains the entire data required for the operation
+(as demonstrate for the elimination stack).
+This way, we can both be able to recover,
+as well as be able to design an helping mechanism.
+Note that we require each attempt to create a new info record,
+to avoid the ABA problem.

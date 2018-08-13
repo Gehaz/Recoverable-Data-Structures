@@ -1,0 +1,121 @@
+
+
+\begin{figure}[!t]
+	\removelatexerror
+
+\begin{algorithm}[H]
+
+	\footnotesize
+
+	\begin{flushleft}	
+	\textbf{Type} Node \{MarkableNodeRef $*next$, int \emph{key}\}\\
+	\textbf{Shared variables:} Node $*head$ \\	
+	\end{flushleft}	
+
+%%%%%%%%%%%%%%%%%%%%%% Linked List - Search %%%%%%%%%%%%%%%%%%%%%%%%
+
+	\begin{procedure}[H]
+  		\caption{() $\langle$Node $*$, Node $*$$\rangle$ \search\ (T $key$)}
+
+		Node $*pred, *curr, *succ$ \;
+		retry: \While{\True} { \label{find-outer-loop}
+			$pred := head$ \;
+			$curr := pred.next$ \label{search-read-cur}\;	
+			\While{\True}{
+				$succ := curr.next$ \;
+				\tcp{if $curr$ was logically deleted}
+				\uIf {$marked(succ)$} {
+					\uIf (\tcp*[f]{Help physical delete}) {$pred.next.\CAS\ $ ($<0,curr>$,$<0,succ>$) = \False}{
+					\textbf{go to} retry \tcp*{Help failed}
+					}
+					$curr := succ$ \tcp*{Help succeeded}
+				} \uElse {
+					\uIf (\tcp*[f]{First unmarked node with key $\geq key$}) {$curr.key \geq key$} {
+					\KwRet $\langle pred,curr \rangle$
+					}
+					$pred := curr$ \tcp*{Advance $pred$}
+					$curr := succ$ \tcp*{Advance $curr$}
+				}
+			}
+		}
+	\end{procedure}
+
+%%%%%%%%%%%%%%%%%%%%%% Linked List - Find %%%%%%%%%%%%%%%%%%%%%%%%
+
+	\begin{procedure}[H]
+  		\caption{() boolean \find\ (T $key$)}
+
+		Node $*curr := head$ \label{linked-list-find-start} \;
+		\tcc{Search for first node with key $\geq$ $key$}
+		\While {$curr.key < key$}{
+			$curr = curr.next$ \label{find-read-cur}\;	
+		}
+		\KwRet ($curr.key = key\ \&\&\ \neg marked(curr.next)$) \label{linked-list-find-end}
+	\end{procedure}
+
+\caption{Linked list: \search\ and \find} \label{alg:linked-list}
+\end{algorithm}
+
+\end{figure}
+
+
+
+
+\begin{figure}[!t]
+\removelatexerror
+	
+\begin{algorithm}[H]
+		
+	\footnotesize
+	\begin{flushleft}	
+	\end{flushleft}
+
+%%%%%%%%%%%%%%%%%%%%%% Linked List - Insert %%%%%%%%%%%%%%%%%%%%%%%%
+
+	\begin{procedure}[H]
+  		\caption{() boolean \insertlst\ (T $key$)}
+  		%\textbf{Private variables:}
+  		Node $*pred, *curr$ \label{ll:insert-entry} \;
+		Node $newnd$ := \textbf{new} Node ($key$) \;
+		\While{\True}{ \label{ll:insert-while}
+			\tcp{Search the right location to insert}
+			$\langle pred, curr \rangle := \search(key)$ \label{ll:insert-search} \;
+			\uIf (\tcp*[f]{$key$ in the list}) {$curr.key = key$ \label{ll:insert-if-in-list}} {
+				\KwRet \False \label{ll:insert-return-false}
+			} \uElse {
+				$newnd.next$ := $<0,curr>$ \;
+				\tcp{Try to add $newnd$}
+				\uIf {$pred.next.\CAS$ ($<0,curr>$, $<0,newnd>$)} {\KwRet \True} \label{ll:insert-CAS}
+			}		
+		}
+	\end{procedure}
+
+
+%%%%%%%%%%%%%%%%%%%%%% Linked List - Delete %%%%%%%%%%%%%%%%%%%%%%%%
+
+	\begin{procedure}[H]
+		\caption{() boolean \delete\ (T $key$)}
+
+		Node $*pred, *curr, *succ$ $\quad$  boolean $res := \False$ \label{ll:delete-entry} \;
+		$\langle pred, curr \rangle := \search (key)$ \tcp*{Search for $key$} \label{ll:delete-search}
+		\uIf {$curr.key \neq key$ \label{ll:delete-if-in-list}} {
+			\KwRet \False \tcp*[f]{$key$ not in the list} \label{ll:delete-return-false}
+		}
+		\uElse {
+			\While (\tcp*[f]{Repeatedly attempt logical delete}) {$\lnot marked(curr.next)$  \label{ll:delete-while}}{
+				$succ := curr.next$ \label{ll:delete-set-succ-to-next}\;
+				$res := curr.next.\CAS$ ($<0,succ>$, $<1,succ>$) \label{ll:delete-logical-delete}\;
+			}
+			\tcp{Physical deletion attempt}
+			$succ := curr.next$ \label{ll:delete-read-succ-after-CAS}\;
+			$pred.next.\CAS$ ($<0,curr>$, $<0,succ>$) \label{ll:delete-physical-delete}
+			\KwRet $res$ \label{ll:delete-return-res}
+			}
+
+	\end{procedure}
+
+\caption{Linked list: \insertlst\ and \delete} \label{alg:linked-list2}
+\end{algorithm}
+
+\end{figure}
+

@@ -1,0 +1,368 @@
+\section{Linked-List Based Set}
+\label{section-linked-list}
+
+In this section, we present a recoverable version of the linked-list set algorithm of Harris \cite{DBLP:conf/wdag/Harris01}.\footnote{Some implementation details 
+follow the algorithm's presentation in~\cite{DBLP:books/daglib/0020056}.}
+ 
+The linked-list set supports the \find, \insertlst\ and \delete\ operations. 
+The algorithm maintains a linked list of nodes sorted in increasing order of keys. 
+\y{The list} always \y{contains} a \emph{head} and \emph{tail} sentinel nodes, 
+containing keys $-\infty, \infty$, respectively.
+The pseudo-code for the algorithm is presented 
+in Algorithms \ref{alg:linked-list-part1}-\ref{alg:linked-list-part2}.
+Pseudo-code in blue font was added for recoverability. 
+the \emph{next} field of \y{each node 
+%is a MarkableNodeRef type, consisting of a reference 
+consists of a reference} to the next node and a \emph{marked} bit that is set when the node is logically deleted. 
+Both components can be manipulated atomically, either together or individually, 
+using a singe-word \CAS\ operation\footnote{In the Java implementation of the algorithm 
+presented in \cite{DBLP:books/daglib/0020056}, \emph{next} fields are represented 
+by AtomicMarkableReference \y{objects. In the implementation of an AtomicMarkableReference object}
+the marked bit occupies the least significant bit of the reference.}. 
+The \emph{marked} predicate can be applied 
+to \y{the next field of a node to determine whether or not the node is marked}.
+
+%\subsection{Detailed Description of the Algorithm}
+
+We now describe an extension of the Harris algorithm 
+that allows a process recovering from a crash-failure 
+to determine whether \ohad{its failed operation completed, and return the correct response.}
+%\y{the realization \CAS\ of its failed operation occured before the failure and return the correct response.}
+\y{The recovery function of the \find\ operation simply re-invokes \find\ 
+(hence its pseudo-code is not shown).}
+To support the recovery of \insertlst\ and \delete\ operations, 
+a (persistent) shared-memory array \emph{RD} was added, 
+where \emph{RD}[\emph{p}] stores recovery data for process $p$. 
+More specifically, variable \emph{RD}[\emph{p}] contains a pointer 
+to an \Info\ structure storing recovery data for the process' current recoverable operation. 
+Each \Info\ structure stores two fields - a reference \emph{nd} to a node 
+and a \emph{result} field used for persisting the response value for the operation before returing.
+
+We now describe the additions to the \insertlst\ operation that were introduced 
+for supporting recoverability. First, \insertlst\ installs a fresh \Info\ structure \y{into $RD$}
+in line \ref{insert-install-IS}, whose \emph{nd} field points 
+to a newly allocated node structure (the \emph{deleter} field is only 
+used by \delete\ operations and is described later). 
+It then updates $p$'s check-point variable (in line \ref{insert-set-checkpoint}) 
+by invoking the curPC macro, returning the current value of the program counter 
+\y{(for simplicity, we assume that it is \ref{insert-set-checkpoint}, in this case)}. 
+\y{By executing this line, $p$ {\em persistently reports}
+that the info structure for its current operation has been installed.}
+Finally, once \insertlst\ determines its response, 
+it persists it just before returning (in lines \ref{insert-persist-false-response} 
+and \ref{insert-persist-true-response}).
+
+We now describe the \insertrecover\ function. Let $W$ denote the instance 
+of \insertlst\ from whose failure  \insertrecover\ attempts to recover. 
+\insertrecover\ starts by reading $p$'s check-point variable 
+in line \ref{insert-recover-read-CP} in order to check 
+whether $p$'s current info structure was installed by $W$. 
+If the failure occurred before $W$ \y{persistently reported that} 
+it installed its info structure 
+(in line \ref{insert-set-checkpoint}), then $W$ is re-executed from scratch. 
+\y{Otherwise, the following actions take place.}
+If a response was already written to $W$'s \Info\ structure, 
+then \insertrecover\ simply returns this response 
+(lines \ref{insert-recover-response-persisted}-\ref{insert-recover-return-persisted-response}). 
+We are left with the case that a response was not yet written by $W$ to its \Info\ structure, 
+\y{so either $W$ did not execute a successful realization \CAS\ (in line \ref{insert-CAS}) 
+or its realization \CAS\ succeeded 
+%(hence $W$ was linearized) 
+but $W$ failed before writing 
+the response in line \ref{insert-persist-true-response}. }
+In order to determine which of these two scenarios occurred, 
+\insertrecover\ searches the list for \emph{key} (in line \ref{insert-recover-search}). 
+%As we prove, 
+\y{If either} the key is found in the list inside the node allocated 
+by $W$ or if that node was marked for deletion (line \ref{insert-if-was-linearized}), 
+\y{then $W$ had executed its realization \CAS\ before the failure occured
+(i.e. $W$ succeeded in inserting its node in the linked list),} 
+and so the recovery function persists the response 
+and returns \True (lines \ref{insert-linearized-persist-true}-\ref{insert-linearized-return-true}). 
+\y{Notice that indeed if the node has been successfully linked in the list,  
+the only way for the \search\ not to find it is if it has, in the meantime, been
+deleted. However, in that case, the node will have, first, been marked for deletion, and
+therefore the condition of the if statement of line~\ref{insert-if-was-linearized} will be evaluated to true.}
+Otherwise, recovery proceeds from line \ref{insert-entry}
+in order to re-attempt insertion.\footnote{\textcolor{red}{BY ``recovery proceeds from line X'' we do not mean 
+to say that there is a jump to line X, since in order to do so execution context 
+before line X must be saved and then restored. Instead, we mean that the pseudo-code performed 
+by the recovery function from this point on is the same as that of the recoverable \y{operation}
+starting from line X. One efficient way of implementing this is to have 
+both the \y{recoverable operation} and the recovery function invoke a parameterless macro call 
+that embeds this pseudo-code during compilation pre-processing.}}
+
+Next, we describe how recoverability \y{is ensured for} \delete\ operations. 
+Similarly to the recoverable \insertlst\ operation, 
+a recoverable \delete\ first installs a fresh \Info\ structure \y{into $RD$}
+in line \ref{delete-entry}. It then updates $p$'s check-point variable 
+(in line \ref{delete-set-checkpoint}) \y{to {\em persistently report} 
+that its info structure has been installed.} 
+If \emph{key} is not found 
+(line \ref{search-in-delete}), the response \y{(which is in this case \False) is persisted 
+and then it is returned} (lines \ref{delete-write-false}-\ref{delete-return-false}). 
+If \emph{key} \emph{is} found (in node \emph{curr}), 
+a reference to \emph{curr} is persisted to the \emph{nd} field of $p$'s \Info\ structure.
+Following this, $p$ proceeds as \y{in the original algorithm} by repeatedly trying 
+\y{to mark \emph{curr} using \CAS\ in lines \ref{delete-while-loop}-\ref{delete:logical-delete}
+(i.e. it repeatedly executes \CAS\ until it logically deletes the node).} 
+Once it is marked, $p$  tries to physically remove \emph{curr} 
+in lines \ref{delete-read-succ-after-CAS}-\ref{delete-physical-delete}. 
+
+The key technical difficulty for supporting recoverability of \delete\ operations 
+is the following. If $p$ fails immediately before or after the \CAS\ 
+of line \ref{delete:logical-delete}, recovers and then finds that \emph{curr}
+was logically deleted, how can it know whether it was the (single) process 
+that succeeded \y{in deleting \emph{curr}}? Our solution to this problem is 
+to ``attribute'' a node's deletion to a single process using a new node-field 
+called \emph{deleter}, initialized to $\bot$. After $p$ finds that \emph{curr} 
+is logically deleted (marked) in line \ref{delete-while-loop}, 
+\emph{regardless of whether it was marked by $p$ or by another process}, 
+$p$ tries to establish itself as the deleter of \emph{curr} by atomically 
+changing \emph{curr.deleter} from $\bot$ to its ID using \CAS\ 
+(line \ref{delete-CAS-deleter}).
+%This way, if $p$ crashes during a \delete\ operation, it can use the \emph{deleter} field in order to determine its response value.
+Finally, $p$ persists and returns the result of this \CAS\ 
+\y{as the response of the \delete\ operation}
+in lines \ref{delete-write-after-CAS}-\ref{delete:return-res}.
+
+We now describe the \deleterecover\ function. Let $D$ denote the instance of \delete\ 
+from whose failure  \deleterecover\ attempts to recover. 
+\deleterecover\ starts by reading $p$'s check-point variable 
+in line \ref{delete-recover-read-CP}. If the failure occurred 
+before $D$ \y{persistently reported that} it installed its info structure (in line \ref{delete-set-checkpoint}), 
+then $D$ is re-executed from scratch. 
+\y{Otherwise, the following actions take place.}
+If a response was already written 
+to $D$'s \Info\ structure, then \delete\ simply returns this response 
+(lines \ref{delete-recover-response-persisted}-\ref{delete-recover-return-persisted-response}).
+Otherwise, if the \emph{nd} field of $p$'s \Info\ structure was previously set 
+and node $nd$ is logically deleted (line \ref{delete-recover-if-should-perform-deleter-CAS}), 
+$p$ attempts to establish itself as the deleter of $nd$ using \CAS,
+\ohad{and then persists and returns the result according to the id written in \emph{curr.deleter}} 
+%and then persists and returns the result of that \CAS\ 
+(lines \ref{delete-recover-deleter-CAS}-\ref{delete-recover-return-res})
+\y{as the response of its \delete\ operation.} 
+Finally, if the condition of line \ref{delete-recover-if-should-perform-deleter-CAS} 
+does not hold, $p$ re-attempts the deletion (line \ref{delete-recover-reattempt-deletion}).
+
+
+
+\subsection{Correctness Argument}
+
+In the following, we give a high-level argument for the correctness of the algorithm.
+We say that a node is in the linked-list if it is reachable
+by following $next$ pointers starting from $head$.
+We say that a node is in the implemented set if it is in the linked-list and is not marked.
+%For simplicity of presentation, we sometimes use $curr$ (or $newnd$) 
+%to refer to the node pointed to by it.} 
+
+The proof relies on the following observations.
+As long as a node $nd$ is in the linked-list there is exactly one node in the list pointing to it.
+In addition, $nd$ can be marked exactly once, and it stays so forever, as any \CAS\ is executed with an unmarked node as its first argument.
+For the same reason, $nd$ can be physically deleted exactly once, since no node in the list points to it once it is deleted, and we never add a marked node back to the list.
+
+\find\ operation is implemented in a read-only manner, and thus it can be re-executed without effecting any other concurrent operation.
+In addition, \search\ routine, even though not read-only, simply traverses the list 
+while trying to physically delete any marked node it encounters. As any marked node can be physically deleted exactly once, re-executing \search\ can not cause a deletion of an unmarked node, or a deletion of the same node more then once. This implies re-executing \search\ can only help physical deletion of more nodes, and does not effect the list in any other way.
+
+\insertlst\ and \delete\ first install info structure and set a check-point. Clearly, a crash before the check-point implies the operation did not effect the list or any other operation, and in such case the \recover\ function simply re-execute the operation. This argument holds for any number of crashes, as long as the check-point is yet to be set.
+%We are left with the case of a crash after the check-point. We prove it for each operation.
+
+Assume process $p$ performs an $\insertlst(key)$ operation. If $p$ does not crash, then it repeatedly search for the right location for the new node $newnd$, 
+and tries to insert it.
+In case $p$ updates $RD[p].result$ to \False\ in line \ref{insert-persist-false-response}, then the preceding \search\ in line \ref{insert-search} finds a node $curr$ in the set with data $key$ (when \search\ read $curr$ it is not marked). Therefore, there is a point along the \insertlst\ operation where the set contains $key$, and the operation is linearized at this point. If $p$ crash after updating $result$ then eventually, in order to complete \insertrecover\ $p$ must read $RD[p].result$ and return \False.
+
+In case $p$ performs its realization \CAS\ in line \ref{insert-CAS}, then $newnd$ is in the set. The only way to physically remove it from the list is by first marking it. Therefore, after the realization \CAS, either $newnd$ is in the list, or it is marked, and one of these conditions must hold. As a result, in any crash after the realization \CAS\ the \insertrecover\ function returns \True, either in line \ref{insert-recover-return-persisted-response} (because $result$ has already been updated), or in line \ref{insert-if-was-linearized} which evaluates to \True. In particular, each \insertlst\ operation can perform at most a single realization \CAS, as any crash after it results a response of \True, without performing any more \CAS\ instances.
+
+We are left with the case where $p$ crash before performing its realization \CAS\ or updating $result$. In such case, $newnd$ was not added to the list yet, and in particular no process can mark it. As a result, \insertlst\ did not effect any other operation, and indeed \insertrecover\ re-executes it.
+
+Assume process $p$ performs $\delete(key)$ operation. If $p$ updates $result$ to \False\ in line \ref{delete-write-false}, then the preceding \search\ found two adjustments nodes $pred$ and $curr$ in the list, where $pred.key < key < curr.key$. Since we keep the list sorter in an increasing manner, it follows the list does not contains $key$ at the point when $pred$ points to $curr$. In particular, there is point along the interval of \delete\ where $key$ is not in the set, and the operation is linearized at this point. Any crash after line \ref{delete-write-false} results the \deleterecover\ function must read $result$ and return \False.
+
+Assume now $p$ does not write in line \ref{delete-write-false}. A node $curr$ is written to $RD[p].nd$ in line \ref{delete-update-nd} only if \search\ observes $curr$ is in the list and not marked. Clearly, a crash before updating $RD[p].nd$ implies the operation did not mark any node, nor effected any other operation, and \deleterecover\ simply re-execute \delete. On the other hand, once $p$ updates $RD[p].nd$, it keeps trying to mark $nd$.
+If $p$ crash and recovers, and finds $nd$ is not marked (line \ref{delete-recover-if-should-perform-deleter-CAS}), then in particular $p$'s operation did not mark $nd$, nor effected the list or any other operation. In such case, \deleterecover\ re-executes \delete. This argument holds for any number of crash and recover, as long as $p$ observe $nd$ is not marked.
+
+If $p$ observes $nd$ is marked, either in the \delete\ or in \deleterecover, we conclude the marking was done after the read of $nd$ in \search. Moreover, once $nd$ is marked, in order to complete the \delete\ operation, $p$ must performs \CAS, trying to write its name to $nd.deleter$, either in \delete, or in \deleterecover. Since $deleter$ is initialised to \init, only the first such \CAS\ succeeds.
+Let $q$ be the first process to perform such \CAS, if exists. Then, it set $nd.deleter$ to $q$, and this does not change. Once $deleter$ is set, if $p=q$, then it can only return \True, even in case it crash, as line \ref{delete-recover-read-deleter} always evaluates to \True. Otherwise, $p \neq q$, and by similar argument it can only return \False.
+As a result, any process trying to delete $nd$ and observe it is marked (at any point), must have the marking step in its \delete\ operation interval. In addition, exactly one such process, denoted $q$, returns \True, while any other returns \False. We linearize the \delete\ operation of $q$ at the time of the marking, and any other \delete\ returning \False\ is linearized right after it (in an arbitrary order).
+
+
+
+
+
+
+
+\remove{
+We will argue each $\insertlst(key)$ can add at most a single node to the list. Moreover, it returns \False\ only if there is a point in time along its interval where there is a node in the set with data $key$.
+Similarly, $\delete(key)$ can mark at most a single node with data $key$. In case it returns \False\ there is a point in time along its interval where there is no node in the set with data $key$. In addition, we show no two process can return \True\ when trying to delete the same node.
+
+
+
+We will argue that
+
+
+The proof relies on the following arguments. For a node $nd$ that was added to the list, at each point of the execution, if $nd$ has not been physically deleted then it is reachable. Moreover, there is a single node in the list pointing to $nd$. 
+
+\find\ operation is implemented in a read-only manner, and thus does not effect any other concurrent operation. As a result, re-executing the operation in case of a crash does not effect any other process. 
+
+The proof is based on the following argument. Each node can be added (marked) exactly once, and this is attribute to a single \insertlst\ (\delete) operation. Moreover, if \insertlst\ (\delete) with input $key$ returns \False, there is a point along the interval execution where there is (there is no) node in the set with $key$.
+
+Each \insertlst(key) operation can add at most a single node, and each \delete(key) operation can logically delete at most a single node. Moreover, in case no node has been added (logically deleted), there is a point it time along the operation interval where key is in the set (not in the set). In addition, once a node is marked it is considered as not in the list, and no future \find\ operation 
+
+We will show that each \find(key)\ operation either adds a new node exactly once and return \True, or returns \False, in which case there is a point along its interval where $key$ is the the set. 
+
+\find\ operation is implemented in a read-only manner, and thus does not effect any other concurrent operation. As a result, re-executing the operation in case of a crash does not 
+satisfies NRL, and the linearization point is set in the interval of the last complete execution of the operation.
+The \search\ procedure simply \y{traverses} the list, 
+while trying to physically delete marked nodes.
+Once $curr.next$ is marked, \y{just one} process can perform the physical \y{deletion}. 
+This follows from the fact that, at any point in time, there is a single node 
+in the list which points to $curr$. Once curr is physically deleted,
+no node in the list points to curr, and thus any \CAS\ operation with curr 
+as the first parameter will fail. This observation relays on the fact 
+that any new allocated node has a different address than $curr$. 
+As a result, repeating the attempt to physically delete a node effect the list at most once.
+
+\here{YOULA: It is unclear what we mean when we say "the list consistency".
+We usually define the consistency of a data structure based on linearizability,
+but linearizability is defined for a history. So, we probably need to fix a configuration,
+define the history up to that configuration, define what we mean when we say "data structure"
+for this configuration, and then define what we mean when we say "consistent data
+strucutre in that configuration. Even then, it is not clear what we mean when we say 
+that the data structure is consistent during the execution of a search 
+because that the way I can think for this to make sense is that it is consistent 
+in all configurations that the search is active.  Based on what I wrote above, 
+I removed the reference to the consistency of the list.}
+
+Assume a process $p$ performs an $\insertlst(key)$ operation.
+First, $p$ writes to $RD[p]$ and set a check-point, reporting it is about to perform an \insertlst. A crash before setting the check-point implies the operation did not effect the linked-list yet, and \insertrecover\ re-execute the operation.
+Once $p$ set the check-point it repeatedly search for the right location for the new node, 
+and tries to insert it by performing a \CAS\, unless $key$ is already in the list (As in the original algorithm).
+As long as $p$ does not performs its realization \CAS\ $newnd$ is not in the list, and therefore the operation is not visible to any other process. Hence, repeating the operation in such case does not violate linearizability. In addition, once $p$ updates $RD[p].result$ with a response we conclude the operation already had a linearization point (as in the original algorithm), and indeed, in this case \insertrecover\ returns the response stored in $RD[p].result$.
+
+We are left with 
+If $p$ does not crash, then, as in the original algorithm, 
+it repeatedly tries to find the right location for the new node, 
+and insert it by performing a \CAS\.
+%changing $pred.next$ to point to $newnd$. 
+In addition, a crash after updating $RD[p].result$ 
+is after the operation has performed its realization \CAS,
+%had its linearization point, 
+and \insertrecover\ procedure will return 
+the right response. \y{It remains to consider a crash that occurs before the} update to $RD[p].result$. 
+There are two scenarios to consider.
+
+Assume $p$ \y{crashes} without performing a successful \CAS\ in line \ref{insert-CAS}. 
+Notice that $p$ is the only process to have a reference to $newnd$, 
+and it is yet to update any node with this reference, 
+and thus no linked-list node points to $newnd$. 
+As a result, the operation did not \y{affect} any other process, 
+nor it will be in the future. 
+Hence, considering the operation as not having a linearization point 
+does not violate the list consistency. Indeed, since no node points to $newnd$, 
+upon recovery $p$ will see that $newnd$ is not in the list and also not marked, 
+and thus will return FAIL. Notice this argument holds whether key is already in the tree, 
+or not, as the operation in both cases did not affect the system.
+\here{YOULA: I do not agree with the argument above. I think that most of the 
+statements in this paragraph are wrong. What does it mean "it will return FAIL"?
+According to the pseudocode, this is never the case (all operations return either true or false).
+If the key is not in the list, the operation is repeated, no? So, eventually it will add 
+the new key in the list and it will affect other operations.
+Also, notice that in either case, if the operation is completed, it is linearized. 
+So, I suggest to avoid talking about linearization in the discussion above.}
+
+Assume now $p$ \y{crashes after successfully performing its realization} \CAS\ in line \ref{insert-CAS}.
+\y{Right after the \CAS, $newnd$ is in the implemented set, as $pred.next$ points to it
+and $newnd$ is initialized to be unmarked.}
+Also notice \y{that the successful execution of the realization \CAS\ for $p$'s \insertlst\
+does not cause the deletion of} any other node: $pred.next$ pointed to $curr$, 
+and after the \CAS\ it points to $newnd$ which points to $curr$. 
+\y{
+We argue that if a node is in the implemented set at some point in time 
+and it is not at some later point in time, then at all times after
+the point that it is not in the set anymore, the node is marked.
+The above argument relies on the fact that a marked node can not be unmarked, 
+and that an Insert and Delete can not mistakenly remove nodes from the list. 
+Therefore, if $newnode$ is no longer in the list, it must be marked.
+As a result, when $p$ executes the Recover procedure, either it will see $newnd$ in the list, 
+or it will find it marked. In either case, the condition of the if statement of line~\ref{???}
+\here{YOULA: Ohad can you please fill in the reference here?} 
+will be evaluated to true and the response of the operation will be true.}
+%that it is no longer part of the list, and it must be some other process deleted it, 
+%and hence $newnd.next$ is marked. In any case, $p$ will return true as required.
+
+Assume a process $p$ performs a $delete(key)$ operation. First, $p$ writes to RD[p], 
+\y{reporting that} it is about to perform a Delete. As before, a crash after writing to RD[p].result 
+will return the right response. Also, a \y{crash} before updating any of RD[p].result 
+or RD[p].nd implies $p$ is yet to try and mark any node, 
+and thus the operation did not affect the system so far, 
+nor it will be in the future. Therefore, we can consider the operation 
+as not having a linearization point (even in case key is not the list), 
+and indeed, the Recover procedure returns FAIL in such case.
+\here{YOULA: I do not agree with the argument above for the same reasons 
+as those I mentioned previously for \insertlst. }
+
+Assume thus $p$ \y{wrote to $RD[p].nd$ before it crashes}. 
+It follows that $p$ completed \y{\search\ } 
+and found a node $curr$ storing key. \y{\search\ } guarantees  that there is a point 
+in time \y{(during its execution)} where $curr$ is in the list and $curr.next$ is not marked. 
+\y{If $p$ recovers and observes} that $curr$ is unmarked, then in returns FAIL. 
+\here{YOULA: I do not understand. It never returns FAIL. Has this been left from some previous version?}
+Since a marked node can not be unmarked, as there is no \CAS\ changing a marked node, 
+it follows that $p$ did not marked $curr$. \here{Therefore, the operation did not affect any process, 
+nor it will be, and we consider it as having no linearization point. YOULA: I do not follow:
+depending on whether $p$ will manage to record itself as the deleter, it will 
+return true or false (in either case it will be linearized).}
+Otherwise, \y{the recovery function observes} $curr$ as marked, and we can conclude 
+the marking point of $curr$ is along the delete operation. We now prove 
+we can linearize the operation, according to its response.
+\here{YOULA: I do not follow the last sentence.}
+
+Let $q$ be the process to mark $curr$. Since once $curr.next$ is marked \y{it will never change}, 
+the reference of $curr.next$ is fixed to $succ$ \y{(i.e. to the value that variable $succ$ in the
+\delete\ instance of $q$ had at the point that $q$ performed the marking of $curr$). }
+This also implies $q$ is unique and well defined, and any future \CAS\ on $curr.next$ will fail. 
+As a result, any process leaving the while loop in line \ref{delete-while-loop} reads the same value 
+in line \ref{delete-read-succ-after-CAS}, which is this $succ$. The attempt to physically delete $curr$ 
+in line \ref{delete-physical-delete} will succeed only if $pred.next$ points to $curr$, 
+and as we said, \y{$curr.next$} points to $succ$, and any other attempt will fail. 
+Thus, if this attempt succeeds, it deletes only $curr$, and can not delete additional nodes.
+
+In line \ref{delete-CAS-deleter} process $p$ tries to write its id to $curr.deleter$. 
+\y{As it is initialized to $\bot$}, only the first process to perform this \CAS\ will succeed. 
+Also, \y{every} $p$ must go through line \ref{delete-CAS-deleter} in order to complete its operation, 
+\here{as the recovery function \y{redirects} the process to this line. YOULA: Not accurate: 
+the recovery function contains a similar CAS in line 106. It "redirects" the process (if I understand
+correctly what redirects mean) only if line 110 is executed.}
+\y{Therefore, if there exists a process 
+that has completed its delete operation on $curr$, 
+there must be a successful \CAS\ to $curr.deleter$.} Let $q'$ be the first process to perform this \CAS. 
+As proved above, $q'$ tries to delete $curr$, and the point in time 
+where $curr$ is marked must be contained in its operation interval. 
+Moreover, $q'$ is the only process to write to $curr.deleter$, 
+and the first one to do so, thus $q'$ is the only process to obtain true when testing 
+($curr.deleter = q'$) in line \ref{delete-write-after-CAS} (and thus to also return true), 
+while any other process will \y{return} false. We linearize the operation of $q'$ at the point 
+of the marking, and any other attempt to delete $curr$ is linearized after it (in an arbitrary order).
+
+A corollary of the analysis is that processes trying to delete the same node $curr$, 
+all keep trying to mark $curr$ (and therefore it is like if they help each other). 
+However, the process that successfully performs the marking 
+is not necessarily the one to return true. Also, in the original algorithm, 
+if a process fails to mark a node, it starts the delete operation from the beginning. 
+In our implementation, the process can keep trying to mark the node without the need 
+to perform a \y{\search\ } again after each failed \CAS. We guarantee that once $curr$ is marked, 
+exactly one process will return true, while the rest can consider $curr$ as being deleted 
+(in the course of their delete execution), and thus there is a point along their execution 
+at which $key$ is not in the tree, and they can return false.
+
+
+\here{YOULA: I think it would be nice if we add 1-2 paragraphs to explain why nothing goes wrong 
+in case a failure occurs while $p$ executes the recovery function of the \insertlst\ or
+ the \delete.}
+
+
+}
+
+
+

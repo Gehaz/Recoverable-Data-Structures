@@ -1,0 +1,348 @@
+\section{Overview of Our Approach}
+
+Our methodology separately considers the operations provided by
+a linearizable implementation $A$ of a data structure $Q$,
+according to their properties.
+In this initial description, we assume each operation becomes
+visible and is linearized through at most a single \CAS;
+this simplifies recovery by avoiding scenario of an
+operation changing the data structure but is yet to complete
+and be linearized.
+% we didn't discuss helping yet!
+% while some other helping process may complete and linearize it.
+(Later in this section, discuss how to remove this assumption,
+in the context a binary search tree.)
+
+Consider an implementation of an operation $Op$ that does not change
+the data structure, as is often the case with a search operation.
+In this case, the operation remains intact, and the recovery
+function simply restarts it from scratch.
+(Later, in the context of the linked list, we explain how this
+approach is extended to the case where stopping $Op$ at any point
+and restarting it does not violate linearizability.)
+% say this later, not here:
+%i.e., it is indistinguishable to all other processes from a run in which it is executed only once.
+
+For operations that do change the data structure, assume first that
+there is a way to uniquely identify each instance of $Op$.
+In this case, $Op$ can be made recoverable by adding an indication
+once it is visible.
+The recovery function then checks for this indication:
+if found, the operation has completed, and its response is returned;
+otherwise, the operation is restarted.
+For example, assume process $p$ tries to add a new unique node $nd$
+to the data structure using \CAS\
+(other processes may add different nodes with the same data).
+Once $nd$ is added, it can be found in the data structure,
+indicating that the operation has completed.
+However, this indication is lost when $nd$ is removed.
+This problem can be overcome by flagging a special field in $nd$ before
+removing it.
+This way, we have two indicators,
+one is set once $nd$ is added and the other when $nd$ is deleted.
+
+A further complication is posed when the implementation employs a helping
+mechanism, namely, several processes attempt to perform an operation,
+%%% what do mean in the next sentence? each attempt is not uniquely identified?
+which is not uniquely identified.
+When $p$ crashes during an execution of $Op$ and recovers, it might be
+able to check whether $Op$ is complete, but it is unable to
+know whether it is the one to perform it, or some other process.
+As a result, $p$ may not be able to recover the right response value.
+% but why it is a problem? if the operation is uniquely identified, then who cares who performed it?
+This is resolved by adding an \emph{owner} field (for each operation type),
+used for agreeing which process performed the operation;
+after a process $p$ completes an operation, \CAS\ its id to \emph{owner},
+to declare itself as the winner.
+If $p$ crashes during an execution of $Op$ and recovers,
+$p$ first checks whether the operation is visible, and if so,
+$p$ tries to set $owner$ to $p$ with \CAS\ and then responds according to
+the id stored in $owner$.
+%For example, trying to delete a node $nd$ from the data-structure is such an operation.
+%An indication for it being visible is that $nd$ is no longer part of the data-structure.
+%However, several process may try and delete $nd$ concurrently.
+(This is demonstrated in the \emph{delete} of our Linked-List implementation.)
+
+In all cases, it is necessary to persist the response value before returning it.
+In some cases, $p$ may also need to store some recovery data;
+for example, the node to be added or removed.
+This information is stored in a designate memory location, for each process;
+after the process stores this information and before the process starts
+performing the operation,
+a checkpoint is set to signify that the data is relevant for the current operation.
+
+We next further explain our approach with a relatively simple example,
+of a linked-list set, and then explain some extensions with a
+\emph{binary search tree}.
+Later in the paper (Section~\ref{section:elimination-stack}),
+we present a comprehensive example
+of taking a sophisticated concurrent data structure,
+an \emph{elimination stack}, and making it recoverable.
+
+\subsection*{Linked List}
+
+Algorithms~\ref{alg:linked-list} and~\ref{alg:linked-list2} show
+Harris' classic lock-free \emph{linked list}
+set~\cite{DBLP:conf/wdag/Harris01}.\footnote{
+    The \delete\ pseudo-code is slightly optimized so that if the key is found and
+    is later logically deleted, then \delete\ returns \True\ if the logical deletion
+    was performed by the current process, and \False\ otherwise
+    (lines \ref{delete-while-loop}-\ref{delete:logical-delete}, \ref{delete:return-res}).}
+It supports \find, \insertlst\ and \delete\;
+the latter two use the \search\ helper function in order to find the node with
+the smallest key greater than or equal to the input key (denoted \emph{curr})
+and its predecessor in the list (denoted \emph{pred}).
+\delete\ first logically deletes a node by marking it
+as deleted and then physically removes it from the list.
+\ohad{[add here description how this is done, or reference to details in section?!][add a bit more detail]}
+%While traversing the list, \search\ attempts to physically remove any marked node
+%it encounters from the list.
+
+\input{code-original-linked-list-v2}
+
+To find a key $k$, a process simply looks for an unmarked node with key $k$
+(lines~\ref{linked-list-find-start}-\ref{linked-list-find-end}).
+To insert a key $k$, process $p$ calls \search\ in order to find the position
+in the list where $k$ should be added (line~\ref{ll:insert-search})
+If $k$ is already in the list, \insertlst\ returns \False\
+(lines \ref{ll:insert-if-in-list}-\ref{ll:insert-return-false}),
+otherwise it tries to set \emph{pred}.\emph{next} to point to a new node
+containing $k$ using \CAS\ (line~\ref{ll:insert-CAS});
+this fails if \emph{pred} has been logically deleted in the interim.
+To delete a key $k$, $p$ calls \search\, returning \False\ if $k$ not in the set
+(lines \ref{ll:delete-if-in-list}-\ref{ll:delete-return-false}).
+Otherwise, $p$ repeatedly tries to logically delete it by marking the \emph{next}
+field of its node using \CAS, until the node is marked
+(lines \ref{ll:delete-while}-\ref{ll:delete-logical-delete}).
+After the node is marked, $p$  tries to physically remove it
+(lines \ref{ll:delete-set-succ-to-next}-\ref{ll:delete-physical-delete}).
+
+The operations are linearized as follows:
+A \emph{Find} is linearized with the last read of \emph{curr}
+(line~\ref{find-read-cur}), \find\ returns \True\ if node \emph{curr} is unmarked
+and \False\ otherwise.
+An \emph{Insert} is linearized either when the \search\ called by \insertlst\
+reads (line~\ref{search-read-cur}) an unmarked node with key $k$,
+when \insertlst\ returns \False,
+or with a successful \CAS\ inserting $k$ to the list (line~\ref{ll:insert-CAS}),
+when \insertlst\ returns \True.
+A \emph{delete} is linearized either when the \search\ instance it calls
+reads in line~\ref{search-read-cur} an unmarked list node with a key greater
+than $k$ (in which case \delete\ returns \False),
+upon a successful logical deletion by the current operation
+(in line~\ref{ll:delete-logical-delete}, \delete\ returns \True),
+or upon a logical deletion of the node by another concurrently executing
+process (in line~\ref{delete:logical-delete}, \delete\ returns \False).
+
+Thus, successful \insertlst\ and \delete\ are linearized when
+they change the data-structure in a manner visible to other processes,
+e.g., after the successful \CAS\ in line~\ref{ll:insert-CAS} of \insertlst,
+or after a successful logical deletion in line~\ref{ll:delete-logical-delete} of \delete.
+The instructions in lines~\ref{ll:insert-CAS} and~\ref{ll:delete-logical-delete}
+are the {\em realization} \CAS\ for \insertlst\ and \delete, respectively.
+
+Consider now the situation when some process $p$ recovers from a crash-failure.
+By the way linearization points are assigned to operations and by the definition
+of realization \CAS\ for \insertlst\ and \delete,
+the algorithm satisfies \textit{strict linearizability} \cite{Aguilera2003StrictLA}:
+a crashed operation can be either removed from the history or linearized
+between its invocation and crash.
+If $p$ failed during an operation $Op$,
+either the realization \CAS\ for $Op$ has already been executed
+in which case the effect of $Op$ becomes visible
+and $Op$ is linearized in that \CAS,
+or $p$ crashes at some earlier point of $Op$'s exeution
+in which case none of the steps $Op$ performed before crashing
+will ever become visible and $Op$ is not linearized.
+
+However, the response of the failed operation may be lost.
+For example,
+in a scenario in which process $p$ performs $\delete(k)$
+and crashes immediately after applying a \CAS\ to mark the node containing
+key $k$, $p$ has no way of knowing when it recovers whether its failed operation
+had any effect on the set. Specifically, $p$ cannot know whether its \delete\
+has executed its realization \CAS, and if so what response it should return.
+
+We now explain our approach to make this algorithm recoverable.
+(See detailed description and code in Section~\ref{section:linked-list}.)
+Our approach leaves \find{} as is, since it is a read-only operation.
+\search{} is not read-only, but it can be stopped and restarted at any point,
+without violating the linearizability of the resulted history,
+and hence need not be changed.
+
+\insertlst{} is uniquely identify by the node $nd$ it tries to add,
+as different instances creates different nodes.
+Moreover,
+once the operation is visible and linearized in a successful realization \CAS,
+$nd$ can be found in the list, indicating the operation is visible.
+Finally, $nd$ is marked before it is physically removing from the list,
+indicating that $nd$ was in the list.
+This means there are two indications, one of which holding if
+a realization \CAS\ was successfully performed before the crash,
+and none of which holds, otherwise.
+
+Our approach makes these operations recoverable,
+by testing these indications upon recovery.
+For \delete, note that $nd$ logical deletion (in a successful realization \CAS)
+is indicated in $nd$ itself, which is marked, and will stay so forever.
+Therefore, if $p$ crashes during a delete of $nd$, then $p$ can conclude,
+upon recovery, whether $nd$ was deleted by checking if it is marked.
+
+However, $p$ can not tell whether it is the process to delete $nd$.
+We add a \emph{deleter} field to each node, so that once the node is deleted,
+the first process to \CAS{} its id to \emph{deleter} is the one to perform the \delete.
+
+\remove{
+It is easy to make an operation crash-persistent by using crash-persistent CAS,
+since an operation is linearized at its first successful CAS that
+does not help other operations.
+However, the operation is not necessarily detectable:
+if there is a crash right after this CAS, then, upon recovery,
+the crashed process needs to know whether the CAS was successful or not,
+in order to conclude the right response value.
+Moreover, two or more processes can try to perform the same operation,
+for example, helping to delete a node; upon recovery the process not only
+has to know whether the node was deleted,
+but also to determine it has deleted the node or some process.
+
+We address these problems by exploiting two properties of the implementation.
+
+First, data is added to the linked-list nodes, ensuring they are unique,
+even if they hold the same key.
+A node \emph{nd} inserted to the list with a CAS will stay accessible until it is deleted
+and the recovery function of the Insert operation, can check with the insert was
+successful by testing the former two conditions. % did I miss something? which two conditions?
+
+For \delete, we notice a logically deleted node (whose marked bit is set)
+remains so forever, and therefore if process $p$ crashes while deleting \emph{nd},
+it can check the marked bit upon recovery to detect whether \emph{nd} is logically deleted.
+However, this information is insufficient, since several processes may try
+to delete \emph{nd} concurrently, and exactly one should succeed.
+For that, each node is equipped with an extra \emph{deleter} field,
+initially $\bot$, used by the deleting processes to agree which process
+succeeded to delete \emph{nd}.
+The first process that writes its id to \emph{deleter} (with a CAS)
+a \emph{nd} is logically deleted, is the one to succeeds in deleting the node,
+while all others fail and return false.
+Notice that crashed operations are also trying to write to \emph{deleter}
+and that this filed is written to exactly once.
+A recovering process can check if it succeeded in the delete by checking
+if \emph{deleter} holds its id.
+
+As we discuss later, the same technique can be applied to any implementation
+with the following features:
+An operation that takes effect using a single CAS,
+and needs to guarantee exactly one process is the one to perform it,
+can use a \emph{new} field (as in delete) to determine which process executed it;
+this relies on the ability to determine, upon recover, whether the CAS was successful.
+Additionally, an \emph{insert} to a data structure in which a new,
+unique object is used whenever a new key is added (in a node),
+can be recovered by looking for the new object,
+or for an indication it has been removed from the data structure.
+One such implementation is the \emph{queue}~\cite{MichaelS-PODC1996}.
+% but we do not discuss this implementation but two others, more complicated
+
+}
+
+
+\subsection*{Binary Search Tree}
+
+In the lock-free \emph{binary search tree} (BSF)
+of~\cite{DBLP:conf/podc/EllenFRB10},
+processes help each other to carry their operations.
+The implementation, described in detail in Section~\ref{section:BSF}.
+each operation has an associated info record,
+initialized in a single CAS by the calling process,
+and using by helping processes to track their progress.
+
+When a process $p$ needs to modify a node $nd$ it marks $nd$ with
+a pointer to its info record; this marking remains until $p$'s operation
+completes (either by $p$ or by a helping process).
+This implies that upon recovery after a crash,
+$p$ can check to see if the node is still marked with its own operation,
+and if so, try to complete the operation, starting from right after the marking CAS;
+otherwise, $p$ restarts the operation.
+
+As is often the case when helping is used,
+several processes may try to perform the same operation (concurrently),
+leading to redundant efforts that yield only a single completed operation.
+Even more problematic in the context of the crash-recovery model,
+and because helping is anonymous,
+repeated attempts of $p$ to perform an operation (due to crashes)
+may be indistinguishable from an execution where other processes are helping $p$
+complete its operation.
+
+The above recovery scheme may still allow a scenario in which $p$ crashes
+right after completing its operation and before unmarking the node,
+causing $p$ to restart the operation upon recovery and applying it twice.
+To avoid this scenario, a process updates a \emph{done} field in
+the info record, which signifies the operation is done,
+before unmarking the node in the cleaning phase.
+Thus, if the node is not marked with the operation upon recovery,
+then the new field allows the process to conclude whether
+the operation has been completed or failed.
+If a process crashes after updating the done field and before cleaning,
+then upon recovery, unless another process performed the cleaning,
+it will observe that the node is marked and complete the cleaning phase.
+
+%%% this may belong in the elimination stack section
+\subsection*{Elimination Stack}
+
+After presenting these specific data structures, linked list and BST,
+we can explain the two principles underlying our general approach,
+in the context of a more complex data structure---an
+\emph{elimination stack}~\cite{DBLP:journals/jpdc/HendlerSY10}.
+
+An elimination stack combines of two components:
+a central stack and an elimination array.
+%%% Explain the implementation more carefully.
+The central stack is implemented in a way that resembles Harris'
+linked list, described above:
+to push or pop the process tries to atomically swing the head pointer using CAS.
+Therefore, the same approach taken in the Linked-List can be used for this case also.
+The Pop operation will use a new $popby$ field, similar to the deleter field,
+in order to determine which process is the one to pop the node.
+
+However, unlike the linked list,
+where a node is first marked before removing it from the list,
+in the stack a Pop operation is done using a single CAS without marking.
+Hence, if a process $p$ crashes right after successfully pushing a new node
+and the node is later removed from the [[stack??]], $p$ can not tell
+between the resulting situation and one in which the Push has failed.
+
+This problem is resolved by having a process mark a node [[as part of the list??]]
+before trying to pop it; marking does not mean that the node has been removed,
+as the Pop operation may fail.
+%%% the following seems too technical and an optimization.
+For efficiency, the $popby$ field is used also for this marking.
+A process first writes NULL to it, and in case of a successful Pop try to write its id.
+This is all done using CAS, so to avoid overwriting.
+
+In the elimination array each entry holds an \emph{exchanger} object that matches
+two processes---one doing a push and another doing a pop---to exchange their values.
+We change the implementation such that a process first creates an info
+record containing its values, and then processes exchange info records
+instead of values:
+The process doing a push writes its info record by a CAS on an exchanger,
+while the process doing a pop takes this it by replacing it, with a CAS,
+with its own info record.
+
+To allow recovery, the info record includes s a state, identifying whether
+$p$ is the first or second process to write to an exchanger,
+i.e., whether it was performing a push or a pop;
+in the latter case, the record also contains a reference to the info record $p$
+is trying to collide with.
+If $p$ crashes and the info record indicates it is part of an ongoing
+exchange, then $p$ tries to complete the exchange;
+otherwise, either its exchange attempt failed,
+or that it succeeded and completed by some other process.
+The latter case is indicated in the info record, which also contains the
+response value.
+
+The info records also support a simple and efficient helping mechanism.
+After a process writes its info record second to the exchanger,
+any other process complete the exchange by reading this record and
+updating both records with the right response values.
+That is, other processes do not wait for the two colliding processes
+and complete the exchange on their behalf.
+Then, they can reset the exchanger, making it ready for reuse.

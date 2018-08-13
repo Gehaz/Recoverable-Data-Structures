@@ -1,0 +1,282 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{19}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[\protect\citeauthoryear{Aguilera and Fr{\o}lund}{Aguilera and
+  Fr{\o}lund}{2003}]%
+        {Aguilera2003StrictLA}
+\bibfield{author}{\bibinfo{person}{Marcos~Kawazoe Aguilera} {and}
+  \bibinfo{person}{Svend Fr{\o}lund}.} \bibinfo{year}{2003}\natexlab{}.
+\newblock \showarticletitle{Strict Linearizability and the Power of Aborting}.
+  In \bibinfo{booktitle}{\emph{Tech. Rep. HPL-2003-241}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Attiya, Ben-Baruch, and Danny}{Attiya
+  et~al\mbox{.}}{2018a}]%
+        {ABH-PODC2018}
+\bibfield{author}{\bibinfo{person}{Hagit Attiya}, \bibinfo{person}{Ohad
+  Ben-Baruch}, {and} \bibinfo{person}{Hendler Danny}.}
+  \bibinfo{year}{2018}\natexlab{a}.
+\newblock \showarticletitle{Nesting-Safe Recoverable Linearizability: Modular
+  Constructions for Non-Volatile Memory}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 37th Annual ACM SIGACT-SIGOPS
+  Symposium on Principles of Distributed Computing}}
+  \emph{(\bibinfo{series}{PODC})}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Attiya, Ben-Baruch, and Hendler}{Attiya
+  et~al\mbox{.}}{2018b}]%
+        {AttiyaBH-PODC2018}
+\bibfield{author}{\bibinfo{person}{Hagit Attiya}, \bibinfo{person}{Ohad
+  Ben-Baruch}, {and} \bibinfo{person}{Danny Hendler}.}
+  \bibinfo{year}{2018}\natexlab{b}.
+\newblock \showarticletitle{Nesting-Safe Recoverable Linearizability: Modular
+  Constructions for Non-Volatile Memory}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the Symposium on Principles of
+  Distributed Computing}} \emph{(\bibinfo{series}{PODC})}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ben{-}David, Blelloch, and Wei}{Ben{-}David
+  et~al\mbox{.}}{2018}]%
+        {DBLP:journals/corr/abs-1806-04780}
+\bibfield{author}{\bibinfo{person}{Naama Ben{-}David}, \bibinfo{person}{Guy~E.
+  Blelloch}, {and} \bibinfo{person}{Yuanhao Wei}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Making Concurrent Algorithms Detectable}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/1806.04780}
+  (\bibinfo{year}{2018}).
+\newblock
+\showeprint[arxiv]{1806.04780}
+\urldef\tempurl%
+\url{http://arxiv.org/abs/1806.04780}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Berryhill, Golab, and Tripunitara}{Berryhill
+  et~al\mbox{.}}{2015}]%
+        {DBLP:conf/opodis/BerryhillGT15}
+\bibfield{author}{\bibinfo{person}{Ryan Berryhill},
+  \bibinfo{person}{Wojciech~M. Golab}, {and} \bibinfo{person}{Mahesh
+  Tripunitara}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Robust Shared Objects for Non-Volatile Main
+  Memory}. In \bibinfo{booktitle}{\emph{19th International Conference on
+  Principles of Distributed Systems, {OPODIS}}}. \bibinfo{pages}{20:1--20:17}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chen and Jin}{Chen and Jin}{2015}]%
+        {ChenQ-VLDB2015}
+\bibfield{author}{\bibinfo{person}{Shimin Chen} {and} \bibinfo{person}{Qin
+  Jin}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Persistent b+-trees in non-volatile main memory}.
+\newblock \bibinfo{journal}{\emph{Proceedings of the VLDB Endowment}}
+  \bibinfo{volume}{8}, \bibinfo{number}{7} (\bibinfo{year}{2015}),
+  \bibinfo{pages}{786--797}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Coburn, Caulfield, Akel, Grupp, Gupta, Jhala,
+  and Swanson}{Coburn et~al\mbox{.}}{2011}]%
+        {CoburnCAGGJW-Asplos2011}
+\bibfield{author}{\bibinfo{person}{Joel Coburn}, \bibinfo{person}{Adrian~M.
+  Caulfield}, \bibinfo{person}{Ameen Akel}, \bibinfo{person}{Laura~M. Grupp},
+  \bibinfo{person}{Rajesh~K. Gupta}, \bibinfo{person}{Ranjit Jhala}, {and}
+  \bibinfo{person}{Steven Swanson}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{{NV-Heaps}: Making Persistent Objects Fast and Safe
+  with Next-generation, Non-volatile Memories}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the Sixteenth International
+  Conference on Architectural Support for Programming Languages and Operating
+  Systems}} \emph{(\bibinfo{series}{ASPLOS})}. \bibinfo{pages}{105--118}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cohen, Friedman, and Larus}{Cohen
+  et~al\mbox{.}}{2017}]%
+        {DBLP:journals/pacmpl/CohenFL17}
+\bibfield{author}{\bibinfo{person}{Nachshon Cohen}, \bibinfo{person}{Michal
+  Friedman}, {and} \bibinfo{person}{James~R. Larus}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Efficient logging in non-volatile memory by
+  exploiting coherency protocols}.
+\newblock \bibinfo{journal}{\emph{{PACMPL}}} \bibinfo{volume}{1},
+  \bibinfo{number}{{OOPSLA}} (\bibinfo{year}{2017}),
+  \bibinfo{pages}{67:1--67:24}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ellen, Fatourou, Ruppert, and van
+  Breugel}{Ellen et~al\mbox{.}}{2010}]%
+        {DBLP:conf/podc/EllenFRB10}
+\bibfield{author}{\bibinfo{person}{Faith Ellen}, \bibinfo{person}{Panagiota
+  Fatourou}, \bibinfo{person}{Eric Ruppert}, {and} \bibinfo{person}{Franck van
+  Breugel}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Non-blocking binary search trees}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 29th Annual {ACM} Symposium on
+  Principles of Distributed Computing, {PODC}}}. \bibinfo{pages}{131--140}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Golab and Ramaraju}{Golab and
+  Ramaraju}{2016}]%
+        {GolabR16}
+\bibfield{author}{\bibinfo{person}{Wojciech~M. Golab} {and}
+  \bibinfo{person}{Aditya Ramaraju}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Recoverable Mutual Exclusion: [Extended Abstract]}.
+  In \bibinfo{booktitle}{\emph{Proceedings of the 2016 {ACM} Symposium on
+  Principles of Distributed Computing, {PODC}}}. \bibinfo{pages}{65--74}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Guerraoui and Levy}{Guerraoui and
+  Levy}{2004}]%
+        {DBLP:conf/icdcs/GuerraouiL04}
+\bibfield{author}{\bibinfo{person}{Rachid Guerraoui} {and}
+  \bibinfo{person}{Ron~R. Levy}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Robust Emulations of Shared Memory in a
+  Crash-Recovery Model}. In \bibinfo{booktitle}{\emph{24th International
+  Conference on Distributed Computing Systems {(ICDCS})}}.
+  \bibinfo{pages}{400--407}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Harris}{Harris}{2001}]%
+        {DBLP:conf/wdag/Harris01}
+\bibfield{author}{\bibinfo{person}{Timothy~L. Harris}.}
+  \bibinfo{year}{2001}\natexlab{}.
+\newblock \showarticletitle{A Pragmatic Implementation of Non-blocking
+  Linked-Lists}. In \bibinfo{booktitle}{\emph{Distributed Computing, 15th
+  International Conference, {DISC} 2001, Lisbon, Portugal, October 3-5, 2001,
+  Proceedings}}. \bibinfo{pages}{300--314}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1007/3-540-45414-4_21}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Hendler, Shavit, and Yerushalmi}{Hendler
+  et~al\mbox{.}}{2010}]%
+        {DBLP:journals/jpdc/HendlerSY10}
+\bibfield{author}{\bibinfo{person}{Danny Hendler}, \bibinfo{person}{Nir
+  Shavit}, {and} \bibinfo{person}{Lena Yerushalmi}.}
+  \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{A scalable lock-free stack algorithm}.
+\newblock \bibinfo{journal}{\emph{J. Parallel Distrib. Comput.}}
+  \bibinfo{volume}{70}, \bibinfo{number}{1} (\bibinfo{year}{2010}),
+  \bibinfo{pages}{1--12}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1016/j.jpdc.2009.08.011}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Herlihy and Shavit}{Herlihy and
+  Shavit}{2008}]%
+        {DBLP:books/daglib/0020056}
+\bibfield{author}{\bibinfo{person}{Maurice Herlihy} {and} \bibinfo{person}{Nir
+  Shavit}.} \bibinfo{year}{2008}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The art of multiprocessor programming}}.
+\newblock \bibinfo{publisher}{Morgan Kaufmann}.
+\newblock
+\showISBNx{978-0-12-370591-4}
+
+
+\bibitem[\protect\citeauthoryear{Herlihy and Wing}{Herlihy and Wing}{1990}]%
+        {herlihyWingLinearizability}
+\bibfield{author}{\bibinfo{person}{Maurice Herlihy} {and}
+  \bibinfo{person}{Jeannette~M. Wing}.} \bibinfo{year}{1990}\natexlab{}.
+\newblock \showarticletitle{Linearizability: {A} Correctness Condition for
+  Concurrent Objects}.
+\newblock \bibinfo{journal}{\emph{{ACM} Trans. Program. Lang. Syst.}}
+  \bibinfo{volume}{12}, \bibinfo{number}{3} (\bibinfo{year}{1990}),
+  \bibinfo{pages}{463--492}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Izraelevitz, Mendes, and Scott}{Izraelevitz
+  et~al\mbox{.}}{2016}]%
+        {DBLP:conf/wdag/IzraelevitzMS16}
+\bibfield{author}{\bibinfo{person}{Joseph Izraelevitz},
+  \bibinfo{person}{Hammurabi Mendes}, {and} \bibinfo{person}{Michael~L.
+  Scott}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Linearizability of Persistent Memory Objects Under
+  a Full-System-Crash Failure Model}. In \bibinfo{booktitle}{\emph{Distributed
+  Computing - 30th International Symposium, {DISC}}}.
+  \bibinfo{pages}{313--327}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Michael and Scott}{Michael and Scott}{1996}]%
+        {MichaelS-PODC1996}
+\bibfield{author}{\bibinfo{person}{Maged~M Michael} {and}
+  \bibinfo{person}{Michael~L Scott}.} \bibinfo{year}{1996}\natexlab{}.
+\newblock \showarticletitle{Simple, fast, and practical non-blocking and
+  blocking concurrent queue algorithms}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the fifteenth annual ACM symposium
+  on Principles of distributed computing}}. \bibinfo{pages}{267--275}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Timnat and Petrank}{Timnat and
+  Petrank}{2014}]%
+        {TimnatP-PPoPP2014}
+\bibfield{author}{\bibinfo{person}{Shahar Timnat} {and} \bibinfo{person}{Erez
+  Petrank}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{A Practical Wait-free Simulation for Lock-free Data
+  Structures}. In \bibinfo{booktitle}{\emph{Proceedings of the 19th ACM SIGPLAN
+  Symposium on Principles and Practice of Parallel Programming (PPoPP)}}.
+  \bibinfo{pages}{357--368}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Venkataraman, Tolia, Ranganathan, and
+  Campbell}{Venkataraman et~al\mbox{.}}{2011}]%
+        {VenkataramanTRC-FAST2011}
+\bibfield{author}{\bibinfo{person}{Shivaram Venkataraman},
+  \bibinfo{person}{Niraj Tolia}, \bibinfo{person}{Parthasarathy Ranganathan},
+  {and} \bibinfo{person}{Roy~H Campbell}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Consistent and Durable Data Structures for
+  Non-Volatile Byte-Addressable Memory.}. In \bibinfo{booktitle}{\emph{FAST}},
+  Vol.~\bibinfo{volume}{11}. \bibinfo{pages}{61--75}.
+\newblock
+
+
+\end{thebibliography}
